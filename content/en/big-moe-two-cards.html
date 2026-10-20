@@ -19,3 +19,6 @@
 <p class="note">The prompt cache holds a prompt's state, not the model's weights: it was not the cause of the freeze. Two memories with similar names; turn off only the one you have measured.</p>
 <p class="note">The first turn after loading still pays the full prompt. After switching to a big model, play one turn yourself before an agent or a person uses it.</p>
 <p class="note">Make the dangerous settings impossible to come back: our deployment test refuses a configuration with the prompt cache at 0, and we checked that the test turns red when someone tries.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://doi.org/10.1162/neco.1991.3.1.79" rel="noopener">Jacobs, Jordan, Nowlan, Hinton (1991), Adaptive Mixtures of Local Experts</a></li><li><a href="https://arxiv.org/abs/1701.06538" rel="noopener">Shazeer et al. (2017), Outrageously Large Neural Networks: the sparsely-gated mixture-of-experts layer</a></li></ul>

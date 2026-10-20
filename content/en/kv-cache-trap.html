@@ -25,3 +25,6 @@
 <h2>Traps</h2>
 <p class="note">The other cause of re-reading is a prompt cache turned off. With <code>--cache-ram 0</code>, the server forgets the start of the conversation and re-reads it at each turn (see <a href="/big-moe-two-cards.html">the 177B on two cards</a>).</p>
 <p class="note">Running Claude Code on a local model? For a model name it does not know, it assumes a 200,000-token window and compacts too late; and automatic compaction only arms above 100,000. Set <code>CLAUDE_CODE_MAX_CONTEXT_TOKENS</code> to your server's real window (see <a href="/agent-claude-code.html">Claude Code, two ways</a>).</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://arxiv.org/abs/1706.03762" rel="noopener">Vaswani et al. (2017), Attention Is All You Need</a></li><li><a href="https://github.com/ggml-org/llama.cpp/tree/master/tools/server" rel="noopener">llama.cpp server documentation</a></li></ul>

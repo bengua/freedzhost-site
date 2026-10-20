@@ -30,3 +30,6 @@
 <p class="note">Oubliez <code>scripts/apply-patches.sh</code> après la mise à jour du sous-module, et la compilation échoue loin dedans, sur des membres manquants, ce qui ressemble à une mauvaise version du sous-module. Ce n'en est pas une. Le lancer deux fois ne casse rien.</p>
 <p class="note">Un commentaire placé entre deux lignes d'une continuation <code>\</code> coupe la commande en silence : notre appel à CMake a perdu ses options CUDA, et <code>bash -n</code> trouvait le fichier correct. Seule l'exécution du script l'a révélé ; le test vérifie désormais les arguments que CMake reçoit vraiment.</p>
 <p class="note">Certaines familles de modèles ne sont pas prises en charge (l'attention à fenêtre glissante, par exemple) : elles restent sur llama.cpp seul.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://arxiv.org/abs/2609.04852" rel="noopener">KVMem paper</a></li><li><a href="https://github.com/kvmem/kvmem" rel="noopener">KVMem + llama.cpp, upstream repository</a></li></ul>

@@ -37,3 +37,6 @@ action   = iptables-multiport[name=npm, port="80,443", protocol=tcp, chain="DOCK
 <h2>Traps</h2>
 <p class="note">Do not ban your own network. Add your local range and your private network to <code>ignoreip</code>, or a misbehaving script at home locks you out of your own services.</p>
 <p class="note">A 404 alone is not an attack: a broken link on your site produces them too. Five in five minutes from the same address is a reasonable threshold; ban on your own logs for a week in "count only" mode first, and look at what would have been banned.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/fail2ban/fail2ban" rel="noopener">fail2ban, official repository</a></li></ul>

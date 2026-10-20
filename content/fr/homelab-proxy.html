@@ -45,3 +45,6 @@
 <p class="note">Épinglez une version plutôt que <code>:latest</code> : sinon une mise à jour arrive le jour où vous redémarrez, sans prévenir. Et n'ajoutez jamais <code>privileged: true</code> par habitude : un proxy n'a pas besoin du contrôle total de l'hôte.</p>
 <p class="note">Si les demandes de certificat échouent en boucle, arrêtez de réessayer : Let's Encrypt limite le nombre de certificats identiques par semaine. Corrigez d'abord la cause, en général le port 80 non redirigé ou un nom qui ne répond pas encore.</p>
 <p class="note">Vous testez depuis chez vous et le site ne répond pas ? Certaines box ne savent pas reboucler vers leur propre adresse publique. Testez depuis un téléphone en données mobiles avant de soupçonner le proxy.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://nginx.org/" rel="noopener">nginx</a></li><li><a href="https://nginxproxymanager.com/" rel="noopener">Nginx Proxy Manager</a></li><li><a href="https://letsencrypt.org/" rel="noopener">Let&#x27;s Encrypt</a></li></ul>

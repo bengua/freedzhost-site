@@ -143,3 +143,6 @@ nav a.support { color: #7ee2a8; }
   display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 .give-banner p { margin: 0; color: var(--muted); flex: 1 1 260px; }
 .give-banner .give { margin: 0; }
+.sources { font-size: .9rem; color: var(--muted); padding-left: 18px; }
+.sources a { color: var(--muted); }
+.sources a:hover { color: var(--accent); }

@@ -27,3 +27,6 @@ sudo systemctl restart systemd-zram-setup@zram0.service</code></pre>
 <p class="note">Stopping a model container that loaded its file with mmap does not give the RAM back: the file stays in the page cache (<code>buff/cache</code> in <code>free</code>). <code>sync; echo 3 | sudo tee /proc/sys/vm/drop_caches</code> releases it, which we measured at 46 GB.</p>
 <p class="note">Four RAM sticks from two different kits ran at 3,600 MT/s instead of 6,000 on our board: about 40 % less bandwidth for a model that reads its experts from RAM at every token. Two matched sticks are often faster than four mixed ones.</p>
 <p class="note">Swap is not one rule for every machine. A database VM wants a low swappiness (keep its hot pages in RAM, swap is only a safety valve); a small VM with bursts wants the default. And <code>swapon --show</code> run without privileges prints nothing instead of an error: read <code>/proc/swaps</code>, which tells the truth. Test an <code>fstab</code> change with <code>swapoff -a &amp;&amp; swapon -a</code> instead of rebooting.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.kernel.org/admin-guide/blockdev/zram.html" rel="noopener">zram, Linux kernel documentation</a></li></ul>

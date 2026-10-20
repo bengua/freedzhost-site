@@ -20,3 +20,6 @@
 <h2>Traps we paid for</h2>
 <p class="note">It costs VRAM: about 1.7 GB on our card. Check that the model still has room for its computation buffers (see <a href="/gpu-grid.html">the GPU grid</a>).</p>
 <p class="note">On some requests, the speculative path crashed our server. What looked like several unrelated failures (agents dying after one answer, a dashboard showing the backend down, mode switches that "failed" after succeeding) was this one crash. If your containers do not restart by themselves on purpose, something must notice and reload them (see <a href="/n8n-route-and-heal.html">route and repair with guardrails</a>).</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://arxiv.org/abs/2211.17192" rel="noopener">Leviathan, Kalman, Matias (2022), Fast Inference from Transformers via Speculative Decoding</a></li><li><a href="https://arxiv.org/abs/2302.01318" rel="noopener">Chen et al. (2023), Accelerating Large Language Model Decoding with Speculative Sampling</a></li><li><a href="https://arxiv.org/abs/2404.19737" rel="noopener">Gloeckle et al. (2024), Better &amp; Faster Large Language Models via Multi-token Prediction</a></li></ul>

@@ -6,27 +6,45 @@
 <dt>Backup</dt><dd>A copy you can restore. A copy you have never restored is not yet a backup. See <a href="/homelab-backups.html">Homelab 5</a>.</dd>
 <dt>Certificate (HTTPS)</dt><dd>The digital ID card that lets a browser show the padlock. Let's Encrypt gives them for free. See <a href="/homelab-proxy.html">Homelab 2</a>.</dd>
 <dt>CI (continuous integration)</dt><dd>A machine that runs the tests automatically on every proposed change, and says green or red. See <a href="/homelab-forgejo.html">Homelab 8</a>.</dd>
+<dt>Compose (Docker Compose)</dt><dd>A small text file that describes one or several containers and how to start them, so that one command brings everything up.</dd>
 <dt>Container</dt><dd>A program packed with everything it needs, isolated from the rest of the machine. You start it, stop it, delete it without leaving traces. Docker is the usual tool.</dd>
 <dt>Context</dt><dd>How much text a model can keep in mind at once, counted in tokens. More context needs more VRAM.</dd>
-<dt>Compose (Docker Compose)</dt><dd>A small text file that describes one or several containers and how to start them, so that one command brings everything up.</dd>
+<dt>CSP (Content Security Policy)</dt><dd>A header that tells the browser which scripts, styles and images a page may load. The best single defence against injected scripts. See <a href="/web-exposure-audit.html">the audit</a>.</dd>
+<dt>DDoS</dt><dd>Distributed denial of service: many machines flooding one site until it cannot answer. Small floods can be filtered at home; big ones only upstream. See <a href="/ddos-at-home.html">resisting DDoS</a>.</dd>
 <dt>DNS</dt><dd>The internet's phone book: it turns a name like <code>freedzhost.cloud</code> into an address. See <a href="/homelab-adguard.html">Homelab 4</a>.</dd>
+<dt>DNSSEC</dt><dd>Signatures on DNS answers, so a resolver can tell a real answer from a forged one.</dd>
 <dt>GGUF</dt><dd>The file format of models for llama.cpp. One file holds the whole model, already compressed.</dd>
 <dt>GPU / graphics card</dt><dd>The card that computes images, and AI models, very fast. Its own memory is the VRAM.</dd>
 <dt>Homelab</dt><dd>Your own small data centre at home: one or a few machines running the services you would otherwise rent.</dd>
+<dt>HSTS</dt><dd>A header that tells the browser to always use HTTPS for a site, even if someone types http://.</dd>
 <dt>Hypervisor</dt><dd>Software that splits one physical machine into several virtual ones. Proxmox is one. See <a href="/homelab-proxmox.html">Homelab 1</a>.</dd>
+<dt>Idempotent</dt><dd>Running it twice changes nothing the second time. The property that makes a machine rebuildable. See <a href="/ansible-workstation.html">Ansible</a>.</dd>
+<dt>KV cache</dt><dd>The memory a model keeps of what it has already read, so it does not recompute it at every new token. See <a href="/kv-cache-trap.html">the KV cache trap</a>.</dd>
 <dt>LLM (large language model)</dt><dd>An AI model that reads and writes text. "Local" means it runs on your machine, not on someone's cloud.</dd>
+<dt>MCP (Model Context Protocol)</dt><dd>An open standard, published in 2024, for connecting tools and data sources to AI agents. One tool server can serve several agents.</dd>
 <dt>Model (weights)</dt><dd>The trained AI itself, a big file of numbers. "8B" means eight billion parameters: bigger is usually smarter and always heavier.</dd>
+<dt>MoE (mixture of experts)</dt><dd>A model made of many specialist sub-networks, of which only a few work on each token. It is why very large models can run at home. See <a href="/big-moe-two-cards.html">the 177B on two cards</a>.</dd>
 <dt>OCR</dt><dd>Reading text in an image: turning a scan into words you can search. See <a href="/homelab-paperless.html">Homelab 12</a>.</dd>
 <dt>Open source</dt><dd>Software whose code anyone can read, modify and share. "Fair-code" or "source available" is close, but with restrictions.</dd>
 <dt>Port</dt><dd>A numbered door on a machine. A web site usually answers on 443. Each open port is a door to keep closed unless it is needed.</dd>
+<dt>Prefill (prompt processing)</dt><dd>The first phase of an answer: the model reads the whole prompt. Often the one you wait for with agents. See <a href="/kv-cache-trap.html">the KV cache trap</a>.</dd>
 <dt>Private network (VPN)</dt><dd>An encrypted tunnel between your own devices, so your phone reaches home as if it were on the home Wi-Fi. See <a href="/homelab-remote.html">Homelab 6</a>.</dd>
 <dt>Proxy (reverse proxy)</dt><dd>The single entrance of your homelab: it receives every visitor, holds the certificates, and passes each request to the right service. See <a href="/homelab-proxy.html">Homelab 2</a>.</dd>
 <dt>Pull request (PR)</dt><dd>A proposed change to code, waiting to be reviewed and merged. Nobody, human or agent, should change the main branch without one.</dd>
 <dt>Quantisation (Q4, Q8…)</dt><dd>Compressing a model by storing its numbers with fewer bits. Q4 is smaller and a little less precise than Q8.</dd>
 <dt>RAG</dt><dd>Letting a model answer from your own documents: the relevant passages are found first, then given to the model with the question.</dd>
+<dt>Rate limiting</dt><dd>Capping how many requests one address may send per second. Stops password guessing and small floods. See <a href="/ddos-at-home.html">resisting DDoS</a>.</dd>
 <dt>Self-hosted</dt><dd>Run on your own machine instead of rented from a company.</dd>
+<dt>Skill</dt><dd>A written procedure an agent loads only when a task needs it. See <a href="/agent-skills.html">skills</a>.</dd>
+<dt>Snapshot</dt><dd>A frozen copy of a disk at one moment, taken in a second on copy-on-write file systems. See <a href="/snapshots.html">snapshots</a>.</dd>
+<dt>Speculative decoding</dt><dd>A small model guesses a few tokens ahead and the large one checks them in one pass: same text, faster. See <a href="/speculative-decoding.html">speculative decoding</a>.</dd>
+<dt>Tailnet</dt><dd>Your private Tailscale network: your devices, linked wherever they are. See <a href="/tailscale-backbone.html">Tailscale</a>.</dd>
+<dt>TLS</dt><dd>The encryption behind HTTPS. Versions 1.2 and 1.3 only; older ones are broken.</dd>
 <dt>Token</dt><dd>The unit a model reads and writes: roughly a short word or a piece of a word. Speeds are counted in tokens per second.</dd>
+<dt>Vibe coding</dt><dd>Describing what you want, letting a model write the code, judging by the result. See <a href="/vibe-coding-art.html">vibe coding and digital art</a>.</dd>
 <dt>VM (virtual machine)</dt><dd>A complete computer simulated inside a real one, with its own system. Many VMs can share one physical machine.</dd>
 <dt>VRAM</dt><dd>The graphics card's own memory. A model runs fast only if it fits in it. See <a href="/hardware.html">Hardware, honestly</a>.</dd>
+<dt>Wake-on-LAN</dt><dd>A network packet that switches a sleeping computer on. See <a href="/sleep-and-wake.html">sleep and wake</a>.</dd>
 <dt>Webhook</dt><dd>An address that triggers something when it is called. Sign it, or anyone who finds it can trigger it.</dd>
+<dt>WireGuard</dt><dd>A small, fast encrypted tunnel, part of the Linux kernel since 2020. The base of Tailscale.</dd>
 </dl>

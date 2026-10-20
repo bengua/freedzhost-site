@@ -37,3 +37,6 @@ action   = iptables-multiport[name=npm, port="80,443", protocol=tcp, chain="DOCK
 <h2>Pièges</h2>
 <p class="note">Ne bannissez pas votre propre réseau. Ajoutez votre plage locale et votre réseau privé à <code>ignoreip</code>, sinon un script capricieux à la maison vous enferme dehors de vos propres services.</p>
 <p class="note">Un 404 seul n'est pas une attaque : un lien cassé sur votre site en produit aussi. Cinq en cinq minutes depuis la même adresse est un seuil raisonnable ; commencez par une semaine en mode « compter seulement » sur vos journaux, et regardez ce qui aurait été banni.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/fail2ban/fail2ban" rel="noopener">fail2ban, official repository</a></li></ul>

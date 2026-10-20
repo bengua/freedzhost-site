@@ -33,3 +33,6 @@ journalctl -k -b | grep -i "available PCIe bandwidth"</code></pre>
 <h2>Pièges</h2>
 <p class="note">Un lien lent n'échoue pas, il ralentit tout en silence. N'attribuez pas non plus le gain à la mauvaise cause : notre gros modèle est passé de 26,1 à 55,6 jetons par seconde cette semaine-là, et une mesure intermédiaire a montré que le x16 n'en expliquait qu'une partie (voir <a href="/fr/big-moe-two-cards.html">le 177B sur deux cartes</a>).</p>
 <p class="note">Une carte externe doit être allumée avant le PC : le système ne recense que les périphériques présents à la mise sous tension.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.kernel.org/PCI/sysfs-pci.html" rel="noopener">Linux kernel, PCI sysfs documentation</a></li></ul>

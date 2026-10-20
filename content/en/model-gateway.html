@@ -26,3 +26,6 @@
 <li><strong>A small micro-batch.</strong> <code>-ub 128</code> made the model read prompts at 21.9 tokens per second. An agent's harness weighs about 8,000 tokens: six minutes before the first word. The agent timed out, retried, and every retry read the prompt again. Measure prompt speed, not only generation speed.</li>
 </ol>
 <p class="note">Read the server's own counters before blaming the network: llama.cpp's <code>/slots</code> showed the request holding the only slot, and <code>/metrics</code> the deferred ones.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/BerriAI/litellm" rel="noopener">LiteLLM, official repository</a></li></ul>

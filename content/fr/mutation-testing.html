@@ -24,3 +24,6 @@
 <p class="note">Dans les tests shell, <code>OUT=$(ma_fonction)</code> exécute la fonction dans un sous-shell : un code de sortie qu'elle y range est perdu, et chaque scénario de refus passe au vert. Faites passer la sortie par un fichier et gardez le code de sortie dans le shell courant.</p>
 <p class="note">Un mutant qui survit n'est pas toujours un défaut : certains changements ne peuvent être détectés par aucun test (un « mutant équivalent »). Lisez un score bas comme une couverture, pas comme une note, et regardez chaque survivant avant de conclure.</p>
 <p class="note">Des données de test écrites de mémoire ne prouvent rien sur le vrai système : nos tests étaient verts sur des données inventées pendant que le code lisait des champs qui n'existaient pas dans la vraie réponse de l'API. Construisez vos données de test à partir de réponses mesurées.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://doi.org/10.1109/C-M.1978.218136" rel="noopener">DeMillo, Lipton, Sayward (1978), Hints on Test Data Selection</a></li></ul>

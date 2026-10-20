@@ -26,3 +26,6 @@
 <li><strong>Un micro-batch trop petit.</strong> <code>-ub 128</code> faisait lire les prompts à 21,9 jetons par seconde. Le harnais d'un agent pèse environ 8 000 jetons : six minutes avant le premier mot. L'agent expirait, réessayait, et chaque nouvelle tentative relisait le prompt. Mesurez la vitesse de lecture du prompt, pas seulement celle de génération.</li>
 </ol>
 <p class="note">Lisez les compteurs du serveur lui-même avant d'accuser le réseau : <code>/slots</code> de llama.cpp montrait la requête qui tenait l'unique emplacement, et <code>/metrics</code> celles qui attendaient.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/BerriAI/litellm" rel="noopener">LiteLLM, official repository</a></li></ul>

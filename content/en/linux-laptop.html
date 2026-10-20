@@ -21,3 +21,6 @@
 <p class="note"><strong>"100 % brightness" was the dimmest setting.</strong> On some laptop panels the driver overflows near the top of its range: past a threshold, the value wraps to zero and the screen drops to its minimum. We lived with a dim screen thinking it was at full brightness. Check: write increasing values to the backlight and read <code>actual_brightness</code>; if it falls to 0 near the top, cap your brightness keys just below that point.</p>
 <p class="note"><strong>The top bar vanished and a reboot did not bring it back.</strong> It had been hidden through a menu entry, and the setting is a file on disk, so it survives reboots by design. <code>omarchy toggle bar off</code> brings it back in two seconds (the wording is inverted: "bar off" removes the "hidden" flag).</p>
 <p class="note"><strong>A keyboard-typing tool is not a shortcut.</strong> Tools that type text into the desktop do not trigger its keyboard shortcuts. To script an action, call the command behind the shortcut, not the keys.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://omarchy.org/" rel="noopener">Omarchy</a></li><li><a href="https://hyprland.org/" rel="noopener">Hyprland</a></li></ul>

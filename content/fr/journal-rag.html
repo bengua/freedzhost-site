@@ -20,3 +20,6 @@
 <p class="note"><strong>L'index vit en mémoire.</strong> Notre service chargeait chaque index une fois et le gardait toute sa vie : réindexer mettait à jour le disque, pas les réponses. Redémarrez le service après chaque indexation, dans la même tâche.</p>
 <p class="note"><strong>L'orphelin.</strong> Une vieille copie du service gardait le port. La nouvelle échouait à démarrer, en boucle, et l'orphelin continuait de répondre avec un index de 40 heures : le redémarrage « réussissait », la santé était au vert. Le signe : tous les résultats avaient le même score, 1,0, donc le classement n'était plus que l'ordre des fichiers. Vérifiez qui tient vraiment le port (<code>ss -lntp</code>), et arrêtez l'orphelin par son PID, jamais par un motif de nom.</p>
 <p class="note"><strong>La mémoire.</strong> La réindexation montait à 1 Go sur une VM de 2 Go sans swap, et le système la tuait, à chaque fois, en silence. 2 Go de swap ont réglé le problème sans toucher à la RAM de la VM.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://arxiv.org/abs/2005.11401" rel="noopener">Lewis et al. (2020), Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks</a></li></ul>

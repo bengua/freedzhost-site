@@ -28,3 +28,6 @@ snapper -c home undochange 42..0 $HOME/.ssh/config</code></pre>
 <p class="note">If the cleanup timer is not running, snapshots pile up forever. Ours had collected more than 800; deleted files kept their space because old snapshots still held them. Enabling the cleanup gave back more than 200 GB at once.</p>
 <p class="note">Do not leave Docker's data inside a snapshotted volume. Every snapshot keeps the images you delete, so removing a 160 GB model store freed 5 GB. Give <code>/var/lib/docker</code> its own btrfs subvolume, which snapshots skip.</p>
 <p class="note">Large model files belong in a folder that is not snapshotted, for the same reason: a 40 GB download you delete should come back as free space, not stay in a snapshot for two weeks.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://btrfs.readthedocs.io/" rel="noopener">Btrfs documentation</a></li><li><a href="http://snapper.io/" rel="noopener">snapper</a></li></ul>

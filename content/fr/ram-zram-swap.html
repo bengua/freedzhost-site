@@ -27,3 +27,6 @@ sudo systemctl restart systemd-zram-setup@zram0.service</code></pre>
 <p class="note">Arrêter un conteneur de modèle qui a chargé son fichier par mmap ne rend pas la RAM : le fichier reste dans le cache de pages (<code>buff/cache</code> dans <code>free</code>). <code>sync; echo 3 | sudo tee /proc/sys/vm/drop_caches</code> le libère, ce que nous avons mesuré à 46 Go.</p>
 <p class="note">Quatre barrettes de deux kits différents tournaient à 3 600 MT/s au lieu de 6 000 sur notre carte mère : environ 40 % de bande passante en moins pour un modèle qui lit ses experts en RAM à chaque jeton. Deux barrettes appairées sont souvent plus rapides que quatre mélangées.</p>
 <p class="note">Le swap n'est pas une règle unique pour toutes les machines. Une VM qui porte une base de données veut une swappiness basse (garder ses pages chaudes en RAM, le swap n'est qu'une soupape) ; une petite VM avec des pics veut la valeur par défaut. Et <code>swapon --show</code> lancé sans privilèges n'affiche rien au lieu d'une erreur : lisez <code>/proc/swaps</code>, qui dit la vérité. Testez un changement de <code>fstab</code> avec <code>swapoff -a &amp;&amp; swapon -a</code> plutôt qu'en redémarrant.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.kernel.org/admin-guide/blockdev/zram.html" rel="noopener">zram, Linux kernel documentation</a></li></ul>

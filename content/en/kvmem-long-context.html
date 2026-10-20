@@ -30,3 +30,6 @@
 <p class="note">Skip <code>scripts/apply-patches.sh</code> after the submodule update and the build fails deep inside, on missing members, which looks like a wrong submodule version. It is not. Running it twice is safe.</p>
 <p class="note">A comment placed between two lines of a <code>\</code> continuation silently cuts the command: our CMake call lost its CUDA flags and <code>bash -n</code> said the file was fine. Only running the script caught it; the test now checks the arguments CMake really receives.</p>
 <p class="note">Some model families are not supported (sliding-window attention, for instance): they stay on plain llama.cpp.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://arxiv.org/abs/2609.04852" rel="noopener">KVMem paper</a></li><li><a href="https://github.com/kvmem/kvmem" rel="noopener">KVMem + llama.cpp, upstream repository</a></li></ul>
