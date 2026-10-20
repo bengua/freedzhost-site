@@ -230,8 +230,43 @@ def proxmox(lang):
     return figure("proxmox", 720, 285, L["cap"], body)
 
 
+# ── homelab 2: one public entrance, many private services ───────────────────
+def proxy(lang):
+    L = {
+        "en": labels(cap="One entrance. The box forwards only 80 and 443 to the proxy; the proxy reads the requested name and passes the request to the right service on your network. The admin port 81 never leaves home.",
+                     net="internet", dns="DNS: *.yourdomain → your public IP", box="Your box", bsub="forwards 80, 443",
+                     npm="Reverse proxy", nsub="HTTPS, certificates", home="your network",
+                     svc=[("site", "port 8096"), ("forge", "port 3000"), ("photos", "port 2283")],
+                     host="by requested name", admin="admin :81, LAN only", le="Let's Encrypt checks port 80"),
+        "fr": labels(cap="Une seule entrée. La box ne transmet que 80 et 443 au proxy ; le proxy lit le nom demandé et passe la requête au bon service de votre réseau. Le port d'administration 81 ne sort jamais de la maison.",
+                     net="Internet", dns="DNS : *.votredomaine → votre IP publique", box="Votre box", bsub="transmet 80, 443",
+                     npm="Proxy inverse", nsub="HTTPS, certificats", home="votre réseau",
+                     svc=[("site", "port 8096"), ("forge", "port 3000"), ("photos", "port 2283")],
+                     host="selon le nom demandé", admin="admin :81, LAN seulement", le="Let's Encrypt vérifie le port 80"),
+    }[lang]
+    body = t(60, 30, L["net"], 12, "middle", MUTED)
+    body += t(60, 48, "visitor", 11, "middle", MUTED) if lang == "en" else t(60, 48, "visiteur", 11, "middle", MUTED)
+    body += t(20, 250, L["dns"], 11, "start", MUTED)
+    body += f'<rect x="170" y="14" width="590" height="215" rx="12" fill="none" stroke="{LINE}" stroke-dasharray="6 5"/>'
+    body += t(186, 34, L["home"], 11, "start", MUTED)
+    body += box(10, 90, 100, 50, "https://", None)
+    body += box(190, 90, 120, 50, L["box"], L["bsub"])
+    body += box(370, 90, 150, 50, L["npm"], L["nsub"], stroke=ACCENT)
+    body += arrow(110, 115, 188, 115, "443", lx=150, ly=107)
+    body += arrow(310, 115, 368, 115)
+    for i, (name, port) in enumerate(L["svc"]):
+        y = 44 + i * 58
+        body += box(610, y, 130, 46, name, port)
+        body += arrow(520, 115, 608, y + 23, None, ACCENT, marker="acc")
+    body += t(675, 222, L["host"], 11, "middle", ACCENT)
+    body += t(445, 162, L["admin"], 11, "middle", MUTED)
+    body += t(250, 162, L["le"], 11, "middle", MUTED)
+    return figure("proxy", 770, 265, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
-            "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox}
+            "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
+            "proxy": proxy}
 
 
 def render(name, lang):
