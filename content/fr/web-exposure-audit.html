@@ -1,0 +1,60 @@
+<!-- {"title": "Avant d'ouvrir un site web à internet : un audit de sécurité en dix contrôles", "summary": "Nous avons audité un site auto-hébergé avant de lui faire confiance, sans rien attaquer : en-têtes, chiffrement, DNS, les voisins qui partagent sa porte, les outils censés le défendre. Le site était propre ; ce qui l'entourait non, et l'outil de bannissement n'avait jamais banni personne. La méthode, les commandes, et le correctif de chaque constat.", "order": 93, "series": "homelab", "level": "intermediate", "time": "2 h", "requires": ["homelab-proxy", "homelab-fail2ban"]} -->
+<p class="lead">Un site web à la maison se fait rarement pirater par le site lui-même. Il se fait pirater par ce qui partage sa porte : une console d'administration publiée par habitude, un outil qui tourne en root, une défense installée mais qui ne marche pas. Nous avons audité l'un des nôtres avec rien d'autre que de la lecture et de la mesure, sans aucune attaque. Le site a passé l'examen. Trois choses à côté de lui, non, et nous les avons refermées la nuit même.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Un audit non destructif que vous pouvez mener sur votre propre site en deux heures, la commande de chaque contrôle, et le correctif de chaque constat classique. Appliqué ici, il a fait apparaître un éditeur de code à distance tournant en root et ouvert à internet, et un outil de bannissement qui avait reconnu 0 ligne de journal sur 67 079. Les deux sont corrigés : les consoles d'administration répondent désormais 403 depuis l'extérieur, et le filtre réparé a banni son premier scanner en quelques minutes.</p>
+
+<h2>1. Regarder comme un visiteur : les en-têtes</h2>
+<pre><code>curl -s -o /dev/null -D - https://votre-site.example/</code></pre>
+<ul>
+<li><code>Strict-Transport-Security</code> : impose HTTPS aux visiteurs qui reviennent. Souvent absent.</li>
+<li><code>Content-Security-Policy</code> : quels scripts, styles et images la page a le droit de charger. Le meilleur en-tête à lui seul contre les scripts injectés.</li>
+<li><code>X-Frame-Options: DENY</code>, <code>X-Content-Type-Options: nosniff</code>, <code>Referrer-Policy</code>, <code>Permissions-Policy</code>.</li>
+<li>Pas de version dans <code>Server</code> (<code>server_tokens off</code>).</li>
+</ul>
+<pre><code>Content-Security-Policy: default-src 'self'; img-src 'self' data:; script-src 'self';
+  style-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'</code></pre>
+<p class="note">Dans nginx, un <code>add_header</code> placé dans un bloc <code>location</code> annule tous les <code>add_header</code> du bloc serveur pour cet emplacement. Notre dossier <code>/media/</code> a perdu ainsi ses en-têtes de sécurité, sans bruit. Mettez les en-têtes dans un fichier et incluez-le partout.</p>
+
+<h2>2. Le chiffrement</h2>
+<pre><code>for v in tls1 tls1_1 tls1_2 tls1_3; do echo | openssl s_client -connect votre-site.example:443 -$v 2&gt;&amp;1 | grep -m1 Protocol; done</code></pre>
+<p>Seuls TLS 1.2 et 1.3 doivent répondre. Vérifiez aussi les noms des certificats : l'un des hôtes examinés servait un certificat fait pour un autre nom, que tout navigateur refuse.</p>
+
+<h2>3. Le DNS</h2>
+<ul>
+<li><strong>DNSSEC</strong> : les réponses sont-elles signées ? Une requête DNS sur HTTPS montre le drapeau <code>AD</code>.</li>
+<li><strong>CAA</strong> : quelles autorités ont le droit d'émettre un certificat pour votre domaine. Sans lui, toutes le peuvent.</li>
+<li><strong>SPF et DMARC</strong> : sans DMARC, n'importe qui peut envoyer des mails en se faisant passer pour votre domaine.</li>
+<li><strong>Un enregistrement joker</strong> (<code>*.votre-site.example</code>) envoie chez vous n'importe quel nom inventé : remplacez-le par des enregistrements explicites.</li>
+</ul>
+<pre><code>curl -s -H 'accept: application/dns-json' "https://cloudflare-dns.com/dns-query?name=votre-site.example&amp;type=CAA"</code></pre>
+
+<h2>4. Les voisins : tout ce qui est derrière la même porte</h2>
+<p>Listez chaque nom publié par votre proxy inverse, et demandez-vous pour chacun : <em>qui, à part moi, en a besoin depuis internet ?</em> Les consoles d'administration (le panneau du proxy lui-même, un filtre DNS, un hyperviseur, un éditeur de code web) jamais. Placez-les derrière une liste d'accès qui n'autorise que votre réseau local et votre réseau privé, en un clic dans Nginx Proxy Manager.</p>
+<p class="note">Le pire cas rencontré : un éditeur de code web tournant en root sur la machine qui héberge la forge de code, protégé par un simple mot de passe. Un terminal web ne doit jamais tourner en root, et jamais être sur internet.</p>
+
+<h2>5. L'outil de bannissement bannit-il vraiment ?</h2>
+<p>Une prison fail2ban peut être activée, en marche, et aveugle. Testez le filtre contre votre vrai journal :</p>
+<pre><code>fail2ban-regex /var/log/npm/proxy-host-1_access.log /etc/fail2ban/filter.d/npm.conf
+# Lines: 67079 lines, 0 ignored, 0 matched   &lt;- aveugle</code></pre>
+<p>Deux pièges expliquaient notre zéro. D'abord, fail2ban <strong>retire la date</strong> de chaque ligne avant d'appliquer le filtre : un motif qui commence par la date ne correspond donc jamais. Ensuite, Nginx Proxy Manager écrit l'adresse du client à la fin, pas au début. Un filtre qui marche sur son format :</p>
+<pre><code>[Definition]
+failregex = \] - (?:401|403|404|429) \d+ - \S+ \S+ \S+ "[^"]*" \[Client &lt;HOST&gt;\]
+
+[npm]
+ignoreip = 127.0.0.1/8 YOUR-LAN/24 YOUR-TAILNET-RANGE</code></pre>
+<p class="note">La ligne <code>ignoreip</code> compte : une fois réparé, le filtre reconnaissait des milliers de lignes, et beaucoup venaient de nos propres machines (un exécutant de CI qui recevait des 404). Sans elle, la prison réparée bannirait votre propre infrastructure. Avec Docker, bannissez dans la chaîne <code>DOCKER-USER</code> (voir <a href="/fr/homelab-fail2ban.html">fail2ban</a>).</p>
+
+<h2>6. Lire les journaux une fois</h2>
+<p>Comptez ce qui vous arrive. Sur le site audité : 9 901 requêtes répondues en 401, 403 ou 404 sur environ 76 000, et des centaines de recherches de <code>/.env</code> et <code>/.git/config</code>, venues de serveurs cloud. Ce sont des robots qui cherchent des secrets oubliés : vérifiez que ces chemins n'existent pas dans ce que vous publiez, et bannissez dès la première sonde.</p>
+
+<h2>7. Le reste de la liste</h2>
+<ol>
+<li><strong>Le moindre privilège</strong> : aucun service web en root ; les ports des conteneurs liés à <code>127.0.0.1</code> derrière le proxy.</li>
+<li><strong>Un pare-feu d'hôte</strong> sur la machine du proxy : 80 et 443 pour tous, le reste pour votre réseau privé seulement.</li>
+<li><strong>Regarder de l'extérieur</strong> : depuis un téléphone en données mobiles, scannez votre adresse publique. Des ports qui semblent ouverts depuis la maison peuvent n'être que votre box qui se répond à elle-même.</li>
+<li><strong>Des limites de débit et des délais courts</strong> au proxy, contre le devinage de mots de passe et les inondations (voir <a href="/fr/ddos-at-home.html">résister aux DDoS à la maison</a>).</li>
+</ol>
+
+<h2>Pièges</h2>
+<p class="note">Auditez sans attaquer : lire les en-têtes, le DNS et votre propre configuration trouve la plupart des problèmes. Ne scannez ni ne testez jamais le site de quelqu'un d'autre sans autorisation écrite.</p>
+<p class="note">Écrivez l'audit, et gardez le rapport privé tant que les correctifs ne sont pas en place : c'est une carte pour qui le lit.</p>
