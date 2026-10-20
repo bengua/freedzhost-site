@@ -34,11 +34,10 @@ table { border-collapse: collapse; width: 100%; font-size: .95rem; }
 .table { overflow-x: auto; }
 th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: left; }
 footer { color: var(--muted); font-size: .85rem; padding-block: 40px; border-top: 1px solid var(--line); margin-top: 60px; }
-.shots { margin: 20px 0; display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+.shots { margin: 20px 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
 .shots img { width: 100%; border-radius: 10px; border: 1px solid var(--line); display: block; }
-.shots img:first-child { grid-column: 1 / -1; }
 .shots .phone { max-width: 260px; justify-self: center; }
-@media (max-width: 560px) { .shots { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .shots { grid-template-columns: 1fr 1fr; } }
 .player { width: min(1080px, calc(100vw - 32px)); position: relative; left: 50%; transform: translateX(-50%); margin: 32px 0 40px; }
 .term { background: linear-gradient(180deg, #1e1c25, #17161c); border: 1px solid #34303f; border-radius: 14px; overflow: hidden;
   box-shadow: 0 30px 80px -30px rgba(242, 140, 56, .35), 0 0 0 1px rgba(255, 255, 255, .02) inset; }
