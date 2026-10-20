@@ -6,7 +6,7 @@
 <h2>1. Copy 1: every night, on another disk</h2>
 <p>In Proxmox (Homelab 1), <strong>Datacenter → Backup → Add</strong>: every guest, every night, to a storage on a separate disk. Our retention keeps 7 daily and 4 weekly points:</p>
 <pre><code>keep-daily=7, keep-weekly=4</code></pre>
-<p>We used to keep three points in total. One bad night noticed late and they were all gone: count how many days you would need to notice a problem, then double it.</p>
+<p>We used to keep three points in total: a problem noticed three days late and every point would have held it. Count how many days you would need to notice a problem, then double it.</p>
 <p class="note">An external disk survives a dead motherboard. But it stays mounted and written by the server: anything that destroys through the server reaches it too. That is what copy 2 is for.</p>
 
 <h2>2. Copy 2: pulled with a key that can only read</h2>
