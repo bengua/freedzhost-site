@@ -1,0 +1,32 @@
+<!-- {"title": "billion-context: a context-compression proxy, measured honestly", "summary": "A local proxy that sits between your coding agent and its model and promises to stretch the context. We installed it carefully, plugged it into Claude Code, Kimi Code and OpenFox, and measured. Below 100k tokens it saved nothing, and once it cost three times more. When it might help, and how to try it without risk.", "order": 76, "series": "agents", "level": "advanced", "time": "1 h", "requires": ["agent-context-floor", "agent-kimi-code"]} -->
+<p class="lead">billion-context is an open-source proxy: your agent talks to it instead of its model, and it rewrites the conversation on the way, giving the model tools to compress and recall what is old. The promise is long sessions without hitting the window. We do not adopt a tool on a promise: we measured it on the three agents we use.</p>
+
+<p class="proof"><strong>What you get.</strong> A clear answer before you spend an evening on it: no gain under about 100,000 tokens of context, a real extra cost in some cases, and the safe way to install, plug in and remove it if you want to try on long sessions.</p>
+
+<h2>1. Install it tightly</h2>
+<ul>
+<li>Pin the version and install without running package scripts (<code>npm install --ignore-scripts</code>): its only dependency is a validation library.</li>
+<li>Run it as a user service bound to the machine itself, with <code>NoNewPrivileges</code> and <code>ProtectSystem=strict</code>.</li>
+<li>Turn off automatic updates and the "check for news" calls in its configuration.</li>
+</ul>
+
+<h2>2. Plug it in, one agent at a time</h2>
+<ul>
+<li><strong>Claude Code</strong>: point <code>ANTHROPIC_BASE_URL</code> at the proxy, with a direct fallback if it does not answer. Works with a subscription; no token appears in its log.</li>
+<li><strong>Kimi Code</strong>: changing the address does not work, because Kimi stores its login under a key derived from that address, and loses it. Use the proxy's native plugin instead: it adds a separate provider that keeps the same login key.</li>
+<li><strong>OpenFox</strong>: one switch, the model address it uses.</li>
+</ul>
+
+<h2>3. What we measured</h2>
+<table>
+<tr><th>Test</th><th>Direct</th><th>Through the proxy</th></tr>
+<tr><td>Claude, 40 files read in parallel</td><td>$0.19</td><td>$0.62: the proxy changes the start of the prompt, so the model's cache starts cold</td></tr>
+<tr><td>Kimi, a chain of 30 files</td><td>132 s, correct</td><td>102 s, correct, but 13 % more data sent and no compression triggered in 31 requests</td></tr>
+<tr><td>OpenFox, a chain of 40 files on a local 27B</td><td>stopped at 15 files</td><td>stopped at 13 files, 60 % more prompt reading</td></tr>
+</table>
+<p>Verdict: under about 100,000 tokens, nothing to gain and a small cost (its own tool descriptions add about 17 KB to each request). Its expected effect is on small local windows, 32k to 64k, on very long sessions: still to be shown. We put every agent back on its direct route.</p>
+
+<h2>Traps</h2>
+<p class="note">A proxy that rewrites the prompt breaks the provider's prompt cache. On a subscription billed by tokens, that alone can triple a bill.</p>
+<p class="note">Do not copy an agent's login token to make a proxy work: tokens that renew themselves can invalidate the original. Use a mechanism that shares the existing login.</p>
+<p class="note">Keep a one-line way back: an environment variable or <code>plugin remove</code>. Ours were used the same evening.</p>

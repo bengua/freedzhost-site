@@ -1,0 +1,41 @@
+<!-- {"title": "Omarchy en profondeur : l'étendre sans casser les mises à jour, et cinq « bugs » qui n'en sont pas", "summary": "Omarchy fait d'Arch et Hyprland un poste de travail prêt à l'emploi. Étendre son menu de la façon prévue, et cinq comportements étranges rencontrés, chacun avec sa vraie cause : un écran sombre à « 100 % », une barre qui disparaît pour de bon, quatre sortes de barres de titre, une transparence laiteuse, une entrée de menu qu'on ne peut pas presser.", "order": 78, "series": "desk", "level": "intermediate", "time": "1 h", "requires": ["linux-laptop"]} -->
+<p class="lead">Omarchy est une configuration assumée d'Arch Linux et du gestionnaire de fenêtres Hyprland : installez-la et vous avez un poste rapide, piloté au clavier. Elle se met à jour souvent, et ses mises à jour écrasent ses propres fichiers. La règle qui en découle : ne rien changer dans ses dossiers, étendre depuis les vôtres. Et quand quelque chose semble cassé, chercher la cause avant de réinstaller.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Vos propres entrées dans le menu d'Omarchy, qui survivent à chaque mise à jour, et le diagnostic de cinq comportements étranges en une ligne chacun, au lieu des soirées qu'ils nous ont coûtées.</p>
+
+<h2>1. Étendre le menu depuis votre dossier</h2>
+<p>Le menu livré (<code>/usr/share/omarchy/default/omarchy/omarchy-menu.jsonc</code>) se lit, ne se modifie jamais : la prochaine mise à jour le réécrit. Vos entrées vont dans <code>~/.config/omarchy/extensions/omarchy-menu.jsonc</code> :</p>
+<pre><code>{
+  "setup.default.agent.openfox": {
+    "icon": "", "label": "OpenFox",
+    "description": "Agent de code local",
+    "action": "omarchy launch webapp https://openfox.lan"
+  }
+}</code></pre>
+<p>L'identifiant est un chemin à points, et <strong>son parent, c'est le menu</strong> : <code>setup.default.agent.openfox</code> atterrit dans le sous-menu « Default Agent ». Réutiliser un identifiant existant étend cette entrée au lieu de la remplacer. <code>omarchy menu refresh</code> recharge.</p>
+<p class="note">Le réglage « agent par défaut » ne connaît que des binaires lancés dans un terminal, tirés d'une liste fixe. Une web app peut s'ajouter au menu, pas devenir l'agent par défaut.</p>
+
+<h2>2. « Luminosité 100 % » et un écran sombre</h2>
+<p>Sur la dalle de notre portable, le pilote déborde près du maximum : au-delà d'environ 60 300 sur 65 535, la valeur repasse à 0 et l'écran tombe au minimum. « 100 % » était le réglage le plus sombre. Le correctif reste en espace utilisateur : un petit script qui plafonne la valeur brute à 60 200, et les touches de luminosité réaffectées dessus.</p>
+<p class="note">Sondez valeur par valeur (<code>/sys/class/backlight/*/brightness</code>, puis lisez <code>actual_brightness</code>) avant d'accuser le bureau.</p>
+
+<h2>3. La barre disparue, même après redémarrage</h2>
+<p>La barre du haut n'est pas morte : un drapeau sur disque, <code>~/.local/state/omarchy/toggles/bar-off</code>, la fait glisser hors de l'écran, et il survit aux redémarrages par construction. Une seule entrée de menu le pose, facile à choisir par mégarde au clavier. La commande est inversée, ce qui coûte un aller-retour :</p>
+<pre><code>omarchy toggle bar off      # fait REVENIR la barre</code></pre>
+
+<h2>4. Quatre barres de titre, quatre propriétaires</h2>
+<table>
+<tr><th>Ce qu'on voit</th><th>Qui la dessine</th><th>Ce qui l'enlève</th></tr>
+<tr><td>un cadre autour d'une fenêtre</td><td>Hyprland</td><td><code>general:border_size = 0</code></td></tr>
+<tr><td>une barre d'adresse au-dessus d'une fenêtre surgissante</td><td>le navigateur, dans la page</td><td>rien depuis la page</td></tr>
+<tr><td>une barre de titre sur une fenêtre d'appli</td><td>Chromium, dans sa surface</td><td><code>--disable-features=WaylandWindowDecorations</code></td></tr>
+<tr><td>une barre de titre sur une web app <em>installée</em></td><td>Chromium, à cause de <code>display: standalone</code></td><td><code>"display_override": ["window-controls-overlay"]</code> dans le manifeste</td></tr>
+</table>
+<p class="note">C'est la façon d'ouvrir l'appli qui décide laquelle on subit : un lanceur <code>--app=URL</code> n'a pas de barre ; l'icône de l'appli installée en a une tant que son manifeste ne demande pas autre chose. Chromium garde le manifeste en cache : redémarrez-le pour voir le changement.</p>
+
+<h2>5. Une transparence qui rend le texte laiteux</h2>
+<p>L'opacité des fenêtres de Hyprland s'applique à toute la fenêtre : le compositeur reçoit une image finie et ne distingue pas le fond du texte. Tout devient laiteux. Pour un fond transparent avec un texte net, réglez l'opacité dans l'application elle-même (l'opacité de fond du terminal), et laissez le compositeur à 1,0.</p>
+
+<h2>Pièges</h2>
+<p class="note">Ne redémarrez jamais le service des terminaux depuis une session de terminal qui compte : il ferme tous les terminaux, y compris celui où tourne votre agent.</p>
+<p class="note">Un outil d'envoi de touches tape du texte ; il ne déclenche pas les raccourcis de Hyprland. Pour tester un menu sans voir l'écran, appelez-le par commande, tapez la recherche, et prenez une capture.</p>

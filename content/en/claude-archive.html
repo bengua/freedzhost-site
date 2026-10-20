@@ -1,0 +1,42 @@
+<!-- {"title": "Take your Claude.ai history home: claude-archive, step by step", "summary": "Your conversations with Claude.ai, as files on your disk: one Markdown file per conversation, every code block as a real file, a checklist of attachments to fetch by hand, and a manifest that proves nothing was lost. One script, no dependency, no network.", "order": 79, "series": "desk", "level": "beginner", "time": "20 min", "requires": []} -->
+<p class="lead">Months of conversations with an AI hold decisions, code and explanations you will want again. The official export gives them back, but as one big JSON file. claude-archive turns it into a folder you can read, search, index and keep under version control, and tells you exactly what the export could not give.</p>
+
+<p class="proof"><strong>What you get.</strong> Your whole history, readable offline, in date order, with every snippet of code extracted as a file, and a count that proves the archive is complete. Ready to feed a <a href="/journal-rag.html">local search over your notes</a>.</p>
+
+<h2>1. Ask for the export</h2>
+<p>On Claude.ai: <em>Settings → Privacy → Export data</em>. You receive a link by e-mail to one or several ZIP files.</p>
+
+<h2>2. Run the script</h2>
+<pre><code>chmod +x claude_archive.py
+python3 claude_archive.py ~/Downloads/data-XXXX-batch-0000.zip -o ./old-claude
+# or an already unzipped folder, anything that contains conversations.json
+python3 claude_archive.py ~/Downloads/my-export -o ./old-claude</code></pre>
+<p>Python 3.10 or newer, standard library only: nothing to install, nothing sent anywhere.</p>
+<p class="note">Several ZIPs (<code>batch-0000</code>, <code>batch-0001</code>…)? Give each its own output folder: the numbering restarts at 1 for each run and the names would collide.</p>
+
+<h2>3. What you get</h2>
+<pre><code>old-claude/
+├── conversations/          one .md per conversation, numbered and dated
+├── code/&lt;conversation&gt;/     every code block as a real file (.py, .html, .yml…)
+├── TODO_attachments.md     the attachments to fetch by hand, with a link to each conversation
+└── manifest.json           index, completeness counts, warnings</code></pre>
+<p>Code blocks are extracted <em>and</em> kept in the text, so each conversation still reads whole.</p>
+
+<h2>4. Check that nothing was lost</h2>
+<ul>
+<li>The summary prints <code>conversations: N -&gt; N</code>: the two numbers must be equal.</li>
+<li>Warnings should be few; empty or untitled conversations are the usual harmless case.</li>
+</ul>
+<pre><code>python3 -c "import json; print('\n'.join(json.load(open('old-claude/manifest.json'))['warnings']))"</code></pre>
+
+<h2>5. Fetch what the export leaves out</h2>
+<p>The export has the text, not the binary attachments. A companion script narrows the list down to the files Claude generated (documents, spreadsheets, archives), the ones you can only download by hand:</p>
+<pre><code>python3 recover_generated.py old-claude/manifest.json
+# -&gt; RECOVER_generated.md: a checklist grouped by conversation, with direct links</code></pre>
+
+<h2>Limits</h2>
+<ul>
+<li>No binary attachments in the export: they are listed, not rebuilt.</li>
+<li>Memory and chat summaries are not part of it: export them separately from the settings.</li>
+<li>Deleted conversations are not included, and project membership is not in the export.</li>
+</ul>
