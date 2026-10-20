@@ -1,0 +1,35 @@
+<!-- {"title": "Homelab 4 : bloquer pubs et traceurs pour toute la maison avec AdGuard Home", "summary": "Un seul serveur DNS pour tous les appareils, téléphones et TV compris. Et la réécriture locale qui garde vos propres services à la maison.", "order": 12} -->
+<p class="lead">Chaque appareil de votre réseau demande à un serveur DNS où trouver un nom avant de s'y connecter. Répondez vous-même à ces questions et vous décidez de ce qui passe : les domaines de pub et de pistage n'obtiennent rien, sur chaque téléphone, TV et console, sans rien installer dessus. AdGuard Home est un serveur DNS open source fait exactement pour ça.</p>
+
+{{diagram:dns}}
+
+<h2>1. Le lancer</h2>
+<p>Sur une petite VM ou un conteneur (Homelab 1), depuis l'image officielle, version épinglée :</p>
+<pre><code>services:
+  adguardhome:
+    image: adguard/adguardhome:v0.107.79
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "3000:3000/tcp"
+    volumes:
+      - ./work:/opt/adguardhome/work
+      - ./conf:/opt/adguardhome/conf</code></pre>
+<p>Ouvrez <code>http://&lt;adresse&gt;:3000</code> pour l'assistant d'installation : choisissez le port d'administration et un compte administrateur. Si la même machine fait déjà tourner votre proxy HTTPS sur le port 80, donnez un autre port web à AdGuard dans l'assistant.</p>
+
+<h2>2. Y brancher la maison</h2>
+<p>Dans les réglages DHCP de votre box, mettez l'adresse d'AdGuard comme serveur DNS. Chaque appareil qui renouvelle son bail commence à l'utiliser. Vérifiez dans le tableau de bord d'AdGuard que les requêtes arrivent.</p>
+
+<h2>3. L'amont : chiffré</h2>
+<p>Pour les noms qu'il ne bloque pas, AdGuard interroge un résolveur amont. Choisissez-en un en DNS-over-HTTPS, pour que votre fournisseur ne voie plus vos requêtes en clair, par exemple <code>https://dns.quad9.net/dns-query</code>.</p>
+
+<h2>4. La réécriture locale</h2>
+<p>Dans <strong>Filters → DNS rewrites</strong>, faites pointer votre propre domaine vers l'adresse <strong>locale</strong> du proxy (<code>*.votredomaine.tld</code> → l'IP LAN du proxy). Sans elle, vos appareils joignent vos propres services en passant par votre adresse publique, un détour que certaines box refusent et qui contourne le filtrage. Avec elle, le trafic interne reste à la maison, et vos services marchent même quand Internet est coupé.</p>
+
+<h2>Pièges</h2>
+<p class="note">Sur Ubuntu et les autres systèmes avec systemd-resolved, le port 53 est déjà pris par son relais local et le conteneur ne démarre pas. La documentation officielle explique comment désactiver ce relais d'abord.</p>
+<p class="note">Votre DNS devient un point de panne unique : s'il s'arrête, toute la maison « perd Internet ». Gardez-le sur une machine toujours allumée, sauvegardez sa configuration, et sachez remettre le DNS de la box en deux clics.</p>
+<p class="note">N'ouvrez jamais le port 53 sur Internet : un résolveur ouvert est utilisé par d'autres pour des attaques par amplification.</p>
+<p class="note">Sur un portable, réglez le DNS par connexion réseau plutôt que globalement : à la maison il utilise AdGuard, ailleurs le DNS du réseau visité reprend la main et rien ne casse.</p>
+<p class="note">Ajoutez des listes de blocage avec parcimonie. Une liste défaillante peut bloquer une banque ou une page de connexion ; quand quelque chose ne charge plus, regardez d'abord le journal des requêtes.</p>
