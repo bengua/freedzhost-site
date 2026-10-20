@@ -6,9 +6,13 @@ import pytest
 
 import site_build
 
+# Generic on purpose: this file must not itself name the infrastructure it protects.
 LEAK = re.compile(
-    r"192\.168\.\d+\.\d+|100\.\d+\.\d+\.\d+|tailb0ff14|ts\.net|/home/zordur|zordur\.fr"
-    r"|benoit\.guarnaccia|cachyos-x8664|mindhub|sentinelle"
+    r"\b(?:10|192\.168|172\.(?:1[6-9]|2\d|3[01]))\.\d+\.\d+(?:\.\d+)?\b"  # private IPv4
+    r"|\b100\.(?:6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d+\.\d+\b"  # CGNAT, as used by tailnets
+    r"|\btail[0-9a-f]{6,}\b"  # a real tailnet name
+    r"|/home/[a-z]"  # a home directory
+    r"|[\w.+-]+@[\w-]+\.[\w.]+"  # any e-mail address
 )
 
 

@@ -1,0 +1,32 @@
+<!-- {"title": "Homelab 6 : rejoindre la maison de partout sans ouvrir de port", "summary": "Seuls les sites publics passent par la box. L'administration, les modèles et les services privés passent par un réseau privé chiffré.", "order": 14} -->
+<p class="lead">Chaque port ouvert sur Internet est scanné dans les heures qui suivent. Ouvrez-en donc le moins possible : 80 et 443, vers le proxy HTTPS, pour les sites vraiment publics (Homelab 2). Pour tout le reste, pages d'administration, modèles d'IA, vos notes, montez un réseau privé entre vos propres appareils. Depuis un café ou un train, votre téléphone rejoint la maison comme s'il était sur votre canapé, et Internet ne voit rien.</p>
+
+{{diagram:remote}}
+
+<h2>Deux façons de le monter</h2>
+<ul>
+<li><strong>WireGuard</strong>, seul : le protocole VPN moderne, rapide et audité, intégré au noyau Linux. Un port UDP redirigé vers une machine toujours allumée, une paire de clés par appareil. Entièrement auto-hébergé, un peu plus manuel.</li>
+<li><strong>Tailscale</strong> : WireGuard plus l'échange automatique des clés et la traversée des NAT, donc aucun port à ouvrir. Le service de coordination est hébergé par Tailscale ; si vous voulez aussi cette partie à la maison, <strong>Headscale</strong> en est un remplaçant open source. Votre trafic lui-même va d'appareil à appareil, chiffré.</li>
+</ul>
+<p>Nous utilisons Tailscale pour le confort ; les étapes ci-dessous l'utilisent. Les principes sont les mêmes avec WireGuard seul.</p>
+
+<h2>1. Relier vos appareils</h2>
+<pre><code>curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up</code></pre>
+<p>Faites-le sur chaque serveur, puis installez l'app sur votre téléphone et votre portable avec le même compte. Chaque appareil reçoit une adresse privée et un nom.</p>
+<p class="note">Sur les serveurs, désactivez l'expiration des clés dans la console d'administration. Sinon, des mois plus tard, un serveur sort en silence de votre réseau privé, en général le jour où vous êtes loin.</p>
+
+<h2>2. Publier un service sur votre réseau privé seulement</h2>
+<p>Laissez le service écouter sur la machine elle-même (<code>127.0.0.1</code>), puis publiez-le en HTTPS, pour vos appareils seulement :</p>
+<pre><code>tailscale serve --bg 8765</code></pre>
+<p>Le service est maintenant sur <code>https://&lt;machine&gt;.&lt;votre-tailnet&gt;.ts.net</code>, avec un vrai certificat, joignable depuis vos appareils et nulle part ailleurs. Le HTTPS compte plus qu'il n'y paraît : les navigateurs refusent le micro, la caméra et certaines API en HTTP simple, et c'est ainsi que nous servons notre console vocale au téléphone.</p>
+
+<h2>3. Ou ouvrir un port côté privé seulement</h2>
+<p>Pour un service qui doit écouter sur le réseau (une API pour vos autres machines), laissez le pare-feu l'accepter depuis l'interface privée seulement :</p>
+<pre><code>sudo ufw allow in on tailscale0 to any port 4000 proto tcp</code></pre>
+<p>C'est ainsi que notre passerelle de modèles est joignable par chaque machine du réseau privé, et par rien sur le réseau de la maison ni sur Internet.</p>
+
+<h2>Pièges</h2>
+<p class="note"><code>tailscale serve</code> reste privé ; <code>tailscale funnel</code> publie sur tout Internet. Un mot d'écart : relisez avant d'appuyer sur Entrée.</p>
+<p class="note">Un service qui écoute sur <code>0.0.0.0</code> est joignable depuis chaque réseau où se trouve la machine, y compris votre Wi-Fi et ses invités. Liez-le à <code>127.0.0.1</code>, ou filtrez par interface.</p>
+<p class="note">Un réseau privé ne dispense pas de mots de passe : un téléphone volé et déverrouillé est dedans. Gardez l'authentification sur chaque service.</p>

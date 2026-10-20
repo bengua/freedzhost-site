@@ -422,11 +422,37 @@ def backups(lang):
     return figure("backups", 760, 240, L["cap"], body)
 
 
+# ── homelab 6: two doors, one public, one private ───────────────────────────
+def remote(lang):
+    L = {
+        "en": labels(cap="Two doors. The public one opens 80 and 443, to the HTTPS proxy only. Everything else, administration included, goes through the private network: your devices reach home, the internet sees nothing.",
+                     scan="Anyone on the internet", box="Your box", bsub="80, 443 only", proxy="HTTPS proxy",
+                     phone="Your phone, laptop", psub="anywhere", tn="private network (WireGuard)", home="Home services",
+                     hsub="admin, models, notes", closed="admin ports: closed", pub="public sites"),
+        "fr": labels(cap="Deux portes. La publique n'ouvre que 80 et 443, vers le proxy HTTPS seulement. Tout le reste, administration comprise, passe par le réseau privé : vos appareils rejoignent la maison, Internet ne voit rien.",
+                     scan="N'importe qui sur Internet", box="Votre box", bsub="80, 443 seulement", proxy="Proxy HTTPS",
+                     phone="Votre téléphone, portable", psub="de partout", tn="réseau privé (WireGuard)", home="Services de la maison",
+                     hsub="admin, modèles, notes", closed="ports d'admin : fermés", pub="sites publics"),
+    }[lang]
+    body = box(20, 40, 180, 54, L["scan"], None)
+    body += box(290, 40, 150, 54, L["box"], L["bsub"])
+    body += box(540, 40, 200, 54, L["proxy"], L["pub"])
+    body += arrow(200, 67, 288, 67)
+    body += arrow(440, 67, 538, 67)
+    body += arrow(200, 85, 538, 190, None, BAD, dash=True, marker="bad")
+    body += t(480, 140, L["closed"], 11, "middle", BAD)
+    body += box(20, 190, 180, 54, L["phone"], L["psub"], stroke=GOOD)
+    body += box(540, 190, 200, 54, L["home"], L["hsub"])
+    body += arrow(200, 217, 538, 217, L["tn"], GOOD, marker="good", lx=370, ly=240)
+    return figure("remote", 760, 260, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
             "gpu": gpu_split, "stream": stream, "wake": wake,
-            "dns": dns, "backups": backups}
+            "dns": dns, "backups": backups,
+            "remote": remote}
 
 
 def render(name, lang):
