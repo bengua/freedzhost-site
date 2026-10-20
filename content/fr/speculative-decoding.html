@@ -3,6 +3,9 @@
 
 {{diagram:mtp}}
 
+<h2>Un peu d'histoire</h2>
+<p>Le décodage spéculatif a été publié en 2022 et 2023 par des équipes de Google et de DeepMind : un petit modèle rapide devine plusieurs jetons d'avance, et le gros modèle les vérifie tous en un seul passage, en gardant ceux avec lesquels il est d'accord. Le résultat est exactement ce que le gros modèle aurait écrit, seulement plus vite. La prédiction multi-jetons (MTP) va plus loin : le modèle lui-même est entraîné à proposer les quelques jetons suivants.</p>
+
 <h2>1. La bonne façon de l'activer</h2>
 <p>Avec un build de llama.cpp qui le prend en charge, et un fichier de modèle qui contient des tenseurs MTP :</p>
 <pre><code>--spec-type draft-mtp --spec-draft-n-max 5</code></pre>

@@ -3,6 +3,9 @@
 
 {{diagram:ram}}
 
+<h2>Un peu d'histoire</h2>
+<p>Le swap, écrire des pages de mémoire sur le disque quand la RAM manque, est aussi vieux que la mémoire virtuelle. zram, intégré au noyau Linux en 2014, propose une autre voie : un bloc de RAM compressé utilisé comme swap, si bien que les pages sont tassées plutôt qu'écrites sur un disque lent. C'est rapide et gratuit, mais c'est toujours de la RAM : trop grand, il vole les modèles mêmes qu'il devait aider.</p>
+
 <h2>Voleur 1 : un zram à la taille de toute la RAM</h2>
 <p>zram, c'est du swap compressé en RAM. Certaines distributions le dimensionnent par défaut à toute la RAM. Sur un bureau normal, il compresse environ trois pour un et c'est une bonne affaire. Sur une machine IA, ce qui part en swap, ce sont les pages du fichier du modèle, déjà compressées par la quantification : le nôtre compressait à 1,14 pour un. zram occupait 35,8 Go de vraie RAM pour en économiser 5, et ces pages étaient justement le cache qui gardait le modèle rapide.</p>
 <p>Vérifiez, puis plafonnez-le dans <code>/etc/systemd/zram-generator.conf</code> (qui prime sur le fichier de la distribution) :</p>

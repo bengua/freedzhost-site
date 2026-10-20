@@ -3,6 +3,9 @@
 
 {{diagram:f2b}}
 
+<h2>Un peu d'histoire</h2>
+<p>fail2ban date de 2004. Son idée n'a pas vieilli : lire les journaux, compter les échecs par adresse, et quand une adresse échoue trop souvent, ajouter contre elle une règle de pare-feu pour un temps. Il ne connaît rien aux attaques ; il ne connaît que des motifs dans les lignes de journal, ce qui explique qu'un motif qui ne correspond pas à votre format de journal le laisse aveugle sans bruit.</p>
+
 <h2>1. Un filtre pour les journaux du proxy</h2>
 <p>Pour Nginx Proxy Manager, un filtre qui attrape les erreurs et les requêtes refusées :</p>
 <pre><code># filter.d/npm-docker.conf

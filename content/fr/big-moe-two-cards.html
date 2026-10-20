@@ -3,6 +3,9 @@
 
 {{diagram:placement}}
 
+<h2>Un peu d'histoire</h2>
+<p>L'idée du mélange d'experts est plus ancienne que l'apprentissage profond : Jacobs, Jordan, Nowlan et Hinton l'ont décrite en 1991, un ensemble de spécialistes et une porte qui choisit lequel consulter. En 2017, une équipe de Google l'a rendue clairsemée et immense : des milliers d'experts, quelques-uns seulement actifs par jeton. C'est pourquoi un modèle de 177 milliards de paramètres peut tourner à la maison : l'essentiel se repose pendant le calcul de chaque jeton.</p>
+
 <h2>1. L'emplacement d'abord, le débit ensuite</h2>
 <p>Notre modèle était réparti sur les deux cartes, et la grosse carte faisait tourner son lien PCIe en x4 au lieu de x16. Corriger le lien seul n'a rien donné : 26,1 avant, 22,1 après. L'essentiel du modèle vivait toujours sur la seconde carte, derrière son propre lien de quatre lignes. Regrouper le modèle sur la grosse carte, en x16, a donné 55,6. Mesurez un changement à la fois, dans l'ordre, sinon vous attribuerez le gain au mauvais.</p>
 

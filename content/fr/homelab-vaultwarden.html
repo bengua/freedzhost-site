@@ -3,6 +3,9 @@
 
 {{diagram:vault}}
 
+<h2>Un peu d'histoire</h2>
+<p>Bitwarden, un gestionnaire de mots de passe libre, est apparu en 2016. En 2018, Daniel García a réécrit un serveur compatible en Rust, assez léger pour un Raspberry Pi ; appelé d'abord bitwarden_rs, il a été renommé Vaultwarden en 2021. Il parle le même protocole, si bien que les applis officielles de Bitwarden et ses extensions de navigateur fonctionnent avec lui sans changement.</p>
+
 <h2>Pourquoi le serveur peut être à la maison</h2>
 <p>Les apps Bitwarden chiffrent votre coffre sur l'appareil, avec une clé dérivée de votre mot de passe maître, avant d'envoyer quoi que ce soit. Le serveur stocke du chiffré qu'il ne sait pas lire. Un serveur volé laisse fuir des blocs chiffrés ; un mot de passe maître oublié, en revanche, vous enferme dehors pour de bon. Préparez-vous d'abord au second cas.</p>
 

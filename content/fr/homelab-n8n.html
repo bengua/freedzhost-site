@@ -3,6 +3,9 @@
 
 {{diagram:cascade}}
 
+<h2>Un peu d'histoire</h2>
+<p>n8n (« nodemation ») a été lancé en 2019 à Berlin par Jan Oberhauser, comme alternative auto-hébergeable aux services d'automatisation tels que Zapier et Make. Sa licence est dite « fair-code » : le code est ouvert et vous pouvez l'héberger gratuitement pour vous ou votre entreprise, mais pas le revendre comme service. Les workflows se dessinent en nœuds, et n'importe quel nœud peut être remplacé par du code quand le dessin ne suffit plus.</p>
+
 <h2>1. Lui donner sa propre petite VM</h2>
 <p>n8n exécute du JavaScript arbitraire et détient les identifiants de chaque service auquel il parle. Ne le mettez pas à côté de vos données personnelles (photos, papiers) : une petite VM à lui (Homelab 1), avec n8n et sa base PostgreSQL, version épinglée. Le nôtre utilise quelques centaines de Mo de RAM.</p>
 <pre><code>N8N_ENCRYPTION_KEY=&lt;une longue valeur aléatoire&gt;

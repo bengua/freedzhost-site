@@ -3,6 +3,9 @@
 
 {{diagram:snapshots}}
 
+<h2>Un peu d'histoire</h2>
+<p>btrfs a été lancé en 2007 par Chris Mason, alors chez Oracle, comme système de fichiers Linux moderne fondé sur la copie à l'écriture : les données ne sont jamais écrasées sur place, si bien qu'un instantané de tout le disque ne coûte presque rien et prend une seconde. snapper, développé chez SUSE, planifie ces instantanés et en prend un avant et après chaque modification du système.</p>
+
 <h2>1. Une configuration pour votre dossier personnel</h2>
 <p>Snapper gère les instantanés btrfs. Créez une configuration pour <code>/home</code>, autorisez votre utilisateur à s'en servir sans sudo, et gardez un historique raisonnable :</p>
 <pre><code>sudo snapper -c home create-config /home

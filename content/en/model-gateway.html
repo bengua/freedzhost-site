@@ -3,6 +3,9 @@
 
 {{diagram:gateway}}
 
+<h2>A bit of history</h2>
+<p>When OpenAI's chat API became the de facto standard in 2023, every local server started to imitate it: llama.cpp, Ollama, vLLM. A gateway such as LiteLLM, released that year, turned the idea around: one address that speaks the OpenAI and Anthropic formats to your tools, and routes each request to whichever model, local or hosted, sits behind a name.</p>
+
 <h2>1. One address</h2>
 <p>Agents, apps, the phone, Home Assistant: every client talks to the gateway, never to a model server directly. Keep the gateway on your private network (Homelab 6). When a model moves from one card to another, no client changes anything.</p>
 

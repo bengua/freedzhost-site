@@ -3,6 +3,9 @@
 
 {{diagram:cascade}}
 
+<h2>A bit of history</h2>
+<p>n8n ("nodemation") was started in 2019 in Berlin by Jan Oberhauser, as a self-hostable alternative to automation services such as Zapier and Make. Its licence is "fair-code": the source is open and you may host it for yourself or your company for free, but not resell it as a service. Workflows are drawn as nodes, and any node can be replaced by code when drawing is not enough.</p>
+
 <h2>1. Give it its own small VM</h2>
 <p>n8n runs arbitrary JavaScript and holds the credentials of every service it talks to. Do not put it next to your personal data (photos, papers): a small VM of its own (Homelab 1), with n8n and its PostgreSQL database, version pinned. Ours uses a few hundred MB of RAM.</p>
 <pre><code>N8N_ENCRYPTION_KEY=&lt;a long random value&gt;

@@ -3,6 +3,9 @@
 
 {{diagram:docker}}
 
+<h2>A bit of history</h2>
+<p>Docker, released in 2013, made a whole application ship as one image that runs the same everywhere. Graphics cards came later: a container does not see the host's devices by default. NVIDIA's container toolkit bridges the gap, and the newer Container Device Interface (CDI) describes devices in a plain file that any container runtime can read, which is also why that file must stay in step with the driver.</p>
+
 <h2>1. Docker</h2>
 <p>Docker's own convenience script installs the latest version. Docker documents it for test and development machines; for a production server, use the repository method of their documentation.</p>
 <pre><code>curl -fsSL https://get.docker.com -o get-docker.sh

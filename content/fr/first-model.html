@@ -1,6 +1,9 @@
 <!-- {"title": "Votre premier modèle local avec llama.cpp", "summary": "Télécharger un modèle ouvert, le servir sur votre carte, lui parler avec la même API que les grands clouds.", "order": 5, "series": "ai", "level": "beginner", "time": "30 min", "requires": ["docker-gpu"]} -->
 <p class="lead">llama.cpp est le moteur open source qui fait tourner la plupart des modèles locaux. Son serveur parle la même API que les grands fournisseurs du cloud : la plupart des outils peuvent l'utiliser sans modification.</p>
 
+<h2>Un peu d'histoire</h2>
+<p>En mars 2023, quelques jours après la diffusion des poids de LLaMA de Meta, Georgi Gerganov publiait llama.cpp : du C et du C++ tout simples qui faisaient tourner un grand modèle de langage sur le processeur d'un portable. La quantification, stocker les poids sur 4 ou 5 bits au lieu de 16, le faisait tenir dans une mémoire ordinaire. En août 2023, le projet a introduit le format de fichier GGUF, devenu la monnaie commune des modèles locaux.</p>
+
 <h2>1. Télécharger un modèle</h2>
 <p>Qwen3 8B, compressé sur 4 bits (Q4_K_M), 5,0 Go : il tient sur une carte de 8 Go.</p>
 <pre><code>mkdir -p ~/models

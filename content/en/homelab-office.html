@@ -3,6 +3,9 @@
 
 {{diagram:office}}
 
+<h2>A bit of history</h2>
+<p>Nextcloud was founded in 2016 by Frank Karlitschek and most of the developers of ownCloud, the project he had started in 2010, after a disagreement over its direction. It covers files, calendars, contacts and more. For documents edited in the browser, it plugs in an office suite such as OnlyOffice, so a spreadsheet opens and saves without leaving your server.</p>
+
 <h2>1. Nextcloud</h2>
 <p>Run the official Nextcloud image with a PostgreSQL database and Redis for caching, pin the major version, and publish it through your HTTPS proxy (Homelab 2). Behind a proxy, tell Nextcloud how it is reached, in <code>config/config.php</code>:</p>
 <pre><code>'trusted_domains' =&gt; ['cloud.yourdomain.tld'],

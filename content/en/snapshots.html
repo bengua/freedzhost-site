@@ -3,6 +3,9 @@
 
 {{diagram:snapshots}}
 
+<h2>A bit of history</h2>
+<p>btrfs was started in 2007 by Chris Mason, then at Oracle, as a modern Linux file system built on copy-on-write: data is never overwritten in place, so a snapshot of the whole disk costs almost nothing and takes a second. snapper, developed at SUSE, schedules those snapshots and takes one before and after each system change.</p>
+
 <h2>1. A configuration for your home folder</h2>
 <p>Snapper manages btrfs snapshots. Create a configuration for <code>/home</code>, allow your user to use it without sudo, and keep a reasonable history:</p>
 <pre><code>sudo snapper -c home create-config /home

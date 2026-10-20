@@ -3,6 +3,9 @@
 
 {{diagram:mutation}}
 
+<h2>A bit of history</h2>
+<p>Mutation testing was proposed by Richard Lipton in the early 1970s and formalised in 1978 with DeMillo and Sayward: to judge a test suite, plant small deliberate bugs in the code and see whether the tests notice. A surviving mutant is a bug your tests would have let through. Long considered too costly, it is cheap today, and more useful than ever when code is written by models.</p>
+
 <h2>1. The method</h2>
 <ol>
 <li>Run the tests on the real code: they must all be <strong>green</strong>. If one is already red, every mutation will look "caught" for an unrelated reason.</li>

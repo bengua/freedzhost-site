@@ -3,6 +3,9 @@
 
 {{diagram:mtp}}
 
+<h2>A bit of history</h2>
+<p>Speculative decoding was published in 2022 and 2023 by teams at Google and DeepMind: a small, fast model guesses several tokens ahead, and the large model checks them all in one pass, keeping the ones it agrees with. The output is exactly what the large model would have written, only faster. Multi-token prediction (MTP) goes further: the model itself is trained to propose the next few tokens.</p>
+
 <h2>1. The right way to turn it on</h2>
 <p>With a llama.cpp build that supports it, and a model file that contains MTP tensors:</p>
 <pre><code>--spec-type draft-mtp --spec-draft-n-max 5</code></pre>

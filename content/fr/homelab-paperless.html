@@ -3,6 +3,9 @@
 
 {{diagram:paper}}
 
+<h2>Un peu d'histoire</h2>
+<p>Paperless est né en 2015 comme le moyen d'un développeur de scanner, passer à l'OCR et oublier son courrier papier. La communauté l'a porté à travers deux forks, paperless-ng puis paperless-ngx en 2022, en ajoutant un classement par apprentissage automatique : les documents se rangent seuls par correspondant, type et étiquette dès qu'il en a vu quelques exemples.</p>
+
 <h2>1. Le lancer</h2>
 <p>Le projet publie des fichiers Docker Compose : Paperless avec PostgreSQL et Redis, et une variante avec Tika et Gotenberg pour lire aussi les documents Office et les e-mails. Prenez cette variante, épinglez la version, et réglez au minimum :</p>
 <pre><code>PAPERLESS_SECRET_KEY=&lt;une longue valeur aléatoire&gt;  # obligatoire : il refuse de démarrer sans

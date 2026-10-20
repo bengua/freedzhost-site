@@ -3,6 +3,9 @@
 
 {{diagram:errors}}
 
+<h2>A bit of history</h2>
+<p>Sentry began in 2008 as a small plugin for Django that collected errors from production code; it grew into the reference of error tracking, and its licence later changed. GlitchTip, started in 2020, is an open-source alternative that speaks Sentry's protocol, so the official Sentry libraries send their errors to it without any change in your code.</p>
+
 <h2>1. Run it</h2>
 <p>GlitchTip runs as a web container, PostgreSQL and Valkey (or Redis). Follow the official Docker Compose setup, pin the versions, and close sign-ups once your account exists. Two settings saved us from a silent failure:</p>
 <ul>

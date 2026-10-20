@@ -3,6 +3,9 @@
 
 {{diagram:docker}}
 
+<h2>Un peu d'histoire</h2>
+<p>Docker, sorti en 2013, a permis d'expédier toute une application comme une seule image qui tourne pareil partout. Les cartes graphiques sont venues plus tard : un conteneur ne voit pas les périphériques de l'hôte par défaut. Le toolkit de conteneurs de NVIDIA fait le pont, et la plus récente Container Device Interface (CDI) décrit les périphériques dans un simple fichier que tout moteur de conteneurs sait lire, ce qui explique aussi pourquoi ce fichier doit rester au pas du pilote.</p>
+
 <h2>1. Docker</h2>
 <p>Le script d'installation de Docker installe la dernière version. Docker le réserve aux machines de test et de développement ; pour un serveur de production, utilisez la méthode par dépôt de leur documentation.</p>
 <pre><code>curl -fsSL https://get.docker.com -o get-docker.sh
