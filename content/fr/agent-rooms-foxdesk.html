@@ -1,0 +1,30 @@
+<!-- {"title": "Salles et FoxDesk : une conversation, n'importe quelle machine, n'importe quel agent", "summary": "Un contrôleur de salles rend chaque conversation d'agent durable et rejouable, sur plusieurs machines. Un cœur d'agents libre, jamais modifié, avec vos agents branchés par adaptateurs. Et un client de bureau servi sur chaque poste, pour qu'une machine en panne ne vous coupe jamais.", "order": 50, "series": "agents", "level": "advanced", "time": "un week-end", "requires": ["agent-swarmfox"]} -->
+<p class="lead">Une session de code vit dans un agent, sur une machine. Fermez l'appli, changez de machine ou laissez l'agent tourner toute la nuit, et vous perdez le fil. Les salles règlent ça : une salle est une conversation qui survit à la session, à l'appli et à l'écran qui l'ont lancée. FoxDesk est la fenêtre de bureau sur ces salles, à côté du téléphone.</p>
+
+{{diagram:wiring}}
+
+<h2>1. Un contrôleur de salles devant les agents</h2>
+<p>Notre contrôleur, CloudFoxRoom, se place devant plusieurs instances d'OpenFox, une par machine. C'est un petit programme sans autre dépendance que la bibliothèque standard du langage, et il :</p>
+<ul>
+<li>enregistre salles, demandes et événements dans SQLite (mode WAL : les lectures ne bloquent jamais les écritures) ;</li>
+<li>rend chaque création idempotente par un <code>request_id</code> : la même demande deux fois renvoie le même reçu ;</li>
+<li>garde un client par instance, aux erreurs isolées : une machine endormie ne masque jamais les autres ;</li>
+<li>tient une file par salle, que vous pouvez modifier, annuler, réordonner, mettre en pause ou interrompre ;</li>
+<li>diffuse les événements en SSE, avec rejeu depuis le dernier événement reçu après une coupure.</li>
+</ul>
+<p class="note">Le rejeu, c'est la fonction qu'on remarque. Le téléphone perd le réseau dans un ascenseur ; au retour, il demande « tout ce qui suit l'événement 412 » et la conversation est de nouveau entière.</p>
+
+<h2>2. Un cœur libre, jamais modifié</h2>
+<p>Pour les sessions multi-agents, nous utilisons le cœur d'un projet libre, cloudroom (Apache 2.0), qui fait déjà tourner Claude Code nativement. Notre règle : ne jamais modifier le cœur. Chaque agent qu'il ne connaît pas (Kimi, les modèles locaux par la passerelle) est branché par un <strong>adaptateur</strong> hors du cœur, qui parle le même protocole qu'un harnais natif. Les mises à jour amont s'installent alors sans fusion.</p>
+
+<h2>3. FoxDesk : le client de bureau</h2>
+<p>FoxDesk est un client web servi par chaque poste, pas par un seul serveur. Si une machine tombe, les autres pilotent encore le parc. Un petit serveur local devant lui injecte le jeton côté serveur : le navigateur ne détient jamais de secret.</p>
+<p>Deux règles le rendent digne de confiance :</p>
+<ul>
+<li><strong>Ce qui n'est pas câblé est grisé, avec la raison.</strong> Un bouton qui ne fait encore rien est affiché désactivé, avec « non câblé : le cœur n'envoie pas d'état pour ceci ». Jamais de donnée factice, jamais de bouton qui ne fait rien en silence.</li>
+<li><strong>La mascotte est une jauge.</strong> L'humeur de FoxBot est calculée à partir de sondes réelles (santé, charge, une tâche qui vous attend), jamais une animation décorative.</li>
+</ul>
+
+<h2>Pièges</h2>
+<p class="note">N'affichez jamais un identifiant ou un horodatage brut à un humain. Une salle se montre par son titre, son projet et « il y a 2 min ».</p>
+<p class="note">Ne réinventez pas les gestes du cœur. Si le cœur sait déplacer une session d'une machine à l'autre, appelez-le ; ne le simulez pas dans l'interface.</p>
