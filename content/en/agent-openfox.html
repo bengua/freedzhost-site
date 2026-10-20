@@ -1,0 +1,28 @@
+<!-- {"title": "OpenFox: a coding agent built for local models", "summary": "The everyday agent: an open-source coding assistant designed for models running on your own card. Install it, point it at your gateway, keep its tool list small, and test it the only way that counts: in a real session.", "order": 46, "series": "agents", "level": "beginner", "time": "30 min", "requires": ["model-gateway"]} -->
+<p class="lead">Most coding agents are built for a frontier model in the cloud and merely tolerate a local one. OpenFox is the reverse: an open-source (MIT) assistant designed first for models served on your own machine. It is the agent we open for everyday work, at no cost per token.</p>
+
+{{diagram:agents}}
+
+<h2>1. Where it sits</h2>
+<p>OpenFox talks to an OpenAI-compatible endpoint. Do not point it at one model server: point it at your <a href="/model-gateway.html">model gateway</a>. The gateway knows which model is loaded on which card, and OpenFox only knows one stable address and one model name.</p>
+<pre><code>npm install -g openfox      # Node 20 or newer
+openfox                     # first run: choose the provider, enter the gateway address</code></pre>
+<p class="note">Run it on the machine that has the cards, and reach it from elsewhere (laptop, phone) through your private network. The agent then reads and writes files where the work is, not over a network share.</p>
+
+<h2>2. Follow the model that is actually loaded</h2>
+<p>On a single home server, the model changes: a large one for code in the evening, a small one while a game or an image job holds the card. If OpenFox keeps asking for a model that is no longer loaded, every request fails. We run a small follower that reads which model each card declares and rewrites OpenFox's default model to match. The rule: the agent's configuration follows the hardware, never the reverse.</p>
+
+<h2>3. Keep the tool list small</h2>
+<p>Each tool an agent can call is described in every request. Our first turn weighed 8,455 tokens before the user had typed a word, most of it tool descriptions. With a 32k window on a small model, that is a quarter gone. What worked:</p>
+<ul>
+<li>one permanent tool server (MCP) instead of five;</li>
+<li>tools loaded on demand, when the task needs them;</li>
+<li>a short system prompt: the model's attention is the scarce resource.</li>
+</ul>
+
+<h2>4. Test it where it is used</h2>
+<p>A model that answers a <code>curl</code> is not a working agent. The only proof is a session inside OpenFox where the model calls a tool (reads a file, runs a test) and uses the result. We counted several "it works" that failed at the first real tool call: the model answered text but never produced a valid tool call in the agent's format.</p>
+
+<h2>Traps</h2>
+<p class="note">Never let two processes write the agent's configuration file at the same time. Two parallel tool-server registrations left us with a corrupted <code>config.json</code> and an agent that would not start. Register tools one at a time, and keep a copy of the file before changing it.</p>
+<p class="note">A small model that loops on the same command is not stubborn, it has lost its context. Shorten the task, not the patience: one file, one change, one test.</p>

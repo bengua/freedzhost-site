@@ -1241,6 +1241,31 @@ def apk(lang):
     return figure("apk", 760, 215, L["cap"], body)
 
 
+# ── the agent stack: who does what ──────────────────────────────────────────
+def agents(lang):
+    L = {
+        "en": labels(cap="Three coding agents, three roles. OpenFox drives local models for everyday sessions. Claude Code runs both ways: on the subscription as the operations agent, and on local models as an isolated junior. Kimi Code takes the long or heavy tasks on its own subscription. All of them reach models through the same gateway or their vendor, never a private key in a script.",
+                     of="OpenFox", ofs="everyday sessions, local models", cc1="Claude Code", cc1s="operations agent, subscription",
+                     cc2="Claude Code", cc2s="junior, local models, isolated", km="Kimi Code", kms="long tasks, 1M context, subscription",
+                     gw="Model gateway", gws="local models", cloud="Vendors' clouds", clouds="subscriptions"),
+        "fr": labels(cap="Trois agents de code, trois rôles. OpenFox pilote les modèles locaux pour les sessions de tous les jours. Claude Code tourne des deux façons : sur l'abonnement comme agent d'exploitation, et sur les modèles locaux comme junior isolé. Kimi Code prend les tâches longues ou lourdes sur son propre abonnement. Tous rejoignent les modèles par la même passerelle ou par leur fournisseur, jamais par une clé privée dans un script.",
+                     of="OpenFox", ofs="sessions du quotidien, modèles locaux", cc1="Claude Code", cc1s="agent d'exploitation, abonnement",
+                     cc2="Claude Code", cc2s="junior, modèles locaux, isolé", km="Kimi Code", kms="tâches longues, contexte 1M, abonnement",
+                     gw="Passerelle de modèles", gws="modèles locaux", cloud="Clouds des fournisseurs", clouds="abonnements"),
+    }[lang]
+    body = box(20, 20, 230, 50, L["of"], L["ofs"], stroke=GOOD)
+    body += box(20, 90, 230, 50, L["cc2"], L["cc2s"], stroke=GOOD)
+    body += box(20, 160, 230, 50, L["cc1"], L["cc1s"], stroke=ACCENT)
+    body += box(20, 230, 230, 50, L["km"], L["kms"], stroke=ACCENT)
+    body += box(500, 55, 220, 54, L["gw"], L["gws"], stroke=GOOD)
+    body += box(500, 190, 220, 54, L["cloud"], L["clouds"], stroke=ACCENT)
+    body += arrow(250, 45, 498, 75, None, GOOD, marker="good")
+    body += arrow(250, 115, 498, 90, None, GOOD, marker="good")
+    body += arrow(250, 185, 498, 210, None, ACCENT, marker="acc")
+    body += arrow(250, 255, 498, 225, None, ACCENT, marker="acc")
+    return figure("agents", 740, 295, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -1257,7 +1282,7 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "mtp": mtp, "judge": judge, "rag": rag,
             "f2b": f2b, "errors": errors, "drift": drift, "secrets": secrets,
             "mutation": mutation, "browsers": browsers, "placement": placement, "escalation": escalation,
-            "apk": apk}
+            "apk": apk, "agents": agents}
 
 
 def render(name, lang):

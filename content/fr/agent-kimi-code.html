@@ -1,0 +1,17 @@
+<!-- {"title": "Kimi Code : les tâches longues, sur un serveur, depuis partout", "summary": "Un second agent hébergé avec un contexte d'un million de jetons, laissé tourner sur le serveur dans un multiplexeur de terminal et atteint depuis le portable ou le téléphone. Plus les deux pièges qui nous ont coûté une soirée : la limite de taille de la liste d'outils et une reprise liée au dossier.", "order": 48, "series": "agents", "level": "intermediate", "time": "30 min", "requires": ["agent-claude-code"]} -->
+<p class="lead">Kimi Code est l'agent de code de Moonshot, sur son propre abonnement, avec un contexte d'un million de jetons. Nous lui confions ce qui est long plutôt que difficile : lire un dépôt entier, une migration sur de nombreux fichiers, une tâche sur laquelle l'agent d'exploitation dépenserait son quota. Avoir deux agents hébergés, c'est aussi en garder un quand l'autre a épuisé son quota.</p>
+
+<h2>1. L'installer sur le serveur, pas sur le portable</h2>
+<pre><code>npm install -g @moonshot-ai/kimi-code
+kimi            # premier lancement : connexion au fournisseur géré</code></pre>
+<p>Lancez-le dans un multiplexeur de terminal sur la machine qui porte les dépôts, pour que la session survive au portable fermé :</p>
+<pre><code>tmux new -s kimi 'kimi'              # sur le serveur, une fois
+ssh -t serveur tmux attach -t kimi   # depuis le portable, à tout moment</code></pre>
+<p>Un alias d'une ligne sur le portable en fait un seul mot. Depuis un téléphone, la même commande marche dans n'importe quelle appli SSH, par votre réseau privé.</p>
+
+<h2>2. Dans un bac à sable quand il travaille seul</h2>
+<p>Quand une file confie une tâche à Kimi sans que vous regardiez (voir <a href="/hybrid-escalation.html">l'hybride par escalade</a>), faites-le tourner dans un bac à sable comme <code>bwrap</code> : le dépôt en lecture-écriture, le reste du système en lecture seule, aucun accès à vos clés. Il ne peut pas casser ce qu'il ne voit pas.</p>
+
+<h2>Pièges</h2>
+<p class="note">La liste d'outils a une limite de taille côté fournisseur. Avec un serveur d'outils qui exposait 170 outils, chaque requête revenait en <code>400 schema exceeds maximum allowed size</code>, ce qui ressemblait à « modèle injoignable ». Exposez moins d'outils, ou découpez le serveur.</p>
+<p class="note"><code>kimi --continue</code> reprend la dernière session du dossier courant. Lancé depuis un autre dossier, il ouvre une session neuve et vide, et vous croyez l'historique perdu. Reprenez toujours depuis le dossier où le travail a commencé.</p>

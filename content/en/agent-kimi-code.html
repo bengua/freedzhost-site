@@ -1,0 +1,17 @@
+<!-- {"title": "Kimi Code: the long tasks, on a server, from anywhere", "summary": "A second hosted agent with a one-million-token context, kept running on the server in a terminal multiplexer and reached from laptop or phone. Plus the two traps that cost us an evening: the tool-list size limit and a resume tied to the folder.", "order": 48, "series": "agents", "level": "intermediate", "time": "30 min", "requires": ["agent-claude-code"]} -->
+<p class="lead">Kimi Code is Moonshot's coding agent, on its own subscription, with a context of one million tokens. We give it what is long rather than hard: reading a whole repository, a migration across many files, a task the operations agent would spend its quota on. Having two hosted agents also means one is still there when the other's quota runs out.</p>
+
+<h2>1. Install it on the server, not on the laptop</h2>
+<pre><code>npm install -g @moonshot-ai/kimi-code
+kimi            # first run: sign in to the managed provider</code></pre>
+<p>Run it inside a terminal multiplexer on the machine that holds the repositories, so the session survives a closed laptop:</p>
+<pre><code>tmux new -s kimi 'kimi'              # on the server, once
+ssh -t server tmux attach -t kimi    # from the laptop, any time</code></pre>
+<p>A one-line alias on the laptop turns that into a single word. From a phone, the same command works in any SSH app over your private network.</p>
+
+<h2>2. In a sandbox when it runs alone</h2>
+<p>When a queue hands a task to Kimi without you watching (see <a href="/hybrid-escalation.html">hybrid by escalation</a>), run it in a sandbox such as <code>bwrap</code>: the repository read-write, the rest of the system read-only, no access to your keys. It cannot break what it cannot see.</p>
+
+<h2>Traps</h2>
+<p class="note">The tool list has a size limit on the provider's side. With one tool server exposing 170 tools, every request came back <code>400 schema exceeds maximum allowed size</code>, which looked like "model unreachable". Expose fewer tools, or split the server.</p>
+<p class="note"><code>kimi --continue</code> resumes the last session of the current folder. Started from another folder, it opens a new, empty session and you think the history is lost. Always resume from the folder where the work started.</p>
