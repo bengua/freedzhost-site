@@ -1,0 +1,43 @@
+<!-- {"title": "One fingerprint for the whole lab: sudo on the server, your vault on the laptop", "summary": "The laptop's fingerprint reader approves a sudo on another machine, and unlocks your password manager. A signed answer, a fresh random number per request, the private key never leaves the laptop, and the password always remains as a fallback.", "order": 57, "series": "desk", "level": "advanced", "time": "2 h", "requires": ["linux-laptop", "homelab-vaultwarden"]} -->
+<p class="lead">An agent on your server needs root for one command. Before, that meant opening a terminal and typing a long password, ten times a day. Now a notification appears on the laptop with the exact command, you touch the reader, done. The same finger unlocks your password manager. Nothing is weakened: the password still works, and is still the answer to any failure.</p>
+
+<p class="proof"><strong>What you get.</strong> Root approvals in one touch, with the command shown before you agree, for you and for your agents. In service here every day, with a two-second fallback to the password when the laptop is away.</p>
+
+{{diagram:finger}}
+
+<h2>1. The principle: ask, show, sign, verify</h2>
+<ol>
+<li>On the server, <code>sudo</code> runs its PAM stack. A first line calls a small program, before the usual password line.</li>
+<li>That program sends the laptop the command and a <strong>fresh random number</strong> (a nonce), over your private network only.</li>
+<li>The laptop shows a notification with the command. Your finger on the reader authorizes it to <strong>sign</strong> the nonce with a dedicated key.</li>
+<li>The server verifies the signature with the <strong>public</strong> key, the only one it holds. Valid: sudo continues. Anything else: the password line takes over.</li>
+</ol>
+<p class="note">The nonce is what makes it safe: an answer captured once is worthless the next time. And since the server only holds a public key, stealing the server gives no way to forge an approval.</p>
+
+<h2>2. The PAM line</h2>
+<pre><code># /etc/pam.d/sudo — first, before the include of the system stack
+auth sufficient pam_exec.so quiet /usr/local/lib/remote-approve/approve
+auth include system-auth</code></pre>
+<p><code>sufficient</code> means: if the program says yes, done; if it says no or fails, PAM moves on to the next line, the password. Never use <code>required</code> here: a laptop asleep would lock you out of root.</p>
+
+<h2>3. The laptop side</h2>
+<ul>
+<li>A small user service, started with the session, that listens only on the private network interface and only accepts the server's address; the firewall says the same.</li>
+<li>Its own signing key (ed25519), created for this purpose, never copied anywhere.</li>
+<li>The reader through <code>fprintd</code>: the service asks for a finger, and signs only if it matches.</li>
+</ul>
+<p>Measured fallbacks: laptop away, the password prompt appears in 2 seconds; no finger, after about 20 seconds.</p>
+
+<h2>4. The same finger for the password manager</h2>
+<p>The desktop Bitwarden app can unlock with "system authentication", which goes through polkit. Three pieces were needed on a Hyprland laptop:</p>
+<ul>
+<li>the polkit policy file for Bitwarden, which our distribution's package did not ship;</li>
+<li>a polkit agent running in the session (<code>hyprpolkitagent</code>), enabled as a user service;</li>
+<li>the native messaging manifest in the browser's folder, so the browser extension can talk to the app.</li>
+</ul>
+<p class="note">The extension's biometric unlock only works while the desktop app is <strong>open</strong>. Our first try failed for that reason alone.</p>
+
+<h2>Traps</h2>
+<p class="note">Test the program on its own before putting it in PAM, and keep a root shell open while you change <code>/etc/pam.d</code>. A typo there can lock you out.</p>
+<p class="note">A package update can drop a <code>sudo.pacnew</code> (or <code>.rpmnew</code>, <code>.dpkg-dist</code>) next to your file. Carry your line over, or it disappears at the next merge.</p>
+<p class="note">Do not let an agent change your PAM stack or your firewall. Run that step yourself.</p>

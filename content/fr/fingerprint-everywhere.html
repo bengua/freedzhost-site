@@ -1,0 +1,43 @@
+<!-- {"title": "Une empreinte pour tout le labo : sudo sur le serveur, votre coffre sur le portable", "summary": "Le lecteur d'empreintes du portable approuve un sudo sur une autre machine, et déverrouille votre gestionnaire de mots de passe. Une réponse signée, un nombre aléatoire neuf à chaque demande, une clé privée qui ne quitte jamais le portable, et le mot de passe toujours là en secours.", "order": 57, "series": "desk", "level": "advanced", "time": "2 h", "requires": ["linux-laptop", "homelab-vaultwarden"]} -->
+<p class="lead">Un agent sur votre serveur a besoin de root pour une commande. Avant, il fallait ouvrir un terminal et taper un long mot de passe, dix fois par jour. Maintenant une notification apparaît sur le portable avec la commande exacte, vous touchez le lecteur, c'est fait. Le même doigt déverrouille votre gestionnaire de mots de passe. Rien n'est affaibli : le mot de passe marche toujours, et reste la réponse à toute panne.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Des approbations root d'un seul toucher, avec la commande affichée avant votre accord, pour vous et pour vos agents. En service ici tous les jours, avec un repli sur le mot de passe en deux secondes quand le portable est absent.</p>
+
+{{diagram:finger}}
+
+<h2>1. Le principe : demander, montrer, signer, vérifier</h2>
+<ol>
+<li>Sur le serveur, <code>sudo</code> déroule sa pile PAM. Une première ligne appelle un petit programme, avant la ligne habituelle du mot de passe.</li>
+<li>Ce programme envoie au portable la commande et un <strong>nombre aléatoire neuf</strong> (un nonce), par votre réseau privé seulement.</li>
+<li>Le portable affiche une notification avec la commande. Votre doigt sur le lecteur l'autorise à <strong>signer</strong> le nonce avec une clé dédiée.</li>
+<li>Le serveur vérifie la signature avec la clé <strong>publique</strong>, la seule qu'il détient. Valide : sudo continue. Tout autre cas : la ligne du mot de passe prend le relais.</li>
+</ol>
+<p class="note">C'est le nonce qui rend le tout sûr : une réponse interceptée une fois ne vaut rien la fois suivante. Et comme le serveur ne détient qu'une clé publique, voler le serveur ne permet pas de fabriquer une approbation.</p>
+
+<h2>2. La ligne PAM</h2>
+<pre><code># /etc/pam.d/sudo — en premier, avant l'inclusion de la pile système
+auth sufficient pam_exec.so quiet /usr/local/lib/remote-approve/approve
+auth include system-auth</code></pre>
+<p><code>sufficient</code> veut dire : si le programme dit oui, c'est fini ; s'il dit non ou échoue, PAM passe à la ligne suivante, le mot de passe. N'utilisez jamais <code>required</code> ici : un portable endormi vous fermerait la porte de root.</p>
+
+<h2>3. Côté portable</h2>
+<ul>
+<li>Un petit service utilisateur, lancé avec la session, qui n'écoute que sur l'interface du réseau privé et n'accepte que l'adresse du serveur ; le pare-feu dit la même chose.</li>
+<li>Sa propre clé de signature (ed25519), créée pour cet usage, jamais copiée ailleurs.</li>
+<li>Le lecteur via <code>fprintd</code> : le service demande un doigt, et ne signe que s'il correspond.</li>
+</ul>
+<p>Replis mesurés : portable absent, la demande de mot de passe apparaît en 2 secondes ; pas de doigt, au bout d'environ 20 secondes.</p>
+
+<h2>4. Le même doigt pour le gestionnaire de mots de passe</h2>
+<p>L'appli de bureau Bitwarden peut se déverrouiller par « authentification système », qui passe par polkit. Sur un portable sous Hyprland, il a fallu trois pièces :</p>
+<ul>
+<li>le fichier de politique polkit de Bitwarden, que le paquet de notre distribution ne livrait pas ;</li>
+<li>un agent polkit dans la session (<code>hyprpolkitagent</code>), activé en service utilisateur ;</li>
+<li>le manifeste de messagerie native dans le dossier du navigateur, pour que l'extension parle à l'appli.</li>
+</ul>
+<p class="note">Le déverrouillage biométrique de l'extension ne marche que si l'appli de bureau est <strong>ouverte</strong>. Notre premier essai a échoué pour cette seule raison.</p>
+
+<h2>Pièges</h2>
+<p class="note">Testez le programme seul avant de le mettre dans PAM, et gardez un shell root ouvert pendant que vous modifiez <code>/etc/pam.d</code>. Une faute de frappe là peut vous enfermer dehors.</p>
+<p class="note">Une mise à jour de paquet peut déposer un <code>sudo.pacnew</code> (ou <code>.rpmnew</code>, <code>.dpkg-dist</code>) à côté de votre fichier. Reportez-y votre ligne, sinon elle disparaît à la prochaine fusion.</p>
+<p class="note">Ne laissez pas un agent modifier votre pile PAM ou votre pare-feu. Cette étape, faites-la vous-même.</p>

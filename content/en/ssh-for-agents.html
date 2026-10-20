@@ -1,0 +1,40 @@
+<!-- {"title": "SSH for an agent workstation: instant, safe, and four traps", "summary": "When agents run hundreds of SSH commands a day, the details matter. Shared connections that drop each call from 300 ms to 12, free text that must never travel in a command line, the right way to open a window on another machine, and the kill that takes your own shell with it.", "order": 58, "series": "desk", "level": "intermediate", "time": "30 min", "requires": ["linux-laptop"]} -->
+<p class="lead">From the laptop, everything goes over SSH: to the server, the guard machine, the virtual machines. You type a few commands an hour; an agent sends hundreds. At that rate, each slow handshake and each quoting mistake adds up, and some mistakes run code you never meant to run. Four settings and rules, each one paid for once.</p>
+
+<p class="proof"><strong>What you get.</strong> Commands to your machines that answer in about 12 ms instead of 130 to 340, text that can never be executed by accident, windows opened remotely that do not take your game down when closed.</p>
+
+<h2>1. Share one connection per machine</h2>
+<pre><code># ~/.ssh/config
+Host server
+    HostName server.lan
+    ControlMaster auto
+    ControlPath ~/.ssh/cm-%r@%h:%p
+    ControlPersist 10m</code></pre>
+<p>The first connection opens a master; the next ones ride on it for ten minutes. Measured here: first call 130 to 340 ms, the following ones about 12 ms.</p>
+<p class="note">Put it on your aliases only. Long-lived tunnels (autossh) should connect by address, so they never become the shared master that everyone else depends on.</p>
+
+<h2>2. Free text travels by standard input, never in the command line</h2>
+<p>The command you pass to <code>ssh</code> is read again by the remote shell. Put a pull request body or an agent's output in it, and its backticks and <code>$( )</code> are <strong>executed</strong> on the other side. It happened to us: the backticks of a PR description ran as commands. They did not exist, by luck.</p>
+<pre><code># no
+ssh server "open-pr --body '$BODY'"
+# yes: the text on stdin, a script on the other side builds the arguments itself
+printf '%s' "$BODY" | ssh server 'python3 ~/bin/open_pr_stdin.py'</code></pre>
+
+<h2>3. Open a window on another machine, properly</h2>
+<p>A graphical app started over SSH needs the session's whole environment, read from a program already running in that session:</p>
+<pre><code>tr '\0' '\n' &lt; /proc/$(pgrep -u "$USER" -x steam | head -1)/environ \
+  | grep -E '^(WAYLAND_DISPLAY|DISPLAY|XDG_RUNTIME_DIR|DBUS_SESSION_BUS_ADDRESS|XAUTHORITY)='</code></pre>
+<p>Then start it detached, with that environment:</p>
+<pre><code>setsid nohup env WAYLAND_DISPLAY=... DISPLAY=... XDG_RUNTIME_DIR=... \
+  DBUS_SESSION_BUS_ADDRESS=... XAUTHORITY=... lutris &gt;/tmp/lutris.log 2&gt;&amp;1 &lt;/dev/null &amp; disown</code></pre>
+<p class="note"><code>XAUTHORITY</code> is not optional: without it, anything going through XWayland (Wine games included) crashes at start. Its file name changes at each session: read it, never hard-code it.</p>
+<p class="note">Do not use <code>systemd-run --user --collect</code> for this. When the app is closed, systemd cleans up its whole group of processes: we lost a game launcher, a running game and an 84 GB download half-way.</p>
+
+<h2>4. Never kill by name pattern</h2>
+<p><code>pkill -f something</code> matches every process whose command line contains "something". Over SSH, that includes the remote shell running your command, and the SSH server process carrying it: your session dies mid-work. It happened twice in one day here; we now block it mechanically in the agent's hooks.</p>
+<pre><code>pgrep -f "[m]y-server"      # the brackets: the pattern no longer matches its own command line
+kill $(pgrep -f "[m]y-server")</code></pre>
+
+<h2>Traps</h2>
+<p class="note">A user service does not have <code>~/.local/bin</code> in its PATH. Give full paths in your units.</p>
+<p class="note">A shared connection survives a network change badly. If commands hang after you change Wi-Fi, close the master: <code>ssh -O exit server</code>.</p>
