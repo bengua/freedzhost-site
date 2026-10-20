@@ -1,0 +1,28 @@
+<!-- {"title": "Homelab 11 : vos fichiers et votre bureautique à la place de Google Drive et Docs", "summary": "Nextcloud pour les fichiers, agendas et contacts, OnlyOffice pour éditer les documents dans le navigateur. Le mécanisme à trois acteurs qui explique chaque erreur d'installation.", "order": 19, "series": "homelab"} -->
+<p class="lead">Nextcloud garde vos fichiers, les synchronise sur chaque appareil, et y ajoute agendas, contacts et liens de partage. Associé à OnlyOffice, il édite les fichiers Word, Excel et PowerPoint dans le navigateur, à plusieurs en même temps. C'est le remplaçant le plus lourd de cette série, et celui où comprendre le mécanisme fait gagner le plus de temps.</p>
+
+{{diagram:office}}
+
+<h2>1. Nextcloud</h2>
+<p>Lancez l'image officielle de Nextcloud avec une base PostgreSQL et Redis pour le cache, épinglez la version majeure, et publiez-la par votre proxy HTTPS (Homelab 2). Derrière un proxy, dites à Nextcloud comment on le joint, dans <code>config/config.php</code> :</p>
+<pre><code>'trusted_domains' =&gt; ['cloud.votredomaine.tld'],
+'trusted_proxies' =&gt; ['&lt;adresse locale de votre proxy&gt;'],
+'overwriteprotocol' =&gt; 'https',</code></pre>
+<p>Sans <code>overwriteprotocol</code>, Nextcloud se croit servi en HTTP simple et fabrique des liens cassés et des boucles de redirection.</p>
+<p>Les tâches de fond : dans <strong>Administration → Paramètres de base</strong>, choisissez <em>Cron</em>, et lancez-le toutes les cinq minutes depuis l'hôte :</p>
+<pre><code>*/5 * * * * docker exec -u www-data nextcloud php -f /var/www/html/cron.php</code></pre>
+
+<h2>2. OnlyOffice</h2>
+<p>Lancez l'image OnlyOffice Document Server, version épinglée, avec un secret partagé pour que seul votre Nextcloud puisse l'utiliser :</p>
+<pre><code>environment:
+  - JWT_ENABLED=true
+  - JWT_SECRET=&lt;une longue valeur aléatoire&gt;</code></pre>
+<p>Publiez-le par le proxy sous son propre nom (par exemple <code>office.votredomaine.tld</code>). Dans Nextcloud, installez l'app <strong>ONLYOFFICE</strong>, puis donnez-lui l'adresse HTTPS du serveur de documents et le même secret.</p>
+
+<h2>Pourquoi ça échoue, et où regarder</h2>
+<p>Le schéma ci-dessus est tout le guide de dépannage. Si l'éditeur reste blanc, votre <strong>navigateur</strong> ne joint pas l'adresse du serveur de documents. Si l'éditeur s'ouvre mais que le fichier ne se charge ou ne s'enregistre pas, le <strong>serveur de documents</strong> ne joint pas l'adresse de Nextcloud, ou les secrets diffèrent. Vérifiez chaque flèche depuis l'endroit d'où elle part.</p>
+
+<h2>Pièges</h2>
+<p class="note">À son premier démarrage, le serveur de documents télécharge ses extensions par défaut sur Internet. Si ce téléchargement reste pendu, le serveur tourne en boucle dans son initialisation et ne devient jamais sain. Si le premier démarrage ne finit jamais, regardez d'abord le processus du gestionnaire d'extensions.</p>
+<p class="note">Les deux services doivent être en HTTPS si la page l'est : un navigateur refuse de charger un éditeur HTTP dans une page HTTPS, sans message clair.</p>
+<p class="note">Ne testez pas le port interne du serveur de documents en HTTPS s'il sert du HTTP simple derrière le proxy : vous n'obtiendrez aucune réponse et soupçonnerez le mauvais composant.</p>
