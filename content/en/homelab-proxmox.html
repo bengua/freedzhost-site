@@ -3,17 +3,15 @@
 
 {{diagram:proxmox}}
 
-<h2>What ours runs</h2>
-<p>Measured on our node (Proxmox VE 9.2, 16 threads, 30 GB of RAM, a 2 TB NVMe SSD for the guests, an 8 TB disk for backups):</p>
+<h2>What one machine can carry</h2>
+<p>An example layout for a node like ours (Proxmox VE 9.2, 16 threads, 30 GB of RAM, an NVMe SSD for the guests, a large disk for backups):</p>
 <div class="table"><table>
 <tr><th>Guest</th><th>Role</th><th>RAM</th></tr>
-<tr><td>VM</td><td>reverse proxy with HTTPS, DNS filtering</td><td>4 GB</td></tr>
-<tr><td>VM</td><td>office suite, search engine, task manager</td><td>9 GB</td></tr>
-<tr><td>VM</td><td>code forge and its CI</td><td>6 GB</td></tr>
+<tr><td>VM</td><td>reverse proxy with HTTPS</td><td>2–4 GB</td></tr>
+<tr><td>VM</td><td>office suite, search, tasks, photos</td><td>8–10 GB</td></tr>
+<tr><td>VM</td><td>code forge and its CI</td><td>4–6 GB</td></tr>
 <tr><td>VM</td><td>automation and home assistant</td><td>4 GB</td></tr>
-<tr><td>VM</td><td>knowledge base (search over our notes)</td><td>2 GB</td></tr>
-<tr><td>VM</td><td>private vault, kept apart</td><td>3 GB</td></tr>
-<tr><td>container</td><td>a small judge model on the CPU</td><td>—</td></tr>
+<tr><td>container</td><td>one small service each</td><td>0.5–2 GB</td></tr>
 </table></div>
 <p>An old desktop or a mini PC is enough to start. What matters: RAM (16 GB minimum, 32 GB comfortable), an SSD for the guests, and a second disk for backups.</p>
 
