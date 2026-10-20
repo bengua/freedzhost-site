@@ -20,14 +20,14 @@ SITE = "https://freedzhost.cloud"
 LANGS = {
     "en": {"prefix": "", "name": "English", "home": "Home", "read": "Read",
            "articles": "Articles", "switch": "Français",
-           "series": {"start": "Start here", "ai": "Local AI", "homelab": "Homelab: replace the subscriptions"},
+           "series": {"start": "Start here", "ai": "Local AI", "n8n": "Local agentic automation with n8n", "homelab": "Homelab: replace the subscriptions"},
            "description": "Free tutorials to run your own AI agent swarm and homelab at home: hardware, local models, and the services that replace your subscriptions.",
            "locale": "en_US", "feed": "New articles",
            "footer":
            "Content under CC BY-SA 4.0. No trackers, no cookies, no third-party fonts."},
     "fr": {"prefix": "fr/", "name": "Français", "home": "Accueil", "read": "Lire",
            "articles": "Articles", "switch": "English",
-           "series": {"start": "Commencer ici", "ai": "IA locale", "homelab": "Homelab : remplacer les abonnements"},
+           "series": {"start": "Commencer ici", "ai": "IA locale", "n8n": "L'agentique locale avec n8n", "homelab": "Homelab : remplacer les abonnements"},
            "description": "Tutos gratuits pour monter votre essaim d'agents IA et votre homelab à la maison : matériel, modèles locaux, et les services qui remplacent vos abonnements.",
            "locale": "fr_FR", "feed": "Nouveaux articles",
            "footer":

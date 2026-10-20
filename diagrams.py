@@ -702,6 +702,93 @@ def voice(lang):
     return figure("voice", 760, 285, L["cap"], body)
 
 
+# ── n8n 1: where the data goes ──────────────────────────────────────────────
+def saas(lang):
+    L = {
+        "en": labels(cap="With a hosted automation service, every run carries your data through someone else's cloud, and each step is billed. Self-hosted, the runs stay home, call your local models, and cost nothing per execution.",
+                     a="Hosted service", b="Self-hosted n8n", you="Your services", vendor="Vendor's cloud",
+                     vsub="billed per task or operation", n8n="n8n at home", nsub="no per-run cost", models="Local models",
+                     data="your data, every run", stays="stays home", home="your home", net="internet"),
+        "fr": labels(cap="Avec un service d'automatisation hébergé, chaque exécution fait passer vos données par le cloud d'un autre, et chaque étape est facturée. Auto-hébergé, les exécutions restent à la maison, appellent vos modèles locaux, et ne coûtent rien à l'exécution.",
+                     a="Service hébergé", b="n8n auto-hébergé", you="Vos services", vendor="Cloud du fournisseur",
+                     vsub="facturé à la tâche ou à l'opération", n8n="n8n à la maison", nsub="aucun coût à l'exécution", models="Modèles locaux",
+                     data="vos données, à chaque exécution", stays="reste à la maison", home="chez vous", net="Internet"),
+    }[lang]
+    body = ""
+    for row, title in ((0, L["a"]), (1, L["b"])):
+        y = 30 + row * 125
+        body += t(20, y, title, 13, "start", ACCENT if row else "currentColor", 700)
+        body += f'<line x1="400" y1="{y - 12}" x2="400" y2="{y + 90}" stroke="{LINE}" stroke-width="2" stroke-dasharray="6 5"/>'
+        body += t(210, y, L["home"], 11, "middle", MUTED) + t(580, y, L["net"], 11, "middle", MUTED)
+        body += box(20, y + 18, 150, 54, L["you"], None)
+        if row == 0:
+            body += box(520, y + 18, 220, 54, L["vendor"], L["vsub"])
+            body += arrow(170, y + 45, 518, y + 45, L["data"], BAD, marker="bad", lx=345, ly=y + 37)
+        else:
+            body += box(220, y + 18, 150, 54, L["n8n"], L["nsub"], stroke=ACCENT)
+            body += box(220, y + 92, 150, 40, L["models"], None)
+            body += arrow(170, y + 45, 218, y + 45)
+            body += arrow(295, y + 72, 295, y + 90, None, GOOD, marker="good")
+            body += t(560, y + 50, L["stays"], 12, "middle", GOOD)
+    return figure("saas", 760, 290, L["cap"], body)
+
+
+# ── n8n 2: the agentic clock ────────────────────────────────────────────────
+def clock(lang):
+    L = {
+        "en": labels(cap="Every job declares its cadence in a registry. Once a minute the tick compares each job's last sign of life with its period plus slack, and writes an event. A watchdog on another machine checks that the tick itself is alive.",
+                     reg="Registry", rsub="job, period, slack, severity", tick="Tick", tsub="every minute",
+                     ev="Events table", esub="info · warning · critical", al="Alerts", asub="critical → phone",
+                     dog="Watchdog", dsub="other machine, every 2 min", jobs="Your workflows", jsub="their signs of life",
+                     age="age of the last tick"),
+        "fr": labels(cap="Chaque tâche déclare sa cadence dans un registre. Une fois par minute, le tick compare le dernier signe de vie de chaque tâche à sa période plus sa marge, et écrit un événement. Un chien de garde sur une autre machine vérifie que le tick lui-même est vivant.",
+                     reg="Registre", rsub="tâche, période, marge, gravité", tick="Tick", tsub="chaque minute",
+                     ev="Table des événements", esub="info · warning · critical", al="Alertes", asub="critical → téléphone",
+                     dog="Chien de garde", dsub="autre machine, toutes les 2 min", jobs="Vos workflows", jsub="leurs signes de vie",
+                     age="âge du dernier tick"),
+    }[lang]
+    body = box(20, 20, 180, 54, L["reg"], L["rsub"])
+    body += box(20, 120, 180, 54, L["jobs"], L["jsub"])
+    body += box(280, 70, 140, 54, L["tick"], L["tsub"], stroke=ACCENT)
+    body += box(500, 70, 170, 54, L["ev"], L["esub"])
+    body += box(500, 170, 170, 54, L["al"], L["asub"], stroke=BAD)
+    body += box(265, 190, 190, 54, L["dog"], L["dsub"], stroke=GOOD)
+    body += arrow(200, 47, 278, 88)
+    body += arrow(200, 147, 278, 108)
+    body += arrow(420, 97, 498, 97)
+    body += arrow(585, 124, 585, 168, None, BAD, marker="bad")
+    body += arrow(350, 188, 350, 126, None, GOOD, dash=True, marker="good")
+    body += t(358, 160, L["age"], 11, "start", GOOD)
+    body += arrow(455, 217, 498, 200, None, GOOD, marker="good")
+    return figure("clock", 760, 260, L["cap"], body)
+
+
+# ── n8n 3: route with guardrails ────────────────────────────────────────────
+def route(lang):
+    L = {
+        "en": labels(cap="A request in plain words becomes an action only through checks. The signature proves who sent it, the judge classifies it (private by default), fixed rules decide, the result is verified, one retry after 25 seconds, and every outcome is written down.",
+                     hook="Signed webhook", hsub="HMAC checked", judge="Judge", jsub="classifies, private by default",
+                     rules="Rules", rsub="what is allowed", act="Act", asub="then verify", retry="one retry, +25 s",
+                     ev="Event", esub="ok · failed", no="refused: bad signature"),
+        "fr": labels(cap="Une demande en mots simples ne devient une action qu'à travers des contrôles. La signature prouve qui l'envoie, le juge la classe (privée par défaut), des règles fixes décident, le résultat est vérifié, une seule reprise après 25 secondes, et chaque issue est consignée.",
+                     hook="Webhook signé", hsub="HMAC vérifié", judge="Juge", jsub="classe, privé par défaut",
+                     rules="Règles", rsub="ce qui est permis", act="Agir", asub="puis vérifier", retry="une reprise, +25 s",
+                     ev="Événement", esub="ok · failed", no="refusé : mauvaise signature"),
+    }[lang]
+    body = box(10, 40, 130, 54, L["hook"], L["hsub"], stroke=ACCENT)
+    body += box(170, 40, 150, 54, L["judge"], L["jsub"])
+    body += box(350, 40, 120, 54, L["rules"], L["rsub"])
+    body += box(500, 40, 110, 54, L["act"], L["asub"])
+    body += box(640, 40, 110, 54, L["ev"], L["esub"], stroke=GOOD)
+    for x1, x2 in ((140, 168), (320, 348), (470, 498), (610, 638)):
+        body += arrow(x1, 67, x2, 67)
+    body += (f'<polyline points="555,94 555,130 520,130 520,96" fill="none" stroke="{ACCENT}" stroke-width="1.6" marker-end="url(#acc)"/>')
+    body += t(560, 146, L["retry"], 11, "middle", ACCENT)
+    body += arrow(75, 94, 75, 128, None, BAD, marker="bad")
+    body += t(75, 146, L["no"], 11, "middle", BAD)
+    return figure("route", 760, 160, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -711,7 +798,8 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "forge": forge, "search": search, "notify": notify,
             "intent": intent, "office": office,
             "paper": paper, "tasks": tasks,
-            "cascade": cascade, "voice": voice}
+            "cascade": cascade, "voice": voice,
+            "saas": saas, "clock": clock, "route": route}
 
 
 def render(name, lang):
