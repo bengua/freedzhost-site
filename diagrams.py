@@ -1391,6 +1391,26 @@ def finger(lang):
     return figure("finger", 740, 220, L["cap"], body)
 
 
+# ── a rented front absorbs the flood; the house is no longer on the internet ──
+def front(lang):
+    L = {
+        "en": labels(cap="Visitors and attackers reach a small rented server whose provider filters volumetric attacks. It serves the static site itself and sends the rest through an encrypted tunnel to the house. The home router accepts nothing from the internet except this tunnel: the home address is never published.",
+                     net="Internet", nets="visitors and floods", vps="Rented front", vpss="anti-DDoS, static site, cache",
+                     home="Home proxy", homes="the other services", wg="encrypted tunnel", drop="everything else refused"),
+        "fr": labels(cap="Visiteurs et attaquants arrivent sur un petit serveur loué dont l'hébergeur filtre les attaques volumétriques. Il sert lui-même le site statique et envoie le reste par un tunnel chiffré vers la maison. La box n'accepte plus rien d'internet sauf ce tunnel : l'adresse de la maison n'est jamais publiée.",
+                     net="Internet", nets="visiteurs et inondations", vps="Frontal loué", vpss="anti-DDoS, site statique, cache",
+                     home="Proxy de la maison", homes="les autres services", wg="tunnel chiffré", drop="tout le reste refusé"),
+    }[lang]
+    body = box(20, 60, 170, 54, L["net"], L["nets"], stroke=BAD)
+    body += box(270, 60, 210, 54, L["vps"], L["vpss"], stroke=GOOD)
+    body += box(560, 60, 180, 54, L["home"], L["homes"], stroke=GOOD)
+    body += arrow(190, 87, 268, 87)
+    body += arrow(480, 87, 558, 87, L["wg"], GOOD, marker="good")
+    body += arrow(105, 114, 600, 170, None, BAD, dash=True)
+    body += t(610, 176, L["drop"], 12, color=BAD)
+    return figure("front", 760, 200, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -1407,7 +1427,7 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "mtp": mtp, "judge": judge, "rag": rag,
             "f2b": f2b, "errors": errors, "drift": drift, "secrets": secrets,
             "mutation": mutation, "browsers": browsers, "placement": placement, "escalation": escalation,
-            "apk": apk, "agents": agents, "wiring": wiring, "bmad": bmad, "kvtrap": kvtrap, "floor": floor, "finger": finger}
+            "apk": apk, "agents": agents, "wiring": wiring, "bmad": bmad, "kvtrap": kvtrap, "floor": floor, "finger": finger, "front": front}
 
 
 def render(name, lang):

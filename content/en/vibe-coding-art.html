@@ -1,0 +1,34 @@
+<!-- {"title": "Vibe coding and digital art: when describing becomes making", "summary": "Say what you want, let a model write the code, judge by what appears on screen. Vibe coding was born as a joke about programming; in digital art it is a real shift. Generative visuals, shaders, live-coded music, motion design as code, all reachable by description, with a local model. What it opens, what it costs, and where we draw the line.", "order": 52.6, "series": "create", "level": "read", "time": "15 min", "requires": []} -->
+<p class="lead">In early 2025 Andrej Karpathy gave a name to a way of working many had started to practise: <em>vibe coding</em>. You describe what you want in plain language, an AI writes the code, you run it, you look, you ask for changes, and you stop reading the code at all. For a production server, that is a risk. For an artist, it is a door: the distance between an idea and a moving image has never been so short.</p>
+
+<p class="proof"><strong>What you get.</strong> A map of the creative uses of vibe coding (visuals, shaders, music, motion, interaction), how to practise them with your own local models and no subscription, and the simple rule we follow so that sketches stay fun and nothing fragile ends up in production.</p>
+
+<h2>1. What changes for creators</h2>
+<p>Creative coding has existed for decades: writing programs whose output is a picture, a sound, a movement. It always had a barrier: you had to learn the language before making anything. Vibe coding lowers that barrier. The skill moves from syntax to <strong>intention and judgement</strong>: describing a mood precisely, recognising what works, asking for the right change.</p>
+
+<h2>2. The offshoots in digital art</h2>
+<ul>
+<li><strong>Generative visuals</strong>: sketches in p5.js or Processing, described rather than typed: "particles that drift like ash, rising slowly, colours from ember to grey". Change the seed, get a series.</li>
+<li><strong>Shaders</strong>: small GPU programs that compute every pixel, the art of Shadertoy. Notoriously hard to write by hand, surprisingly approachable by description and iteration.</li>
+<li><strong>Live-coded music</strong>: environments such as Strudel, TidalCycles or Sonic Pi, where a pattern of text is a rhythm. A model proposes a pattern, you edit it live, on stage if you like: the algorave scene has done this for years.</li>
+<li><strong>Live visuals</strong>: Hydra-style video synthesis in the browser, patched by code and played like an instrument.</li>
+<li><strong>Motion design as code</strong>: a video written as an HTML composition, timed and animated, then rendered. Our explainer clips use this approach (see <a href="/agent-skills.html">creative skills</a>).</li>
+<li><strong>Interactive pieces and mascots</strong>: our FoxBot's animation engine, its sprite sheets and its moods were built with agents, by describing behaviour rather than drawing frames (see <a href="/inframagotchi.html">the homelab cat</a> for the same idea).</li>
+<li><strong>Images, video and music generators</strong>: not code, but the same posture: describe, look, refine (see <a href="/create-tour.html">the studio</a>).</li>
+</ul>
+
+<h2>3. Practise it locally</h2>
+<ol>
+<li>Open a coding agent on your own model (<a href="/agent-openfox.html">OpenFox</a>) in an empty folder.</li>
+<li>Ask for one HTML file with p5.js and a single sketch; open it in the browser.</li>
+<li>Describe what you see and what you want instead, in feelings and constraints, not code: "slower", "more breathing space", "colours of a winter morning".</li>
+<li>Keep the seeds and the versions you like: a sketch is a series, not a single image.</li>
+</ol>
+<p class="note">A small local model is enough for sketches of a few dozen lines. Long, structured programs are where it struggles; that is also where vibe coding stops being the right tool.</p>
+
+<h2>4. Where we draw the line</h2>
+<p>Vibe coding is perfect when the cost of a mistake is an ugly frame. It is dangerous when the code runs unattended, holds data or faces the internet: a model writes plausible code that may never have run, and "it looks fine" is not a test. Our rule, from the <a href="/deterministic-doctrine.html">deterministic doctrine</a>: <strong>vibe for sketches and art; read, test and measure for anything that runs on its own.</strong></p>
+
+<h2>Traps</h2>
+<p class="note">Rights still matter. Generating "in the style of" a living artist, or from their work, raises questions the tool does not answer for you. Build your own style; credit what inspires you.</p>
+<p class="note">A vibe-coded web page published as is may carry a key, a debug route or an open form. Before publishing, read it once (see <a href="/web-exposure-audit.html">the audit</a>).</p>
