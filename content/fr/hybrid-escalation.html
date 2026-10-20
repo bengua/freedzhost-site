@@ -1,0 +1,22 @@
+<!-- {"title": "Hybride : le local d'abord, le cloud seulement quand ça vaut le coup", "summary": "Une file qui envoie chaque tâche à l'agent le moins cher capable de la faire : modèles locaux, puis un agent hébergé moins cher, puis un agent frontier. Plafonds quotidiens, cages, et votre confirmation avant que quoi que ce soit monte.", "order": 23, "series": "ai", "level": "advanced", "time": "1 h", "requires": ["model-gateway", "local-judge"]} -->
+<p class="lead">Les modèles locaux font l'essentiel du travail ; certaines tâches demandent quand même un modèle de pointe. Payer un abonnement pour tout gaspille son quota sur ce qu'un modèle local fait bien ; refuser le cloud en bloc laisse les tâches dures non faites. Notre réponse, c'est une petite file d'escalade : chaque tâche ne monte que jusqu'où elle en a besoin.</p>
+
+{{diagram:escalation}}
+
+<h2>1. Une file, pas un réflexe</h2>
+<p>Les agents n'appellent pas un modèle hébergé directement. Quand un agent local ne peut pas finir une tâche, il la dépose dans une file d'escalade avec ce qu'il a déjà essayé. La file décide qui la prend : par défaut l'agent hébergé le moins cher, l'agent frontier seulement si le moins cher n'a plus de quota ou ne répond pas, ou si vous avez épinglé la tâche sur lui (problèmes durs, changements critiques, relectures finales).</p>
+
+<h2>2. Plafonds et cages</h2>
+<ul>
+<li><strong>Un plafond par jour pour chaque agent hébergé</strong> (chez nous : 30 tâches par jour pour le moins cher, 10 pour le frontier) : une boucle ne peut pas brûler un mois de quota en une nuit.</li>
+<li><strong>Une liste d'outils autorisés</strong> pour l'agent qui en accepte une, sans <code>sudo</code>, sans suppression récursive, sans arrêt de processus par nom.</li>
+<li><strong>Une cage</strong> pour l'agent qui n'a pas de liste d'outils : un système en lecture seule, l'écriture seulement dans son dossier de travail.</li>
+</ul>
+
+<h2>3. Vous confirmez</h2>
+<p>Rien ne monte vers un agent hébergé sans une carte sur votre téléphone : la tâche, l'agent choisi, un oui ou un non. Les gros projets sont découpés en tâches ordonnées, avec une relecture finale par le modèle le plus fort.</p>
+
+<h2>Pièges que nous avons payés</h2>
+<p class="note">Lancez les tâches dans l'ordre. Notre premier lanceur de projets démarrait toutes les tâches à la fois : une tâche « relire puis déployer » a tourné sur du code pas encore écrit. Les dépendances font partie du plan.</p>
+<p class="note">Les données privées restent locales : aiguillez selon la classe de la donnée, pas seulement selon la difficulté (voir la cascade de décision dans <a href="/fr/homelab-n8n.html">Homelab 14</a>).</p>
+<p class="note">Un proxy de compression de contexte devant un modèle hébergé n'a rien économisé sur des prompts de moins de 100 000 jetons environ, et a coûté un peu plus. Mesurez avant d'ajouter une couche.</p>
