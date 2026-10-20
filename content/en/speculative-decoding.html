@@ -1,0 +1,19 @@
+<!-- {"title": "Speculative decoding (MTP): up to twice as fast on the same card", "summary": "A small head guesses the next tokens, the model checks them in one pass. The right flags, the value to measure yourself, the real gain in production, and the crash to watch for.", "order": 17, "series": "ai", "level": "intermediate", "time": "1 h", "requires": ["first-model"]} -->
+<p class="lead">A model writes one token at a time, and each token costs a full pass through the model. Speculative decoding guesses several tokens ahead with something cheap, then checks them all in a single pass: every correct guess is a token for free. Some recent models ship their own guessing head (multi-token prediction, MTP) inside the model file.</p>
+
+{{diagram:mtp}}
+
+<h2>1. The right way to turn it on</h2>
+<p>With a llama.cpp build that supports it, and a model file that contains MTP tensors:</p>
+<pre><code>--spec-type draft-mtp --spec-draft-n-max 5</code></pre>
+<p class="note">Passing the MTP head as an ordinary draft model (<code>--model-draft</code> alone) crashed our server, and we first concluded that MTP did not work. And an older llama.cpp build loads such a file and silently ignores the MTP part: on an old build, no gain proves nothing.</p>
+
+<h2>2. Measure your own n_max</h2>
+<p><code>--spec-draft-n-max</code> is how many tokens are guessed ahead. Too few wastes the idea; too many wastes passes on wrong guesses. On our setup the gain rose until 5 and fell after 8. Published tables measured on data-centre GPUs stop much earlier: a slower setup gains from speculation for longer. Run the same prompt three times per value and keep yours.</p>
+
+<h2>3. Expect less in real use than on a benchmark</h2>
+<p>On a code benchmark with reasoning off, we measured almost three times the speed and 84 % of guesses accepted. In production, with reasoning on, it settled between 84 and 98 tokens per second: about twice the speed, with half the guesses accepted. Reasoning is less predictable than code. Announce the real number, not the benchmark one.</p>
+
+<h2>Traps we paid for</h2>
+<p class="note">It costs VRAM: about 1.7 GB on our card. Check that the model still has room for its computation buffers (see <a href="/gpu-grid.html">the GPU grid</a>).</p>
+<p class="note">On some requests, the speculative path crashed our server. What looked like several unrelated failures (agents dying after one answer, a dashboard showing the backend down, mode switches that "failed" after succeeding) was this one crash. If your containers do not restart by themselves on purpose, something must notice and reload them (see <a href="/n8n-route-and-heal.html">route and repair with guardrails</a>).</p>

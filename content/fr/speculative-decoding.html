@@ -1,0 +1,19 @@
+<!-- {"title": "Le décodage spéculatif (MTP) : jusqu'à deux fois plus vite sur la même carte", "summary": "Une petite tête devine les jetons suivants, le modèle les vérifie en une passe. Les bons réglages, la valeur à mesurer vous-même, le vrai gain en production, et le plantage à surveiller.", "order": 17, "series": "ai", "level": "intermediate", "time": "1 h", "requires": ["first-model"]} -->
+<p class="lead">Un modèle écrit un jeton à la fois, et chaque jeton coûte une passe complète dans le modèle. Le décodage spéculatif devine plusieurs jetons à l'avance avec quelque chose de bon marché, puis les vérifie tous en une seule passe : chaque bonne devinette est un jeton gratuit. Certains modèles récents embarquent leur propre tête de devinette (multi-token prediction, MTP) dans le fichier du modèle.</p>
+
+{{diagram:mtp}}
+
+<h2>1. La bonne façon de l'activer</h2>
+<p>Avec un build de llama.cpp qui le prend en charge, et un fichier de modèle qui contient des tenseurs MTP :</p>
+<pre><code>--spec-type draft-mtp --spec-draft-n-max 5</code></pre>
+<p class="note">Passer la tête MTP comme un modèle de brouillon ordinaire (<code>--model-draft</code> seul) faisait planter notre serveur, et nous avons d'abord conclu que le MTP ne marchait pas. Et un build plus ancien de llama.cpp charge un tel fichier et ignore en silence la partie MTP : sur un vieux build, l'absence de gain ne prouve rien.</p>
+
+<h2>2. Mesurer votre propre n_max</h2>
+<p><code>--spec-draft-n-max</code>, c'est le nombre de jetons devinés à l'avance. Trop peu gâche l'idée ; trop gaspille des passes sur de mauvaises devinettes. Sur notre installation, le gain montait jusqu'à 5 et baissait après 8. Les tableaux publiés, mesurés sur des GPU de centre de données, s'arrêtent bien plus tôt : une installation plus lente profite de la spéculation plus longtemps. Lancez le même prompt trois fois par valeur et gardez la vôtre.</p>
+
+<h2>3. Attendez-vous à moins en vrai que sur un banc</h2>
+<p>Sur un banc de code, réflexion coupée, nous avons mesuré presque trois fois la vitesse et 84 % des devinettes acceptées. En production, réflexion active, ça s'est stabilisé entre 84 et 98 jetons par seconde : environ deux fois la vitesse, avec la moitié des devinettes acceptées. La réflexion est moins prévisible que du code. Annoncez le vrai chiffre, pas celui du banc.</p>
+
+<h2>Pièges que nous avons payés</h2>
+<p class="note">Ça coûte de la VRAM : environ 1,7 Go sur notre carte. Vérifiez que le modèle garde de la place pour ses tampons de calcul (voir <a href="/fr/gpu-grid.html">la grille GPU</a>).</p>
+<p class="note">Sur certaines requêtes, le chemin spéculatif faisait planter notre serveur. Ce qui ressemblait à plusieurs pannes sans lien (des agents qui mouraient après une réponse, un tableau de bord qui montrait le moteur tombé, des bascules qui « échouaient » après avoir réussi) était ce seul plantage. Si vos conteneurs ne redémarrent pas seuls, exprès, il faut que quelque chose s'en aperçoive et les recharge (voir <a href="/fr/n8n-route-and-heal.html">router et réparer avec des garde-fous</a>).</p>
