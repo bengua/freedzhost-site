@@ -2,3 +2,5 @@ content/fr/* # the French edition of the site: complete translation of content/e
 static/media/teaser-fr.mp4 # the channel teaser, spoken in French
 diagrams.py # the French labels of the diagrams: the French edition of the site, the same content as the English labels next to them
 site_build.py # the French interface strings of the site (navigation, description, feed title), next to their English twins
+content/en/fh-suite.html # names the fleet's real commands, some of which still carry French names (fh-sante, fh-livrer, fh-enquete, fh-apercu, fh-alerte)
+content/en/studio-film.html # quotes the production chain's real script and option names (realiser.py, --mode=planches)
