@@ -1,0 +1,44 @@
+<!-- {"title": "Homelab 3 : votre propre gestionnaire de mots de passe avec Vaultwarden", "summary": "Remplacer le gestionnaire de mots de passe que vous louez. Le serveur ne voit jamais vos mots de passe, et la sauvegarde qui se restaure vraiment.", "order": 8} -->
+<p class="lead">Vaultwarden est un serveur open source compatible avec les apps Bitwarden : vous gardez les apps officielles, soignées, sur votre téléphone et dans votre navigateur, et le serveur tourne chez vous. Il est léger (quelques dizaines de Mo de RAM) et c'est le service qui protège tous les autres : il reçoit donc le plus de soin dans cette série.</p>
+
+{{diagram:vault}}
+
+<h2>Pourquoi le serveur peut être à la maison</h2>
+<p>Les apps Bitwarden chiffrent votre coffre sur l'appareil, avec une clé dérivée de votre mot de passe maître, avant d'envoyer quoi que ce soit. Le serveur stocke du chiffré qu'il ne sait pas lire. Un serveur volé laisse fuir des blocs chiffrés ; un mot de passe maître oublié, en revanche, vous enferme dehors pour de bon. Préparez-vous d'abord au second cas.</p>
+
+<h2>1. Le lancer</h2>
+<pre><code>services:
+  vaultwarden:
+    image: vaultwarden/server:1.37.4
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./vw-data:/data
+    environment:
+      - DOMAIN=https://vault.votredomaine.tld
+      - SIGNUPS_ALLOWED=true</code></pre>
+<pre><code>docker compose up -d</code></pre>
+<p>Publiez-le par votre proxy HTTPS (Homelab 2) : le coffre web et les apps ont besoin de HTTPS pour fonctionner tout court.</p>
+
+<h2>2. Créer votre compte, puis fermer la porte</h2>
+<ol>
+<li>Ouvrez <code>https://vault.votredomaine.tld</code> et créez votre compte.</li>
+<li>Écrivez le mot de passe maître sur papier et gardez-le chez vous. Pas dans une app de notes, pas dans le coffre lui-même : une clé enfermée dans la boîte qu'elle ouvre n'ouvre rien.</li>
+<li>Passez <code>SIGNUPS_ALLOWED=false</code> et relancez <code>docker compose up -d</code>. Désormais, personne d'autre ne peut s'inscrire sur votre serveur.</li>
+<li>Vérifiez-le : une nouvelle tentative d'inscription doit être refusée.</li>
+</ol>
+
+<h2>3. Connecter les apps</h2>
+<p>Dans l'app Bitwarden ou l'extension du navigateur, avant de vous connecter, choisissez un serveur <strong>auto-hébergé</strong> et entrez votre adresse. Tout le reste marche comme d'habitude : remplissage automatique, déverrouillage par empreinte sur le téléphone, générateur de mots de passe.</p>
+
+<h2>4. La sauvegarde qui se restaure</h2>
+<p>D'après la documentation officielle : copiez la base avec la commande de sauvegarde de SQLite elle-même, qui reste cohérente pendant que le serveur écrit.</p>
+<pre><code>sqlite3 vw-data/db.sqlite3 ".backup '/backups/db-$(date '+%Y%m%d-%H%M').sqlite3'"</code></pre>
+<p>Sauvegardez aussi <code>vw-data/attachments/</code> et les fichiers <code>rsa_key*</code>. Chaque nuit, vers un autre disque.</p>
+<p>Pour restaurer : arrêtez Vaultwarden, remettez les fichiers, et <strong>supprimez tout <code>db.sqlite3-wal</code> resté dans le dossier</strong> avant de relancer, sinon la base restaurée peut être corrompue.</p>
+<p class="note">Faites une restauration de test une fois, sur une autre machine ou dans un autre dossier, et connectez-vous avec les apps. Une sauvegarde jamais restaurée est un espoir.</p>
+
+<h2>Pièges</h2>
+<p class="note">Le vrai risque à la maison n'est pas le vol du serveur, c'est la perte du mot de passe maître. Un appareil déjà déverrouillé continue de marcher un moment et cache le problème jusqu'à son redémarrage. Si vous changez votre mot de passe maître, écrivez le nouveau sur papier dans la minute.</p>
+<p class="note">Exportez aussi votre coffre, chiffré, de temps en temps, et gardez le fichier hors ligne : c'est votre porte de sortie si le serveur lui-même disparaît.</p>
