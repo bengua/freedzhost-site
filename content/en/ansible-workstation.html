@@ -1,0 +1,43 @@
+<!-- {"title": "Rebuild your machines in one command, and know what you changed by hand (Ansible)", "summary": "Describe each machine in a repository; --check --diff tells you what drifted, without touching anything. A first playbook, and the beginner traps.", "order": 43, "series": "desk", "level": "intermediate", "time": "half a day", "requires": []} -->
+<p class="lead">After a few months, every machine holds changes made by hand that nobody remembers: a package here, a settings file there, a service edited in place. Ansible describes what a machine should be, in plain files you keep in Git, and makes it so. Its most useful command does not change anything: it tells you what is different.</p>
+
+{{diagram:drift}}
+
+<h2>1. Install</h2>
+<pre><code>pipx install --include-deps ansible
+ansible --version</code></pre>
+<p>Ansible only needs SSH on the machines it manages: nothing to install on them.</p>
+
+<h2>2. An inventory and a first check</h2>
+<pre><code># inventory.ini
+[workstations]
+laptop ansible_host=192.0.2.20
+server ansible_host=192.0.2.30</code></pre>
+<pre><code>ansible -i inventory.ini all -m ping</code></pre>
+
+<h2>3. A first playbook</h2>
+<pre><code># site.yml
+- hosts: workstations
+  become: true
+  tasks:
+    - name: The tools I always want
+      ansible.builtin.package:
+        name: [git, htop, rsync]
+        state: present
+    - name: My shell settings
+      ansible.builtin.template:
+        src: bashrc.j2
+        dest: /home/{{ ansible_user }}/.bashrc
+        mode: '0644'</code></pre>
+<pre><code>ansible-playbook -i inventory.ini site.yml --ask-become-pass</code></pre>
+<p>Run it twice: the second run must report <strong>0 changed</strong>. That is idempotence, and it is what makes the playbook safe to run anytime.</p>
+
+<h2>4. The command you will use most</h2>
+<pre><code>ansible-playbook -i inventory.ini site.yml --check --diff</code></pre>
+<p>It compares the description with the machines and prints every difference, without touching anything. It answers the question nobody else can: "what did I change by hand?"</p>
+
+<h2>Traps for beginners</h2>
+<p class="note">YAML indents with spaces, two per level, never tabs. Quote file modes: <code>mode: '0644'</code>, otherwise the number can be read as octal or decimal depending on the version.</p>
+<p class="note">Some distributions report a parent name: CachyOS shows up as <code>Archlinux</code> in <code>ansible_facts.distribution</code>. Print the facts once (<code>ansible laptop -m setup</code>) before writing conditions.</p>
+<p class="note">Ansible configures machines that exist; creating them (VMs, networks) is the job of OpenTofu, the open-source fork of Terraform. Do not stretch one tool to do the other's job.</p>
+<p class="note">If you install Ansible through a version manager, check after each update of that manager that the commands still run: a configuration format change once left us with installed versions and no working command, behind a warning that was really a failure.</p>
