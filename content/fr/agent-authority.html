@@ -1,0 +1,28 @@
+<!-- {"title": "Le compte qui raisonne ne détient aucun secret : agents et autorité", "summary": "Ici, des agents déploient, poussent du code et créent des dépôts, et pourtant aucun ne détient de jeton ni de mot de passe. La règle qui rend ça sûr, et trois petits services bâtis dessus : un démon de déploiement à liste fermée, un assistant de forge derrière une socket, et un créateur de dépôts qui ne laisse jamais un dépôt vivre sans sa protection.", "order": 69, "series": "agents", "level": "advanced", "time": "1 h", "requires": ["agent-claude-code", "homelab-forgejo"]} -->
+<p class="lead">Donnez un jeton à un agent, et une demande assez convaincante le lui fera utiliser. Une règle dans ses consignes ne l'en empêche pas ; un compte qui n'a tout simplement pas le jeton, si. Toute notre installation suit un principe : <strong>le compte qui raisonne ne détient aucun secret, et le compte qui détient les secrets ne raisonne pas.</strong> On ne peut pas embobiner un programme qui ne lit pas.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Des agents qui déploient, ouvrent des demandes de fusion et créent des dépôts toute la journée, sans aucun identifiant à leur portée. Toute action puissante passe par un petit service qui vérifie qui appelle et n'accepte qu'un nom tiré d'une liste fixe.</p>
+
+<h2>1. L'autorité derrière une socket</h2>
+<p>Un petit service, sous son propre compte, détient le jeton de la forge. Il écoute sur une socket Unix, et le noyau lui dit quel utilisateur appelle (<code>SO_PEERCRED</code>) : aucun mot de passe à voler, aucun jeton à fuiter. L'agent envoie « ouvre une demande de fusion depuis cette branche » ; le service vérifie la demande, puis agit. L'agent ne voit jamais le jeton.</p>
+
+<h2>2. Déployer sans mot de passe : une liste fermée</h2>
+<p>Notre démon de déploiement tourne en root et n'accepte qu'une chose : le nom d'un composant tiré d'une table écrite <em>dans le démon lui-même</em>. Ni chemin, ni branche, ni commande. Pour ce nom, il rafraîchit le miroir, lit le fichier sur <code>main</code>, le valide, sauvegarde la copie installée, installe, redémarre ce que la table indique, et répond une ligne de JSON.</p>
+<p>Chaque règle a été payée :</p>
+<ul>
+<li><strong>Le démon n'est pas dans sa propre table.</strong> Quand il y était, un seul commit fusionné pouvait réécrire ce que root avait le droit d'écrire, et ça a servi trois fois en une journée. Mettre le démon à jour demande désormais un humain et un mot de passe.</li>
+<li><strong>Le miroir est rafraîchi avant chaque lecture</strong>, sinon un déploiement juste après une fusion installe la version précédente et répond « ok ».</li>
+<li><strong>Un contenu invalide n'est jamais mis en place</strong> : Python est compilé, YAML lu et vérifié, avant toute écriture.</li>
+<li><strong>Un fichier monté dans un conteneur est écrit sur place</strong> : un renommage lui donne un nouvel inode et le conteneur continue de lire l'ancien, sans bruit.</li>
+<li><strong>Un client qui raccroche ne doit pas tuer l'écoute</strong> : c'est arrivé, et systemd a compté les échecs jusqu'à refuser de redémarrer.</li>
+</ul>
+
+<h2>3. Pas de dépôt sans sa protection</h2>
+<p>Créer un dépôt tient en un appel : créer, protéger la branche principale, pousser le premier commit, attendre la CI, étiqueter, publier la version. L'étape de protection est le même code pour tous les chemins. Si elle échoue, le dépôt neuf est supprimé ; si la suppression échoue aussi, l'erreur nomme le dépôt sans protection. Et le résultat de la CI est <strong>interrogé</strong> par le service, jamais <em>affirmé</em> par l'appelant : il n'existe nulle part d'argument « vert ».</p>
+
+<h2>4. Un bug devient du code, jamais une note</h2>
+<p>Une règle écrite dans un guide le matin a été enfreinte le soir par la personne qui l'avait écrite. Ce qui tient, c'est du code ordinaire : un verrou, une vérification, un refus. Ce qui ne peut pas devenir du code devient une entrée de journal qu'on peut chercher.</p>
+
+<h2>Pièges</h2>
+<p class="note">Ne laissez pas l'outil qui fait respecter les limites être déployable par les limites qu'il fait respecter. Mettre à jour le garde-fou doit exiger un humain.</p>
+<p class="note">Les codes de sortie font partie du contrat : 0 fait, 1 un échec nommé, 2 un refus nommé, 3 et plus un problème technique, jamais un verdict.</p>

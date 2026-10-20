@@ -1,0 +1,32 @@
+<!-- {"title": "Les knowledge packs : des faits avec une source, un test et une date de péremption", "summary": "Les modèles répondent de mémoire, et la mémoire vieillit. Un knowledge pack est une petite unité de savoir vérifié servie aux agents : chaque affirmation a une source datée, chaque procédure une assertion exécutable, et chaque fait une date de péremption qui ouvre une issue quand elle passe.", "order": 70, "series": "agents", "level": "intermediate", "time": "45 min", "requires": ["journal-rag"]} -->
+<p class="lead">Demandez à un modèle comment installer un outil, il répond avec la version vue pendant son entraînement, peut-être vieille de deux ans, avec une parfaite assurance. Une recherche sur le web aide une fois. Un knowledge pack garde la réponse vérifiée : ce qui a été contrôlé, d'où ça vient, comment le tester sur votre machine, et jusqu'à quand s'y fier.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Des agents qui cessent de reconstruire les procédures de mémoire : ils lisent un pack dont les affirmations sont sourcées, dont les étapes ont tourné sur la machine cible, et qui vous prévient tout seul quand un fait est périmé.</p>
+
+<h2>1. Cinq règles</h2>
+<ol>
+<li>Une affirmation sans source datée n'entre pas dans un pack.</li>
+<li>Une procédure sans assertion exécutable n'est pas une procédure.</li>
+<li>Un pack reste en <code>draft</code> tant qu'un passage sur la vraie machine n'a pas produit de preuves.</li>
+<li>Les affirmations expirent : chacune porte une durée de vie, et une tâche planifiée ouvre une issue quand elle est dépassée.</li>
+<li>Rien ne fusionne au rouge.</li>
+</ol>
+
+<h2>2. À quoi ressemble un pack</h2>
+<pre><code>packs/install-forgejo-runner/
+├── kp.md          # en-tête, affirmations sourcées, la procédure en gabarit
+├── assert.sh      # assertions par phase : PASS/FAIL, code de sortie non nul sur FAIL
+└── evidence/      # ce qu'a affiché le passage de validation : versions, journaux d'assertions</code></pre>
+
+<h2>3. Sa vie</h2>
+<pre><code>besoin → recherche par un modèle capable, avec accès au web
+       → demande de fusion, statut : draft        (CI : lint + shellcheck)
+       → passage sur le terrain par un humain     (assert.sh, phase par phase)
+       → preuves versionnées, « validated_on » rempli
+       → relecture humaine → fusion = validé
+       → tâche de péremption → issue → nouvelle vérification → mise à jour</code></pre>
+<p>Trois rôles, jamais mélangés : l'<strong>auteur</strong> (un modèle avec une recherche fraîche) écrit et ne fusionne jamais ; l'<strong>exécutant</strong> (n'importe quel modèle local) utilise un pack et ne le modifie jamais ; l'<strong>humain</strong> fait le passage sur le terrain et approuve.</p>
+
+<h2>Pièges</h2>
+<p class="note">Une assertion qui se contente de chercher un mot dans un fichier prouve que le mot est là, pas que l'étape a marché. Vérifiez ce que fait le système : une version affichée, un port qui répond, un service qui tourne.</p>
+<p class="note">Gardez les preuves même quand elles sont ennuyeuses. Le jour où le pack expire, c'est à l'ancienne sortie qu'on compare.</p>

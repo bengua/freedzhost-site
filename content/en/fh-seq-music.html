@@ -1,0 +1,31 @@
+<!-- {"title": "A local music studio that keeps the project: fh-seq", "summary": "Online song generators hand you an opaque MP3. fh-seq keeps the song as a project: sections and lyrics, a tree of renders where every retouch keeps its parent, repaint of a time range, stems you can mix, a clip shot by shot. All on open-source engines, on your own cards.", "order": 73, "series": "ai", "level": "advanced", "time": "an evening + downloads", "requires": ["comfyui-studio"]} -->
+<p class="lead">Generate a song online and you get a file. Want to change eight bars of the chorus? Generate again and hope. fh-seq is a prototype of the opposite: a song is a project you can rework, piece by piece, with every attempt kept. Everything runs on open-source engines on your own machine.</p>
+
+<p class="proof"><strong>What you get.</strong> Full renders, repaint of any time range, global retakes, separated stems, a clip shot by shot, and a history where A/B is one click. It also fills the ambience bank of <a href="/purrd.html">Purrd</a>: twenty instrumental tracks in one call.</p>
+
+<h2>1. The engines, each in its own box</h2>
+<table>
+<tr><th>Engine</th><th>What it does</th></tr>
+<tr><td>HeartMuLa</td><td>full renders, best quality</td></tr>
+<tr><td>ACE-Step</td><td>fast renders, repaint of a range, retake</td></tr>
+<tr><td>Demucs</td><td>separation into stems</td></tr>
+<tr><td>ComfyUI</td><td>the video clip</td></tr>
+</table>
+<p>Each engine lives in its own Python environment: their PyTorch and CUDA versions conflict, and isolating them is deliberate. Each engine declares what it can do (generate, repaint, retake); the page adapts. Adding an engine is one file and one line.</p>
+<pre><code>./fh-seq install    # idempotent; everything under runtime/, several GB on first run
+./fh-seq run        # the app and its ComfyUI, on the machine itself
+./fh-seq status     # which engines are present</code></pre>
+<p class="note">Two cards are assumed: the music model on one, its audio codec on the other. Variables move them if you have only one.</p>
+
+<h2>2. Working a song</h2>
+<ol>
+<li>Write the sections and lyrics, set the style tags, <strong>generate</strong>.</li>
+<li>Listen; drag over a region of the waveform and <strong>repaint</strong> it, with the variance you choose. Or <strong>retake</strong> for a variation of the whole.</li>
+<li>Every attempt joins the tree; compare two in one click.</li>
+<li>Separate the version you keep into <strong>stems</strong>, then mute or balance them.</li>
+<li>For the clip: one shot per section, edit each visual prompt, render shot by shot in ComfyUI, assemble.</li>
+</ol>
+
+<h2>Traps</h2>
+<p class="note">Size the storage. The engine writes 32-bit stereo WAV: three minutes weigh 69 MB, and twenty tracks for fifteen styles would weigh 20 GB. Convert to Opus before storing a bank.</p>
+<p class="note">It is a prototype: some screens are rough. The structure (project, tree, stems) is what is worth copying.</p>

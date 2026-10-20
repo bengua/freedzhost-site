@@ -1,0 +1,32 @@
+<!-- {"title": "Knowledge packs: facts with a source, a test and an expiry date", "summary": "Models answer from memory, and memory goes stale. A knowledge pack is a small unit of verified knowledge served to agents: each claim has a dated source, each procedure an executable assertion, and each fact an expiry date that opens an issue when it passes.", "order": 70, "series": "agents", "level": "intermediate", "time": "45 min", "requires": ["journal-rag"]} -->
+<p class="lead">Ask a model how to install a tool and it answers with the version it saw during training, maybe two years old, with full confidence. A search on the web helps once. A knowledge pack keeps the answer checked: what was verified, where it came from, how to test it on your machine, and until when it can be trusted.</p>
+
+<p class="proof"><strong>What you get.</strong> Agents that stop reconstructing procedures from memory: they read a pack whose claims are sourced, whose steps were run on the target machine, and which reminds you by itself when a fact has expired.</p>
+
+<h2>1. Five rules</h2>
+<ol>
+<li>A claim without a dated source does not enter a pack.</li>
+<li>A procedure without an executable assertion is not a procedure.</li>
+<li>A pack stays a <code>draft</code> until a run on the real machine has produced evidence.</li>
+<li>Claims expire: each carries a lifetime, and a scheduled job opens an issue when it is passed.</li>
+<li>Nothing merges on red.</li>
+</ol>
+
+<h2>2. What a pack looks like</h2>
+<pre><code>packs/install-forgejo-runner/
+├── kp.md          # front matter, sourced claims, the procedure as a template
+├── assert.sh      # assertions per phase: PASS/FAIL, exit code non-zero on FAIL
+└── evidence/      # what the validation run printed: versions, assertion logs</code></pre>
+
+<h2>3. Its life</h2>
+<pre><code>need → research by a capable model with web access
+     → pull request, status: draft            (CI: lint + shellcheck)
+     → field run by a human                   (assert.sh, phase by phase)
+     → evidence committed, "validated_on" filled
+     → human review → merge = validated
+     → expiry job → issue → check again → update</code></pre>
+<p>Three roles, never mixed: the <strong>author</strong> (a model with fresh research) writes and never merges; the <strong>runner</strong> (any local model) uses a pack and never modifies it; the <strong>human</strong> runs the field test and approves.</p>
+
+<h2>Traps</h2>
+<p class="note">An assertion that only greps a file for a word proves the word is there, not that the step worked. Assert on what the system does: a version printed, a port that answers, a service that runs.</p>
+<p class="note">Keep evidence even when it is boring. The day the pack expires, the old output is what you compare against.</p>

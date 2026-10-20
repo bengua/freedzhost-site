@@ -1,0 +1,28 @@
+<!-- {"title": "The account that reasons holds no secret: agents and authority", "summary": "Agents deploy, push and create repositories here, yet none of them holds a token or a password. The rule that makes it safe, and three small services built on it: a deploy daemon with a closed list, a forge helper behind a socket, and a repository bootstrapper that never lets a repository live without its guard.", "order": 69, "series": "agents", "level": "advanced", "time": "1 h", "requires": ["agent-claude-code", "homelab-forgejo"]} -->
+<p class="lead">Give an agent a token and a convincing enough request will make it use it. A rule in its instructions does not stop that; an account that simply does not have the token does. Our whole setup follows one principle: <strong>the account that reasons holds no secret, and the account that holds the secrets does not reason.</strong> You cannot talk round a program that does not read.</p>
+
+<p class="proof"><strong>What you get.</strong> Agents that deploy, open pull requests and create repositories all day, with no credential in their reach. Every powerful action goes through a small service that checks who is calling and accepts only a name from a fixed list.</p>
+
+<h2>1. Authority behind a socket</h2>
+<p>A small service, running under its own account, holds the forge token. It listens on a Unix socket, and the kernel tells it which user is calling (<code>SO_PEERCRED</code>): no password to steal, no token to leak. The agent sends "open a pull request from this branch"; the service checks the request, then acts. The agent never sees the token.</p>
+
+<h2>2. Deploy without a password: a closed list</h2>
+<p>Our deploy daemon runs as root and accepts exactly one thing: the name of a component from a table written <em>inside the daemon</em>. No path, no branch, no command. For that name it refreshes the mirror, reads the file at <code>main</code>, validates it, backs up the installed copy, installs, restarts what the table says, and answers one line of JSON.</p>
+<p>Each rule was paid for:</p>
+<ul>
+<li><strong>The daemon is not in its own table.</strong> When it was, one merged commit could rewrite what root was allowed to write, and it was used that way three times in one day. Updating the daemon now takes a human and a password.</li>
+<li><strong>The mirror is refreshed before every read</strong>, or a deploy right after a merge installs the previous version and says "ok".</li>
+<li><strong>Invalid content never goes in place</strong>: Python is compiled, YAML parsed and checked, before any write.</li>
+<li><strong>A file mounted into a container is written in place</strong>: a rename gives it a new inode and the container keeps reading the old one, silently.</li>
+<li><strong>A client that hangs up must not kill the listener</strong>: it once did, and systemd counted the failures until it refused to start.</li>
+</ul>
+
+<h2>3. No repository without its guard</h2>
+<p>Creating a repository is one call: create, protect the main branch, push the first commit, wait for the CI, tag, publish the release. The protection step is the same code every path uses. If it fails, the new repository is deleted; if the deletion fails too, the error names the unprotected repository. And the CI result is <strong>polled</strong> by the service, never <em>asserted</em> by the caller: there is no "green" argument anywhere.</p>
+
+<h2>4. A bug becomes code, never a note</h2>
+<p>A rule written in a guide in the morning was broken in the evening by the person who wrote it. What holds is ordinary code: a lock, a check, a refusal. What cannot become code becomes a journal entry you can search.</p>
+
+<h2>Traps</h2>
+<p class="note">Do not let the tool that enforces the limits be deployable by the limits it enforces. Updating the guard must need a human.</p>
+<p class="note">Exit codes are part of the contract: 0 done, 1 a named failure, 2 a named refusal, 3 and above a technical problem, never a verdict.</p>
