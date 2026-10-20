@@ -1,0 +1,20 @@
+<!-- {"title": "A second-hand laptop as a comfortable Linux workstation (Omarchy)", "summary": "Check what you buy, install a ready-to-work Linux desktop, and the three surprises that look like bugs but are not.", "order": 42, "series": "desk", "level": "beginner", "time": "half a day", "requires": []} -->
+<p class="lead">You do not need a new machine to pilot a homelab: our workstation is a second-hand business laptop, bought for a fraction of its original price, running Omarchy, an opinionated Arch Linux setup with the Hyprland desktop, ready to work after one installation. Here is what to check before buying, and the three surprises we met after.</p>
+
+<h2>1. Before buying a second-hand laptop</h2>
+<ul>
+<li><strong>The battery's real age.</strong> The battery serial often contains its manufacturing date, and the system reports its health and cycle count (<code>upower -d</code> on Linux). It tells you the laptop's age better than any listing.</li>
+<li><strong>The SSD's history.</strong> <code>sudo smartctl -a /dev/nvme0</code> shows power-on hours and unsafe shutdowns. If you reuse your own SSD, remember that these numbers are yours, not the previous owner's.</li>
+<li><strong>Business models</strong> (EliteBook, ThinkPad, Latitude) are built to be repaired and are well supported by Linux.</li>
+</ul>
+
+<h2>2. Install</h2>
+<p>Omarchy installs from its own ISO: full-disk encryption, btrfs (so snapshots work, see <a href="/snapshots.html">Undo any change</a>), and a desktop driven by the keyboard. Learn three shortcuts on the first day: the launcher, the terminal, and the Omarchy menu. Everything else is in that menu.</p>
+
+<h2>3. Customise without breaking updates</h2>
+<p>Omarchy's own files live in <code>/usr/share/omarchy/</code> and are <strong>overwritten at every update</strong>. Never edit them. Extend instead: your own menu entries go in <code>~/.config/omarchy/extensions/omarchy-menu.jsonc</code>, where an entry's id places it in the right sub-menu, and <code>omarchy menu refresh</code> reloads it.</p>
+
+<h2>Three surprises that are not bugs</h2>
+<p class="note"><strong>"100 % brightness" was the dimmest setting.</strong> On some laptop panels the driver overflows near the top of its range: past a threshold, the value wraps to zero and the screen drops to its minimum. We lived with a dim screen thinking it was at full brightness. Check: write increasing values to the backlight and read <code>actual_brightness</code>; if it falls to 0 near the top, cap your brightness keys just below that point.</p>
+<p class="note"><strong>The top bar vanished and a reboot did not bring it back.</strong> It had been hidden through a menu entry, and the setting is a file on disk, so it survives reboots by design. <code>omarchy toggle bar off</code> brings it back in two seconds (the wording is inverted: "bar off" removes the "hidden" flag).</p>
+<p class="note"><strong>A keyboard-typing tool is not a shortcut.</strong> Tools that type text into the desktop do not trigger its keyboard shortcuts. To script an action, call the command behind the shortcut, not the keys.</p>

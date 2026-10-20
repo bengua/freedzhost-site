@@ -894,6 +894,27 @@ def keep(lang):
     return figure("keep", 785, 220, L["cap"], body)
 
 
+# ── rotating passwords: vault first, then the service ───────────────────────
+def rotation(lang):
+    L = {
+        "en": labels(cap="The order that never locks you out: the new password is stored in the vault before it is applied. If the vault write fails, nothing changed. If the service change fails, the vault keeps the old value in its history.",
+                     steps=[("Generate", "long, random"), ("Store in vault", "first!"), ("Apply", "on the service"), ("Prove", "a real login")],
+                     f1="fails → nothing changed", f2="fails → old value in history"),
+        "fr": labels(cap="L'ordre qui ne vous enferme jamais dehors : le nouveau mot de passe est rangé dans le coffre avant d'être appliqué. Si l'écriture au coffre échoue, rien n'a changé. Si le changement sur le service échoue, le coffre garde l'ancienne valeur dans son historique.",
+                     steps=[("Générer", "long, aléatoire"), ("Ranger au coffre", "d'abord !"), ("Appliquer", "sur le service"), ("Prouver", "une vraie connexion")],
+                     f1="échoue → rien n'a changé", f2="échoue → ancienne valeur dans l'historique"),
+    }[lang]
+    body = ""
+    for i, (a, b) in enumerate(L["steps"]):
+        x = 10 + i * 190
+        body += box(x, 40, 160, 54, a, b, stroke=ACCENT if i == 1 else (GOOD if i == 3 else LINE))
+        if i:
+            body += arrow(x - 30, 67, x - 2, 67)
+    body += t(280, 120, L["f1"], 11, "middle", GOOD)
+    body += t(470, 136, L["f2"], 11, "middle", GOOD)
+    return figure("rotation", 760, 150, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -905,7 +926,8 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "paper": paper, "tasks": tasks,
             "cascade": cascade, "voice": voice,
             "saas": saas, "clock": clock, "route": route,
-            "gateway": gateway, "grid": grid, "snapshots": snapshots, "keep": keep}
+            "gateway": gateway, "grid": grid, "snapshots": snapshots, "keep": keep,
+            "rotation": rotation}
 
 
 def render(name, lang):
