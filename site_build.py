@@ -18,10 +18,14 @@ import diagrams
 ROOT = pathlib.Path(__file__).parent
 LANGS = {
     "en": {"prefix": "", "name": "English", "home": "Home", "read": "Read",
-           "articles": "Articles", "switch": "Français", "footer":
+           "articles": "Articles", "switch": "Français",
+           "series": {"start": "Start here", "ai": "Local AI", "homelab": "Homelab: replace the subscriptions"},
+           "footer":
            "Content under CC BY-SA 4.0. No trackers, no cookies, no third-party fonts."},
     "fr": {"prefix": "fr/", "name": "Français", "home": "Accueil", "read": "Lire",
-           "articles": "Articles", "switch": "English", "footer":
+           "articles": "Articles", "switch": "English",
+           "series": {"start": "Commencer ici", "ai": "IA locale", "homelab": "Homelab : remplacer les abonnements"},
+           "footer":
            "Contenu sous licence CC BY-SA 4.0. Ni traceur, ni cookie, ni police externe."},
 }
 OTHER = {"en": "fr", "fr": "en"}
@@ -80,15 +84,25 @@ def build(out):
         pages = {p.stem: read_page(p) for p in sorted((ROOT / "content" / lang).glob("*.html"))}
         slugs[lang] = set(pages)
         articles = sorted((s for s in pages if s != "index"), key=lambda s: pages[s][0]["order"])
-        cards = "\n".join(
-            f'<li><a href="{url(lang, s)}"><strong>{html.escape(pages[s][0]["title"])}</strong>'
-            f'<span>{html.escape(pages[s][0]["summary"])}</span></a></li>'
-            for s in articles
-        )
+        groups = []
+        for key, heading in LANGS[lang]["series"].items():
+            members = [a for a in articles if pages[a][0].get("series") == key]
+            if not members:
+                continue
+            items = "\n".join(
+                f'<li><a href="{url(lang, a)}"><strong>{html.escape(pages[a][0]["title"])}</strong>'
+                f'<span>{html.escape(pages[a][0]["summary"])}</span></a></li>'
+                for a in members
+            )
+            groups.append(f'<h3 class="series">{html.escape(heading)}</h3>\n<ul class="cards">\n{items}\n</ul>')
+        orphans = [a for a in articles if pages[a][0].get("series") not in LANGS[lang]["series"]]
+        if orphans:
+            raise ValueError(f"{lang}: pages without a known series: {orphans}")
+        cards = "\n".join(groups)
         for slug, (meta, body) in pages.items():
             body = re.sub(r"\{\{diagram:([a-z]+)\}\}", lambda m, lang=lang: diagrams.render(m.group(1), lang), body)
             if slug == "index":
-                body = body.replace("{{articles}}", f'<ul class="cards">\n{cards}\n</ul>')
+                body = body.replace("{{articles}}", cards)
             else:
                 body = f'<article>\n<h1>{html.escape(meta["title"])}</h1>\n{body}</article>'
             target = out / LANGS[lang]["prefix"] / ("index.html" if slug == "index" else f"{slug}.html")

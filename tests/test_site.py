@@ -69,7 +69,7 @@ def test_a_page_without_translation_is_refused(tmp_path, monkeypatch):
         (root / "content" / lang / "index.html").write_text(
             '<!-- {"title": "t", "summary": "s", "order": 0} -->\n{{articles}}', encoding="utf-8")
     (root / "content" / "en" / "only.html").write_text(
-        '<!-- {"title": "t", "summary": "s", "order": 1} -->\nx', encoding="utf-8")
+        '<!-- {"title": "t", "summary": "s", "order": 1, "series": "start"} -->\nx', encoding="utf-8")
     (root / "static").mkdir()
     monkeypatch.setattr(site_build, "ROOT", root)
     with pytest.raises(ValueError, match="without translation"):

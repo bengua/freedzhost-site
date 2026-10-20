@@ -75,3 +75,4 @@ footer { color: var(--muted); font-size: .85rem; padding-block: 40px; border-top
 .diagram { margin: 28px 0; padding: 18px 18px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow-x: auto; }
 .diagram svg { display: block; margin: 0 auto; min-width: 520px; }
 .diagram figcaption { color: var(--muted); font-size: .9rem; margin-top: 10px; }
+.series { margin: 28px 0 10px; font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
