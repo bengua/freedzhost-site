@@ -1,0 +1,23 @@
+<!-- {"title": "Votre propre app Android, hors du Play Store, avec ses mises à jour", "summary": "Compiler dans un conteneur, signer correctement, servir les mises à jour depuis votre serveur. Et la règle qui casse les mises à jour en silence si vous l'oubliez : un numéro de version ne sert qu'une fois.", "order": 45, "series": "desk", "level": "advanced", "time": "une demi-journée", "requires": ["homelab-remote"]} -->
+<p class="lead">Notre app de console pour le réseau d'agents tourne sur nos téléphones sans jamais passer par un magasin d'applications : nous la compilons, la signons et servons ses mises à jour nous-mêmes. C'est plus simple qu'il n'y paraît, à condition de respecter deux choses : la clé de signature et le numéro de version.</p>
+
+{{diagram:apk}}
+
+<h2>1. Compiler dans un conteneur</h2>
+<p>Pas besoin d'Android Studio sur votre machine. Une image de conteneur avec le SDK Android compile le projet en ligne de commande, et un dossier de cache pour Gradle garde les recompilations rapides :</p>
+<pre><code>docker run --rm -v "$PWD":/app -v ~/.cache/gradle:/root/.gradle -w /app \
+  ghcr.io/cirruslabs/android-sdk:35 ./gradlew assembleRelease</code></pre>
+
+<h2>2. Signer avec une clé de publication</h2>
+<p>Une APK signée en mode debug s'installe, mais Play Protect l'avertit ou la bloque, et sa clé diffère d'une machine à l'autre. Créez une fois un magasin de clés de publication, signez chaque build avec, et <strong>sauvegardez-le</strong> comme un mot de passe : une mise à jour signée avec une autre clé ne peut pas remplacer l'app installée, et vos utilisateurs devraient la désinstaller et perdre ses données.</p>
+
+<h2>3. Votre propre canal de mises à jour</h2>
+<p>À côté de l'APK, publiez sur votre serveur un petit fichier, par exemple <code>latest.json</code>, avec le numéro de version, le nom de version, l'adresse de téléchargement et l'empreinte du fichier. Au démarrage, l'app le lit, compare le numéro au sien, et propose la mise à jour. Servez les deux par votre réseau privé (Homelab 6) : votre app n'est pas publique, ses mises à jour n'ont pas à l'être.</p>
+<p>Sur le téléphone, autorisez une fois l'app à « installer des applications inconnues », pour qu'elle puisse installer ses propres mises à jour.</p>
+
+<h2>La règle qui mord</h2>
+<p class="note">L'app compare le <code>versionCode</code>, un entier, et rien d'autre. Publiez deux builds différents avec le même numéro et le second n'est jamais proposé : les téléphones se croient à jour. Un numéro de version est donc dépensé dès qu'il est publié, et vous ne le montez jamais avant une publication, car un numéro fusionné mais non publié est dépensé lui aussi. Montez-le dans le changement qui sera publié, compilez et publiez juste après la fusion.</p>
+
+<h2>Pièges</h2>
+<p class="note">Testez le chemin de mise à jour, pas seulement l'installation : installez la version précédente, publiez la nouvelle, et vérifiez que le téléphone la propose et l'installe par-dessus l'ancienne, données intactes.</p>
+<p class="note">Gardez le magasin de clés et ses mots de passe hors du dépôt : dans votre coffre pour les mots de passe (Homelab 3), et le fichier dans vos sauvegardes (Homelab 5).</p>

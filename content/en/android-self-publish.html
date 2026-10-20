@@ -1,0 +1,23 @@
+<!-- {"title": "Your own Android app, outside the Play Store, with its own updates", "summary": "Build in a container, sign properly, serve updates from your own server. And the rule that silently breaks updates if you forget it: a version number is used once.", "order": 45, "series": "desk", "level": "advanced", "time": "half a day", "requires": ["homelab-remote"]} -->
+<p class="lead">Our console app for the agent network runs on our phones without ever going through an app store: we build it, sign it and serve its updates ourselves. It is simpler than it sounds, as long as you respect two things: the signing key and the version number.</p>
+
+{{diagram:apk}}
+
+<h2>1. Build in a container</h2>
+<p>You do not need Android Studio on your machine. A container image with the Android SDK builds the project from the command line, and a cache folder for Gradle keeps rebuilds fast:</p>
+<pre><code>docker run --rm -v "$PWD":/app -v ~/.cache/gradle:/root/.gradle -w /app \
+  ghcr.io/cirruslabs/android-sdk:35 ./gradlew assembleRelease</code></pre>
+
+<h2>2. Sign with a release key</h2>
+<p>A debug-signed APK installs, but Play Protect warns or blocks it, and its key differs on each machine. Create a release keystore once, sign every build with it, and <strong>back it up</strong> like a password: an update signed with another key cannot replace the installed app, and your users would have to uninstall it and lose its data.</p>
+
+<h2>3. Your own update channel</h2>
+<p>Next to the APK, publish a small file on your server, for example <code>latest.json</code>, with the version number, the version name, the download address and the file's checksum. At start, the app reads it, compares the number with its own, and offers the update. Serve both over your private network (Homelab 6): your app is not public, its updates do not need to be.</p>
+<p>On the phone, allow the app to "install unknown apps" once, so it can install its own updates.</p>
+
+<h2>The rule that bites</h2>
+<p class="note">The app compares the <code>versionCode</code>, an integer, nothing else. Publish two different builds with the same number and the second one is never offered: phones believe they are up to date. So a version number is spent the moment it is published, and you never raise it ahead of a release, because a number merged but not published is spent too. Raise it in the change that will be released, build and publish right after the merge.</p>
+
+<h2>Traps</h2>
+<p class="note">Test the update path, not only the install: install the previous version, publish the new one, and check that the phone offers it and installs it over the old one with its data intact.</p>
+<p class="note">Keep the keystore and its passwords out of the repository: in your vault for the passwords (Homelab 3), and the file in your backups (Homelab 5).</p>
