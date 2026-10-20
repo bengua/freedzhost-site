@@ -3,6 +3,17 @@
 
 <p class="proof"><strong>What you get.</strong> Small local models that deliver real projects, story after story, without drifting: because everything that can be checked is checked by code, and you keep the final word.</p>
 
+<h2>0. The BMAD method in one minute</h2>
+<p>BMAD (an open-source method for AI-driven agile development) gives each phase of a project to a specialised agent persona, each producing a document the next one reads:</p>
+<ul>
+<li><strong>Analyst</strong>: explores the idea and writes a project brief.</li>
+<li><strong>Product manager</strong>: turns the brief into requirements (a PRD).</li>
+<li><strong>Architect</strong>: designs the system that meets them.</li>
+<li><strong>Scrum master</strong>: shards those documents into small, self-contained stories.</li>
+<li><strong>Developer</strong> and <strong>QA</strong>: implement one story at a time, then review it.</li>
+</ul>
+<p>Its strength is the chain of documents: each agent starts from written context, not from a vague chat. Its weakness with small models is that every hand-off is judged by another model. Below is how we kept the chain and replaced every judgement that has one right answer with code.</p>
+
 {{diagram:bmad}}
 
 <h2>1. Stories with a schema</h2>

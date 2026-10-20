@@ -1,0 +1,36 @@
+<!-- {"title": "Diagrams in code: every figure of this site is a small function", "summary": "No drawing tool, no image file, no library: each diagram here is a Python function that writes SVG, with its labels in two languages and a caption that screen readers read. A test checks every one is drawn and described. And when you need a richer chart, a diagram skill with forty-five types.", "order": 88, "series": "create", "level": "intermediate", "time": "45 min", "requires": []} -->
+<p class="lead">A diagram drawn in an editor is an image: it does not translate, it does not follow the site's colours, and nobody updates it when the system changes. Every figure on this site is code instead: a small function that writes the SVG, so the diagram lives next to the text, in version control, in both languages.</p>
+
+<p class="proof"><strong>What you get.</strong> Around fifty diagrams that render in French and English from one source, sharp at any size, light to load, described for screen readers, and checked by a test at every build. Changing a label is a one-line commit.</p>
+
+<h2>1. A few helpers, one function per diagram</h2>
+<pre><code>def agents(lang):
+    L = {"en": labels(cap="Three coding agents, three roles...", of="OpenFox", ...),
+         "fr": labels(cap="Trois agents de code, trois rôles...", of="OpenFox", ...)}[lang]
+    body  = box(20, 20, 230, 50, L["of"], L["ofs"], stroke=GOOD)
+    body += box(500, 55, 220, 54, L["gw"], L["gws"], stroke=GOOD)
+    body += arrow(250, 45, 498, 75, None, GOOD, marker="good")
+    return figure("agents", 740, 295, L["cap"], body)</code></pre>
+<ul>
+<li><code>box</code>, <code>arrow</code> and a text helper write native SVG shapes; colours come from a handful of constants.</li>
+<li><code>figure</code> wraps the drawing in <code>&lt;figure&gt;</code> with its caption, and gives the SVG <code>role="img"</code> and an <code>aria-label</code> carrying the same sentence.</li>
+<li>A page calls a diagram with a marker, <code>&#123;&#123;diagram:agents&#125;&#125;</code>, and the build replaces it with the figure in the page's language.</li>
+</ul>
+
+<h2>2. The rules that keep them useful</h2>
+<ol>
+<li><strong>One figure, one claim.</strong> The caption says what the picture shows, in one or two sentences.</li>
+<li><strong>Draw the mechanism, not its name</strong>: the path a request takes, the arrow that disappears when you remove a piece.</li>
+<li><strong>Label the arrows</strong> when the label carries information ("your tap", "signed answer").</li>
+<li><strong>Colour means something</strong>: one colour for local, one for the cloud, one for a problem. Nothing decorative.</li>
+</ol>
+
+<h2>3. A test for every diagram</h2>
+<p>The site's tests render every diagram in both languages and fail if one is missing or has no caption, and the build stops on a marker that names no diagram. A typo in a marker cannot reach the site.</p>
+<p class="note">A marker name with a digit once went unreplaced and printed raw on the page. The fix was in the pattern; the lesson was to test the marker, not just the drawing.</p>
+
+<h2>4. For richer charts: a diagram skill</h2>
+<p>For a standalone diagram (an architecture, a timeline, a state machine, a swimlane), we let an agent use a diagram skill: forty-five chart types, each a self-contained HTML file with inline SVG and an editorial style. Its first rule is a good one: before the first diagram of a project, it stops and asks for your brand colours, rather than shipping its defaults.</p>
+
+<h2>Traps</h2>
+<p class="note">Read a rendered diagram before publishing: overlapping labels do not raise any error. We render each new figure in a headless browser and look at the screenshot.</p>

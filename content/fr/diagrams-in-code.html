@@ -1,0 +1,36 @@
+<!-- {"title": "Des schémas en code : chaque figure de ce site est une petite fonction", "summary": "Pas d'outil de dessin, pas de fichier image, pas de bibliothèque : chaque schéma ici est une fonction Python qui écrit du SVG, avec ses libellés en deux langues et une légende que lisent les lecteurs d'écran. Un test vérifie que chacun est dessiné et décrit. Et quand il faut un graphique plus riche, une skill de schémas à quarante-cinq types.", "order": 88, "series": "create", "level": "intermediate", "time": "45 min", "requires": []} -->
+<p class="lead">Un schéma dessiné dans un éditeur est une image : il ne se traduit pas, il ne suit pas les couleurs du site, et personne ne le met à jour quand le système change. Chaque figure de ce site est du code à la place : une petite fonction qui écrit le SVG, si bien que le schéma vit à côté du texte, dans le dépôt, dans les deux langues.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Une cinquantaine de schémas rendus en français et en anglais à partir d'une seule source, nets à toutes les tailles, légers à charger, décrits pour les lecteurs d'écran, et vérifiés par un test à chaque construction. Changer un libellé tient en un commit d'une ligne.</p>
+
+<h2>1. Quelques aides, une fonction par schéma</h2>
+<pre><code>def agents(lang):
+    L = {"en": labels(cap="Three coding agents, three roles...", of="OpenFox", ...),
+         "fr": labels(cap="Trois agents de code, trois rôles...", of="OpenFox", ...)}[lang]
+    body  = box(20, 20, 230, 50, L["of"], L["ofs"], stroke=GOOD)
+    body += box(500, 55, 220, 54, L["gw"], L["gws"], stroke=GOOD)
+    body += arrow(250, 45, 498, 75, None, GOOD, marker="good")
+    return figure("agents", 740, 295, L["cap"], body)</code></pre>
+<ul>
+<li><code>box</code>, <code>arrow</code> et une aide pour le texte écrivent des formes SVG natives ; les couleurs viennent d'une poignée de constantes.</li>
+<li><code>figure</code> enveloppe le dessin dans <code>&lt;figure&gt;</code> avec sa légende, et donne au SVG <code>role="img"</code> et un <code>aria-label</code> portant la même phrase.</li>
+<li>Une page appelle un schéma par un marqueur, <code>&#123;&#123;diagram:agents&#125;&#125;</code>, et la construction le remplace par la figure dans la langue de la page.</li>
+</ul>
+
+<h2>2. Les règles qui les gardent utiles</h2>
+<ol>
+<li><strong>Une figure, une affirmation.</strong> La légende dit ce que montre l'image, en une ou deux phrases.</li>
+<li><strong>Dessinez le mécanisme, pas son nom</strong> : le chemin d'une requête, la flèche qui disparaît quand on retire une pièce.</li>
+<li><strong>Étiquetez les flèches</strong> quand l'étiquette porte une information (« votre tap », « réponse signée »).</li>
+<li><strong>La couleur veut dire quelque chose</strong> : une couleur pour le local, une pour le cloud, une pour un problème. Rien de décoratif.</li>
+</ol>
+
+<h2>3. Un test pour chaque schéma</h2>
+<p>Les tests du site rendent chaque schéma dans les deux langues et échouent si l'un manque ou n'a pas de légende, et la construction s'arrête sur un marqueur qui ne nomme aucun schéma. Une faute de frappe dans un marqueur ne peut pas atteindre le site.</p>
+<p class="note">Un nom de marqueur contenant un chiffre n'a pas été remplacé une fois, et s'est affiché brut sur la page. Le correctif était dans le motif ; la leçon, tester le marqueur et pas seulement le dessin.</p>
+
+<h2>4. Pour des graphiques plus riches : une skill de schémas</h2>
+<p>Pour un schéma autonome (une architecture, une frise, une machine à états, un couloir de nage), nous laissons un agent utiliser une skill de schémas : quarante-cinq types, chacun un fichier HTML autonome avec du SVG intégré et un style éditorial. Sa première règle est bonne : avant le premier schéma d'un projet, elle s'arrête et demande vos couleurs, plutôt que de livrer les siennes.</p>
+
+<h2>Pièges</h2>
+<p class="note">Regardez un schéma rendu avant de le publier : des libellés qui se chevauchent ne lèvent aucune erreur. Nous rendons chaque nouvelle figure dans un navigateur sans écran et regardons la capture.</p>

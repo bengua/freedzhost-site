@@ -1,30 +1,44 @@
-<!-- {"title": "OpenFox: a coding agent built for local models", "summary": "The everyday agent: an open-source coding assistant designed for models running on your own card. Install it, point it at your gateway, keep its tool list small, and test it the only way that counts: in a real session.", "order": 46, "series": "agents", "level": "beginner", "time": "30 min", "requires": ["model-gateway"]} -->
-<p class="lead">Most coding agents are built for a frontier model in the cloud and merely tolerate a local one. OpenFox is the reverse: an open-source (MIT) assistant designed first for models served on your own machine. It is the agent we open for everyday work, at no cost per token.</p>
+<!-- {"title": "OpenFox: the coding agent that takes local models seriously", "summary": "Most coding agents are built for a frontier model and tolerate a local one. OpenFox is built the other way round: a plan becomes an immutable contract of acceptance criteria, the agent loops until every criterion passes, and you see the prefill and generation speed of your own card live. Open source, free per token, and our agent of every day.", "order": 46, "series": "agents", "level": "beginner", "time": "30 min", "requires": ["model-gateway"]} -->
+<p class="lead">OpenFox is the agent we open first, every day. Not because it is free, but because it was designed for what a local model really is: fast, cheap, a little forgetful, and in need of a frame. Where cloud-first agents hope the model will stay on track, OpenFox writes the track down, checks it at every step, and does not stop until it is reached. With a 9B or a 27B model on your own card, that changes everything.</p>
 
-<p class="proof"><strong>What you get.</strong> A coding agent of your own, free per token, in one evening: install, point at the gateway, open a session. It reads, edits and tests your code on your own card.</p>
+<p class="proof"><strong>What you get.</strong> A complete coding agent in your browser, for any local backend (llama.cpp, Ollama, vLLM, SGLang), open source under the MIT licence, with no cost per token. Here it runs on the server with the graphics cards, and the phone app <a href="/agent-swarmfox.html">SwarmFox</a> drives its sessions from anywhere.</p>
 
 {{diagram:agents}}
 
-<h2>1. Where it sits</h2>
-<p>OpenFox talks to an OpenAI-compatible endpoint. Do not point it at one model server: point it at your <a href="/model-gateway.html">model gateway</a>. The gateway knows which model is loaded on which card, and OpenFox only knows one stable address and one model name.</p>
-<pre><code>npm install -g openfox      # Node 20 or newer
-openfox                     # first run: choose the provider, enter the gateway address</code></pre>
-<p class="note">Run it on the machine that has the cards, and reach it from elsewhere (laptop, phone) through your private network. The agent then reads and writes files where the work is, not over a network share.</p>
-
-<h2>2. Follow the model that is actually loaded</h2>
-<p>On a single home server, the model changes: a large one for code in the evening, a small one while a game or an image job holds the card. If OpenFox keeps asking for a model that is no longer loaded, every request fails. We run a small follower that reads which model each card declares and rewrites OpenFox's default model to match. The rule: the agent's configuration follows the hardware, never the reverse.</p>
-
-<h2>3. Keep the tool list small</h2>
-<p>Each tool an agent can call is described in every request. Our first turn weighed 8,455 tokens before the user had typed a word, most of it tool descriptions. With a 32k window on a small model, that is a quarter gone. What worked:</p>
+<h2>1. Why it is different: a contract, not a hope</h2>
 <ul>
-<li>one permanent tool server (MCP) instead of five;</li>
-<li>tools loaded on demand, when the task needs them;</li>
-<li>a short system prompt: the model's attention is the scarce resource.</li>
+<li><strong>Plan, then build.</strong> You and the agent break the task down together; then it implements on its own.</li>
+<li><strong>Acceptance criteria are a contract.</strong> Once the plan is agreed, its criteria are immutable: the agent cannot quietly redefine "done".</li>
+<li><strong>It loops until every criterion passes.</strong> Build, verify, fix, verify again. Small models make mistakes; this loop is what turns them into delivered work.</li>
+<li><strong>Immediate feedback from the language server</strong>: an invalid edit is caught at once, not three steps later.</li>
+<li><strong>Workflows</strong>: declarative pipelines of agent turns, sub-agents, shell commands and human gates, with a code review phase in the build–verify cycle.</li>
 </ul>
 
-<h2>4. Test it where it is used</h2>
-<p>A model that answers a <code>curl</code> is not a working agent. The only proof is a session inside OpenFox where the model calls a tool (reads a file, runs a test) and uses the result. We counted several "it works" that failed at the first real tool call: the model answered text but never produced a valid tool call in the agent's format.</p>
+<h2>2. Built for your own hardware</h2>
+<ul>
+<li>It <strong>detects your backend</strong> on first run and configures itself.</li>
+<li><strong>Real-time metrics</strong>: prefill time, generation speed, context used. You see your card work, and you see when the context fills.</li>
+<li><strong>Vision for every model</strong>: images are described before each turn, so even a text-only model can "see" a screenshot.</li>
+<li><strong>Safe parallel edits</strong>: one lock per file, so two sub-agents never write the same file at once.</li>
+<li><strong>Plugins</strong> for more providers, tools and commands, installable from the interface without a restart.</li>
+</ul>
+
+<h2>3. Install it in one evening</h2>
+<pre><code>npm install -g openfox      # Node 24 or newer
+openfox                     # opens the interface; the first run detects your backend</code></pre>
+<p>Point it at your <a href="/model-gateway.html">model gateway</a> rather than at one model server: the gateway knows which model is on which card, OpenFox only needs one stable address. Run it on the machine with the cards, and reach it from the laptop or the phone through your private network.</p>
+<pre><code>OPENFOX_LLM_URL=http://your-gateway:4000/v1 \
+OPENFOX_MAX_CONTEXT=65536 openfox --no-browser</code></pre>
+<p class="note">Declare the real window of your model with <code>OPENFOX_MAX_CONTEXT</code>. The default assumes 200,000 tokens; a local model with 64k would overflow long before OpenFox compacts.</p>
+
+<h2>4. What we added around it</h2>
+<ul>
+<li><strong>It follows the card.</strong> A small follower reads which model each card declares and rewrites OpenFox's default model to match: the agent's configuration follows the hardware, never the reverse.</li>
+<li><strong>A context meter in the status bar</strong> of the laptop (see <a href="/workstation-small-tools.html">three small tools</a>).</li>
+<li><strong>Phone and desktop clients</strong>: <a href="/agent-swarmfox.html">SwarmFox</a> and <a href="/agent-rooms-foxdesk.html">FoxDesk</a> open, follow and approve its sessions.</li>
+</ul>
 
 <h2>Traps</h2>
-<p class="note">Never let two processes write the agent's configuration file at the same time. Two parallel tool-server registrations left us with a corrupted <code>config.json</code> and an agent that would not start. Register tools one at a time, and keep a copy of the file before changing it.</p>
-<p class="note">A small model that loops on the same command is not stubborn, it has lost its context. Shorten the task, not the patience: one file, one change, one test.</p>
+<p class="note">Keep the tool list short. Our first turn weighed 8,455 tokens before a single word, mostly tool descriptions: one permanent tool server instead of five, tools loaded on demand.</p>
+<p class="note">Never let two processes write its configuration file at once: two parallel registrations left us a corrupted <code>config.json</code>. Keep a copy before changing it.</p>
+<p class="note">Test it where it is used. A model that answers a <code>curl</code> is not a working agent; the proof is a session where it calls a tool and uses the result.</p>

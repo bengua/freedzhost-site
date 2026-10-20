@@ -1,30 +1,44 @@
-<!-- {"title": "OpenFox : un agent de code fait pour les modèles locaux", "summary": "L'agent du quotidien : un assistant de code libre pensé pour des modèles qui tournent sur votre propre carte. L'installer, le brancher sur la passerelle, garder sa liste d'outils courte, et le tester de la seule façon qui compte : dans une vraie session.", "order": 46, "series": "agents", "level": "beginner", "time": "30 min", "requires": ["model-gateway"]} -->
-<p class="lead">La plupart des agents de code sont construits pour un modèle de pointe dans le cloud et tolèrent tout juste un modèle local. OpenFox fait l'inverse : un assistant libre (MIT) pensé d'abord pour des modèles servis sur votre machine. C'est l'agent qu'on ouvre pour le travail de tous les jours, sans coût au jeton.</p>
+<!-- {"title": "OpenFox : l'agent de code qui prend les modèles locaux au sérieux", "summary": "La plupart des agents de code sont faits pour un modèle de pointe et tolèrent un modèle local. OpenFox est fait à l'inverse : un plan devient un contrat immuable de critères d'acceptation, l'agent boucle jusqu'à ce que chaque critère passe, et vous voyez en direct la vitesse de lecture et d'écriture de votre propre carte. Libre, gratuit au jeton, et notre agent de tous les jours.", "order": 46, "series": "agents", "level": "beginner", "time": "30 min", "requires": ["model-gateway"]} -->
+<p class="lead">OpenFox est l'agent que nous ouvrons en premier, chaque jour. Pas parce qu'il est gratuit, mais parce qu'il a été pensé pour ce qu'est vraiment un modèle local : rapide, économique, un peu distrait, et qui a besoin d'un cadre. Là où les agents pensés pour le cloud espèrent que le modèle restera sur les rails, OpenFox écrit les rails, les vérifie à chaque pas, et ne s'arrête pas avant d'arriver. Avec un modèle de 9B ou de 27B sur votre propre carte, ça change tout.</p>
 
-<p class="proof"><strong>Ce que vous y gagnez.</strong> Un agent de code à vous, gratuit au jeton, en une soirée : installer, pointer sur la passerelle, ouvrir une session. Il lit, modifie et teste votre code sur votre propre carte.</p>
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Un agent de code complet dans votre navigateur, pour n'importe quel moteur local (llama.cpp, Ollama, vLLM, SGLang), libre sous licence MIT, sans coût au jeton. Ici, il tourne sur le serveur qui porte les cartes graphiques, et l'appli <a href="/fr/agent-swarmfox.html">SwarmFox</a> pilote ses sessions depuis n'importe où.</p>
 
 {{diagram:agents}}
 
-<h2>1. Où il se place</h2>
-<p>OpenFox parle à un point d'accès compatible OpenAI. Ne le pointez pas sur un serveur de modèle : pointez-le sur votre <a href="/fr/model-gateway.html">passerelle de modèles</a>. La passerelle sait quel modèle est chargé sur quelle carte ; OpenFox ne connaît qu'une adresse stable et un nom de modèle.</p>
-<pre><code>npm install -g openfox      # Node 20 ou plus récent
-openfox                     # premier lancement : choisir le fournisseur, saisir l'adresse de la passerelle</code></pre>
-<p class="note">Faites-le tourner sur la machine qui porte les cartes, et atteignez-le d'ailleurs (portable, téléphone) par votre réseau privé. L'agent lit et écrit alors les fichiers là où se trouve le travail, pas à travers un partage réseau.</p>
-
-<h2>2. Suivre le modèle réellement chargé</h2>
-<p>Sur un seul serveur maison, le modèle change : un gros pour le code le soir, un petit pendant qu'un jeu ou une génération d'images occupe la carte. Si OpenFox réclame un modèle qui n'est plus chargé, chaque requête échoue. Nous faisons tourner un petit suiveur qui lit le modèle déclaré par chaque carte et réécrit le modèle par défaut d'OpenFox en conséquence. La règle : la configuration de l'agent suit le matériel, jamais l'inverse.</p>
-
-<h2>3. Garder la liste d'outils courte</h2>
-<p>Chaque outil qu'un agent peut appeler est décrit dans chaque requête. Notre premier tour pesait 8 455 jetons avant que l'utilisateur ait tapé un mot, surtout des descriptions d'outils. Avec une fenêtre de 32k sur un petit modèle, c'est un quart de perdu. Ce qui a marché :</p>
+<h2>1. Ce qui le distingue : un contrat, pas un espoir</h2>
 <ul>
-<li>un seul serveur d'outils (MCP) permanent au lieu de cinq ;</li>
-<li>des outils chargés à la demande, quand la tâche en a besoin ;</li>
-<li>un prompt système court : l'attention du modèle est la ressource rare.</li>
+<li><strong>Planifier, puis construire.</strong> Vous découpez la tâche avec l'agent ; ensuite il l'implémente seul.</li>
+<li><strong>Les critères d'acceptation sont un contrat.</strong> Une fois le plan accepté, ses critères sont immuables : l'agent ne peut pas redéfinir en douce ce que veut dire « fini ».</li>
+<li><strong>Il boucle jusqu'à ce que chaque critère passe.</strong> Construire, vérifier, corriger, vérifier encore. Les petits modèles se trompent ; c'est cette boucle qui en fait du travail livré.</li>
+<li><strong>Un retour immédiat du serveur de langage</strong> : une modification invalide est attrapée tout de suite, pas trois étapes plus tard.</li>
+<li><strong>Des workflows</strong> : des enchaînements déclarés de tours d'agent, de sous-agents, de commandes shell et de validations humaines, avec une phase de relecture de code dans le cycle construire–vérifier.</li>
 </ul>
 
-<h2>4. Le tester là où il sert</h2>
-<p>Un modèle qui répond à un <code>curl</code> n'est pas un agent qui marche. La seule preuve, c'est une session dans OpenFox où le modèle appelle un outil (lit un fichier, lance un test) et se sert du résultat. Nous avons compté plusieurs « ça marche » qui ont échoué au premier vrai appel d'outil : le modèle répondait du texte mais ne produisait jamais d'appel d'outil valide au format de l'agent.</p>
+<h2>2. Fait pour votre propre matériel</h2>
+<ul>
+<li>Il <strong>détecte votre moteur</strong> au premier lancement et se configure seul.</li>
+<li><strong>Des mesures en direct</strong> : temps de lecture du prompt, vitesse de génération, contexte utilisé. Vous voyez votre carte travailler, et vous voyez le contexte se remplir.</li>
+<li><strong>La vue pour tous les modèles</strong> : les images sont décrites avant chaque tour, si bien que même un modèle texte seul « voit » une capture d'écran.</li>
+<li><strong>Des modifications parallèles sûres</strong> : un verrou par fichier, pour que deux sous-agents n'écrivent jamais le même fichier en même temps.</li>
+<li><strong>Des greffons</strong> pour d'autres fournisseurs, outils et commandes, installables depuis l'interface sans redémarrer.</li>
+</ul>
+
+<h2>3. L'installer en une soirée</h2>
+<pre><code>npm install -g openfox      # Node 24 ou plus récent
+openfox                     # ouvre l'interface ; le premier lancement détecte votre moteur</code></pre>
+<p>Pointez-le sur votre <a href="/fr/model-gateway.html">passerelle de modèles</a> plutôt que sur un serveur de modèle : la passerelle sait quel modèle est sur quelle carte, OpenFox n'a besoin que d'une adresse stable. Faites-le tourner sur la machine qui porte les cartes, et atteignez-le depuis le portable ou le téléphone par votre réseau privé.</p>
+<pre><code>OPENFOX_LLM_URL=http://votre-passerelle:4000/v1 \
+OPENFOX_MAX_CONTEXT=65536 openfox --no-browser</code></pre>
+<p class="note">Déclarez la vraie fenêtre de votre modèle avec <code>OPENFOX_MAX_CONTEXT</code>. La valeur par défaut suppose 200 000 jetons ; un modèle local à 64k déborderait bien avant qu'OpenFox ne compacte.</p>
+
+<h2>4. Ce que nous avons ajouté autour</h2>
+<ul>
+<li><strong>Il suit la carte.</strong> Un petit suiveur lit le modèle déclaré par chaque carte et réécrit le modèle par défaut d'OpenFox en conséquence : la configuration de l'agent suit le matériel, jamais l'inverse.</li>
+<li><strong>Une jauge de contexte dans la barre d'état</strong> du portable (voir <a href="/fr/workstation-small-tools.html">trois petits outils</a>).</li>
+<li><strong>Des clients téléphone et bureau</strong> : <a href="/fr/agent-swarmfox.html">SwarmFox</a> et <a href="/fr/agent-rooms-foxdesk.html">FoxDesk</a> ouvrent, suivent et valident ses sessions.</li>
+</ul>
 
 <h2>Pièges</h2>
-<p class="note">Ne laissez jamais deux processus écrire le fichier de configuration de l'agent en même temps. Deux enregistrements de serveurs d'outils en parallèle nous ont laissé un <code>config.json</code> corrompu et un agent qui ne démarrait plus. Enregistrez les outils un par un, et gardez une copie du fichier avant de le modifier.</p>
-<p class="note">Un petit modèle qui boucle sur la même commande n'est pas têtu, il a perdu son contexte. Raccourcissez la tâche, pas la patience : un fichier, un changement, un test.</p>
+<p class="note">Gardez la liste d'outils courte. Notre premier tour pesait 8 455 jetons avant le moindre mot, surtout des descriptions d'outils : un seul serveur d'outils permanent au lieu de cinq, des outils chargés à la demande.</p>
+<p class="note">Ne laissez jamais deux processus écrire son fichier de configuration en même temps : deux enregistrements parallèles nous ont laissé un <code>config.json</code> corrompu. Gardez une copie avant de le modifier.</p>
+<p class="note">Testez-le là où il sert. Un modèle qui répond à un <code>curl</code> n'est pas un agent qui marche ; la preuve, c'est une session où il appelle un outil et se sert du résultat.</p>
