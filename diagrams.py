@@ -1126,6 +1126,53 @@ def secrets(lang):
     return figure("secrets", 740, 210, L["cap"], body)
 
 
+# ── mutation testing: does a test ever turn red? ────────────────────────────
+def mutation(lang):
+    L = {
+        "en": labels(cap="Break the code on purpose, one small change at a time, and run the tests. Red means a test caught it: good. Green means the defect survived: the tests are blind there. Before starting, the tests must be green on the real code, or every mutation looks caught.",
+                     code="The code", csub="tests green first", mut="One mutant", msub="== becomes !=, -eq becomes -ne…",
+                     run="Run the tests", red="red: caught", green="green: survived → blind spot", undo="restore, next mutant"),
+        "fr": labels(cap="Cassez le code exprès, un petit changement à la fois, et lancez les tests. Rouge veut dire qu'un test l'a attrapé : bien. Vert veut dire que le défaut a survécu : les tests sont aveugles à cet endroit. Avant de commencer, les tests doivent être verts sur le vrai code, sinon chaque mutation paraît attrapée.",
+                     code="Le code", csub="tests verts d'abord", mut="Un mutant", msub="== devient !=, -eq devient -ne…",
+                     run="Lancer les tests", red="rouge : attrapé", green="vert : a survécu → angle mort", undo="restaurer, mutant suivant"),
+    }[lang]
+    body = box(10, 60, 140, 54, L["code"], L["csub"])
+    body += box(190, 60, 210, 54, L["mut"], L["msub"], stroke=ACCENT)
+    body += box(440, 60, 140, 54, L["run"], None)
+    body += arrow(150, 87, 188, 87)
+    body += arrow(400, 87, 438, 87)
+    body += arrow(580, 75, 620, 40, None, GOOD, marker="good")
+    body += t(625, 38, L["red"], 12, "start", GOOD, 600)
+    body += arrow(580, 100, 620, 135, None, BAD, marker="bad")
+    body += t(625, 142, L["green"], 12, "start", BAD, 600)
+    body += (f'<path d="M510,114 C510,170 295,170 295,116" fill="none" stroke="{MUTED}" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#a)"/>')
+    body += t(400, 178, L["undo"], 11, "middle", MUTED)
+    return figure("mutation", 860, 190, L["cap"], body)
+
+
+# ── one browser per agent ───────────────────────────────────────────────────
+def browsers(lang):
+    L = {
+        "en": labels(cap="Twenty-six agents in one browser share one process, one memory and one DNS cache: one runaway tab freezes them all, and their bursts get them throttled. One browser each, with its own profile, port and encrypted DNS, removes all three.",
+                     a="Shared browser", b="One browser per agent", tabs="26 tabs, 1 process", sym=["frozen 180 s by one tab", "11 navigations out of 20 interrupted", "domains wrongly declared dead"],
+                     own="own profile · own port · own DNS"),
+        "fr": labels(cap="Vingt-six agents dans un seul navigateur partagent un processus, une mémoire et un cache DNS : un onglet emballé les gèle tous, et leurs rafales les font brider. Un navigateur chacun, avec son profil, son port et son DNS chiffré, supprime les trois.",
+                     a="Navigateur partagé", b="Un navigateur par agent", tabs="26 onglets, 1 processus", sym=["gelé 180 s par un onglet", "11 navigations sur 20 interrompues", "domaines déclarés morts à tort"],
+                     own="son profil · son port · son DNS"),
+    }[lang]
+    body = t(20, 22, L["a"], 13, "start", BAD, 700)
+    body += box(20, 34, 220, 50, L["tabs"], None, stroke=BAD)
+    for i, sy in enumerate(L["sym"]):
+        body += t(30, 106 + i * 18, "✕ " + sy, 11, "start", BAD)
+    body += t(330, 22, L["b"], 13, "start", GOOD, 700)
+    for i in range(4):
+        x = 330 + i * 102
+        body += f'<rect x="{x}" y="34" width="92" height="50" rx="8" fill="{PANEL}" stroke="{GOOD}" stroke-width="1.5"/>'
+        body += t(x + 46, 64, f"agent {i + 1}", 12, "middle", weight=600)
+    body += t(530, 106, L["own"], 11, "middle", GOOD)
+    return figure("browsers", 760, 165, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -1140,7 +1187,8 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "gateway": gateway, "grid": grid, "snapshots": snapshots, "keep": keep,
             "rotation": rotation, "ram": ram, "egpu": egpu,
             "mtp": mtp, "judge": judge, "rag": rag,
-            "f2b": f2b, "errors": errors, "drift": drift, "secrets": secrets}
+            "f2b": f2b, "errors": errors, "drift": drift, "secrets": secrets,
+            "mutation": mutation, "browsers": browsers}
 
 
 def render(name, lang):
