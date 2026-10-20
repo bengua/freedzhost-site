@@ -1328,6 +1328,46 @@ def bmad(lang):
     return figure("bmad", 760, 255, L["cap"], body)
 
 
+# ── KV cache: the quantized V that disarms flash attention ──────────────────
+def kvtrap(lang):
+    L = {
+        "en": labels(cap="Same model, same card, one flag changed. Reading a 7,758-token prompt: 62.7 tokens per second with the V cache in q4_0, 1,330 with q8_0. Generation stays at 54 tokens per second in both cases, which is why a benchmark that only measures generation sees nothing.",
+                     t1="Prompt reading, tokens/s", a="-ctv q4_0", b="-ctv q8_0", g="Generation, tokens/s", x21="21 times slower", v1="62.7", v2="1,330"),
+        "fr": labels(cap="Même modèle, même carte, un seul réglage changé. Lecture d'un prompt de 7 758 jetons : 62,7 jetons par seconde avec le cache V en q4_0, 1 330 avec q8_0. La génération reste à 54 jetons par seconde dans les deux cas : c'est pourquoi un banc qui ne mesure que la génération ne voit rien.",
+                     t1="Lecture du prompt, jetons/s", a="-ctv q4_0", b="-ctv q8_0", g="Génération, jetons/s", x21="21 fois plus lent", v1="62,7", v2="1 330"),
+    }[lang]
+    W = 520 / 1330
+    body = t(20, 28, L["t1"], 13, weight=600)
+    body += t(20, 62, L["a"], 12, color=MUTED) + f'<rect x="110" y="48" width="{62.7 * W:.1f}" height="20" rx="3" fill="{BAD}"/>' + t(110 + 62.7 * W + 8, 63, L["v1"], 12)
+    body += t(20, 96, L["b"], 12, color=MUTED) + f'<rect x="110" y="82" width="{1330 * W:.1f}" height="20" rx="3" fill="{GOOD}"/>' + t(110 + 1330 * W + 8, 97, L["v2"], 12)
+    body += t(230, 63, L["x21"], 12, color=BAD)
+    body += t(20, 140, L["g"], 13, weight=600)
+    for i, lab in enumerate((L["a"], L["b"])):
+        y = 160 + i * 34
+        body += t(20, y + 14, lab, 12, color=MUTED) + f'<rect x="110" y="{y}" width="{54 * W * 4:.1f}" height="20" rx="3" fill="{MUTED}"/>' + t(110 + 54 * W * 4 + 8, y + 15, "54", 12)
+    return figure("kvtrap", 720, 225, L["cap"], body)
+
+
+# ── context: the floor you pay at every turn ────────────────────────────────
+def floor(lang):
+    L = {
+        "en": labels(cap="One agent run of 11 turns, measured: 345,811 input tokens billed. The conversation itself weighed 4,408 tokens. The rest is the floor, 30,939 tokens of system prompt and tool descriptions, sent again at every turn.",
+                     t="Tokens billed for one run", fl="floor × 11 turns: about 340,000", tr="the actual conversation: 4,408"),
+        "fr": labels(cap="Un run d'agent de 11 tours, mesuré : 345 811 jetons d'entrée facturés. La conversation elle-même pesait 4 408 jetons. Le reste, c'est le plancher : 30 939 jetons de prompt système et de descriptions d'outils, renvoyés à chaque tour.",
+                     t="Jetons facturés pour un run", fl="plancher × 11 tours : environ 340 000", tr="la conversation réelle : 4 408"),
+    }[lang]
+    body = t(20, 28, L["t"], 13, weight=600)
+    x = 20
+    for i in range(11):
+        w = 60
+        body += f'<rect x="{x}" y="44" width="{w - 2}" height="34" rx="3" fill="{ACCENT}" opacity="{0.55 + 0.04 * i:.2f}"/>'
+        x += w
+    body += f'<rect x="{x}" y="44" width="8" height="34" rx="2" fill="{GOOD}"/>'
+    body += t(20, 100, L["fl"], 12, color=ACCENT)
+    body += t(x + 8, 100, L["tr"], 12, "end", GOOD)
+    return figure("floor", 720, 115, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -1344,7 +1384,7 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "mtp": mtp, "judge": judge, "rag": rag,
             "f2b": f2b, "errors": errors, "drift": drift, "secrets": secrets,
             "mutation": mutation, "browsers": browsers, "placement": placement, "escalation": escalation,
-            "apk": apk, "agents": agents, "wiring": wiring, "bmad": bmad}
+            "apk": apk, "agents": agents, "wiring": wiring, "bmad": bmad, "kvtrap": kvtrap, "floor": floor}
 
 
 def render(name, lang):

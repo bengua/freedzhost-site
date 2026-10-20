@@ -1,0 +1,33 @@
+<!-- {"title": "Le plancher de contexte : où partent vraiment les jetons d'un agent", "summary": "Nous avons mesuré un run d'agent jeton par jeton. La conversation pesait 1 % de la facture ; le reste, c'étaient les mêmes 30 939 jetons d'instructions et de descriptions d'outils, renvoyés à chaque tour. Comment mesurer votre propre plancher, et quels leviers le font vraiment bouger.", "order": 55, "series": "agents", "level": "intermediate", "time": "1 h", "requires": ["agent-claude-code"]} -->
+<p class="lead">Tout le monde essaie d'économiser des jetons en rognant ce que l'agent lit : des fichiers plus courts, des sorties d'outils plus petites. Nous avons mesuré avant de couper. Ces économies portent sur environ 1 % de la facture. Les 99 % restants sont un plancher payé à chaque tour, et il se mesure en cinq minutes.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Une carte claire de l'endroit où part votre contexte, une méthode réutilisable sur n'importe quel agent, et le seul levier qui compte : chez nous, un unique serveur d'outils coûtait 17,6 % de chaque run, et le retirer n'a rien coûté.</p>
+
+{{diagram:floor}}
+
+<h2>1. Le plancher</h2>
+<p>Avant votre premier mot, un agent envoie au modèle son prompt système et la description de chaque outil qu'il peut appeler. C'est ce que nous appelons le plancher. Mesurez-le avec un prompt trivial (« dis ok ») et lisez les jetons d'entrée annoncés par le serveur. Le nôtre : <strong>30 939 jetons</strong>, un cinquième de la fenêtre du modèle, partis avant tout travail.</p>
+
+<h2>2. Pourquoi il domine la facture</h2>
+<p>Le plancher est renvoyé à chaque tour. Un run de 11 appels d'outils coûte 11 planchers : environ 340 000 jetons. Nous en avons mesuré 345 811. Le transcript entier de ce run, tout ce que l'agent a vraiment lu et écrit, pesait 4 408. Le calcul boucle : le plancher explique environ 98 % de la facture.</p>
+<p class="note">Rogner les lectures de fichiers agit sur les 4 408. Rogner le plancher agit sur 30 939 × le nombre de tours. Mesurez avant de choisir votre combat.</p>
+
+<h2>3. Trouver ce qu'il contient, par substitution</h2>
+<p>Changez une chose, remesurez, remettez-la. Pour Claude Code, lancez-le avec une liste de serveurs d'outils vide (<code>--strict-mcp-config</code> avec une configuration vide) :</p>
+<ul>
+<li>30 939 avec notre serveur d'outils, 25 420 sans : ce serveur coûtait <strong>5 519 jetons par tour</strong>, environ 60 700 par run, 17,6 % de la facture ;</li>
+<li>les 25 400 restants sont le prompt de l'agent et ses outils intégrés : irréductibles ;</li>
+<li>retirer trois sous-agents et une skill n'a <strong>rien</strong> changé : 30 939 avant et après. Ils sont chargés à la demande, pas au démarrage.</li>
+</ul>
+
+<h2>4. La méthode, pour que les chiffres tiennent</h2>
+<ol>
+<li>Une seule variable par mesure.</li>
+<li>Trois runs au moins ; donnez la médiane et le min–max.</li>
+<li>Le même point de départ à chaque fois : les demandes de fusion de test sont fermées, jamais fusionnées.</li>
+<li>Un run échoué est une donnée : gardez-le.</li>
+</ol>
+
+<h2>Pièges</h2>
+<p class="note">Une tâche témoin déjà faite donne trois fois « aucun changement » et ressemble à un bug. Vérifiez que votre tâche témoin n'est pas déjà dans la branche principale.</p>
+<p class="note">Les estimations mentent : nous avions chiffré les sous-agents à environ 2 700 jetons d'après la taille de leurs fichiers, puis mesuré zéro. Une taille de fichier n'est pas un coût de contexte ; seul le compteur du serveur est un fait.</p>

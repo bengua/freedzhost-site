@@ -1,0 +1,27 @@
+<!-- {"title": "Slow for no reason? It is re-reading: the KV cache trap", "summary": "A local model that generates fast but takes ten minutes to answer is not slow: it is reading the prompt badly. One flag made it 21 times slower, silently. How to measure it in two minutes, and the two settings to use instead.", "order": 54, "series": "ai", "level": "intermediate", "time": "20 min", "requires": ["first-model"]} -->
+<p class="lead">Your model writes at 54 tokens per second, the benchmark is happy, and yet a coding agent waits minutes before its first word. The culprit is almost never the model. It is the first phase of every answer, reading the prompt, and one cache setting that quietly breaks it.</p>
+
+<p class="proof"><strong>What you get.</strong> The answer to "why is my local agent so slow" in two minutes of measurement, and a fix of one flag: on our card, a 23,400-token agent prompt went from 18 minutes to 17 seconds.</p>
+
+{{diagram:kvtrap}}
+
+<h2>1. Two speeds, not one</h2>
+<p>A model answers in two phases. First it <strong>reads</strong> the whole prompt (prompt processing, or prefill), then it <strong>writes</strong> the answer token by token (generation). Most benchmarks and most chat demos only measure the second. An agent sends a long prompt at every turn: the first phase is the one you wait for.</p>
+
+<h2>2. Measure the reading, on a long prompt</h2>
+<p>llama.cpp prints both speeds at the end of each request. Send a long prompt (a few thousand tokens: paste a big file and ask for a summary), then read the server's log:</p>
+<pre><code>prompt eval time = 5830 ms / 7758 tokens (1330 tokens per second)
+       eval time = 3700 ms /  200 tokens (  54 tokens per second)</code></pre>
+<p>The first line is the reading. On a recent card with flash attention, expect hundreds to thousands of tokens per second. Tens is a problem.</p>
+
+<h2>3. The flag that breaks it</h2>
+<p>To save memory, llama.cpp can store its key/value cache in compressed form: <code>-ctk</code> for the keys, <code>-ctv</code> for the values. Compressing the values to <code>q4_0</code> looks like a free win. It is not: flash attention is silently disarmed. The server accepts <code>-fa on</code>, says nothing in its log, even at the highest verbosity, and reads 21 times slower.</p>
+<p>The saving was about 33 KB per token instead of 50: 1.8 GB on a 106k window. Paid with twenty-one times the reading time, it is a bad deal in every case.</p>
+<pre><code>llama-server -m model.gguf -fa on -ctk q8_0 -ctv q8_0   # this, and nothing lower for V</code></pre>
+
+<h2>4. Recognize the signature</h2>
+<p>Without flash attention, reading slows down as it goes: in our case 212 tokens per second over the first 2,048 tokens, then 82, 51, 37. A speed that falls with the position in the prompt is unoptimized attention. A speed that is flat but low is something else (memory, offloading to the processor).</p>
+
+<h2>Traps</h2>
+<p class="note">The other cause of re-reading is a prompt cache turned off. With <code>--cache-ram 0</code>, the server forgets the start of the conversation and re-reads it at each turn (see <a href="/big-moe-two-cards.html">the 177B on two cards</a>).</p>
+<p class="note">Running Claude Code on a local model? For a model name it does not know, it assumes a 200,000-token window and compacts too late; and automatic compaction only arms above 100,000. Set <code>CLAUDE_CODE_MAX_CONTEXT_TOKENS</code> to your server's real window (see <a href="/agent-claude-code.html">Claude Code, two ways</a>).</p>
