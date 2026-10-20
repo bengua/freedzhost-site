@@ -1,0 +1,23 @@
+<!-- {"title": "Votre test attrape-t-il quelque chose ? Prouvez-le en cassant le code (tests par mutation)", "summary": "Un test vert dit seulement qu'il n'a rien trouvé, ce que fait aussi un test cassé. Injectez des défauts un par un et vérifiez que chacun fait passer un test au rouge.", "order": 20, "series": "ai", "level": "advanced", "time": "1 h", "requires": ["agent-intents"]} -->
+<p class="lead">Quand un agent écrit du code et ses tests, les deux peuvent partager le même angle mort : le test a été écrit en même temps que le code et vérifie ce que le code fait, pas ce qu'il devrait faire. Un résultat vert ne prouve alors rien. Le test par mutation pose une question plus simple : si je casse cette ligne, un test s'en aperçoit-il ?</p>
+
+{{diagram:mutation}}
+
+<h2>1. La méthode</h2>
+<ol>
+<li>Lancez les tests sur le vrai code : ils doivent tous être <strong>verts</strong>. Si l'un est déjà rouge, chaque mutation paraîtra « attrapée » pour une raison étrangère.</li>
+<li>Changez une petite chose : <code>==</code> en <code>!=</code>, <code>-eq</code> en <code>-ne</code>, <code>&lt;</code> en <code>&lt;=</code>, une condition en « toujours vrai », <code>|| exit</code> en <code>|| true</code>.</li>
+<li>Lancez les tests. Rouge : le défaut est attrapé. Vert : il a survécu, les tests sont aveugles à cet endroit.</li>
+<li>Restaurez exactement le code, et passez à la mutation suivante.</li>
+</ol>
+<p>Des outils existent pour la plupart des langages (mutmut pour Python, par exemple). Notre homelab est surtout fait de scripts shell, alors nous en avons écrit un petit qui mute aussi les opérateurs de Bash ; un outil de mutation qui ne mord que sur du Python ne mesure rien dans un parc de scripts shell.</p>
+
+<h2>2. Ce qu'il a trouvé chez nous</h2>
+<p>Une suite de 68 contrôles, tous verts. Cinq mutations plus tard, deux angles morts : deux chemins d'échec jamais éprouvés. Une fois comblés, une mutation paraissait attrapée, mais par un scénario déjà rouge avant la mutation : une fausse détection. Version finale : 81 contrôles, 11 défauts injectés, 11 attrapés.</p>
+<p>Une autre fois, un test vérifiait qu'un mot apparaissait dans un fichier. Inverser une seule comparaison dans le code échangeait entièrement deux verdicts, et le test restait vert. La correction : faire <em>exécuter</em> au test la fonction qui décide, au lieu de chercher un mot dans sa sortie.</p>
+
+<h2>Pièges que nous avons payés</h2>
+<p class="note">En Python, restaurer un mutant par une copie de fichier dans la même seconde peut laisser en place le <code>.pyc</code> compilé du mutant : le passage suivant teste encore le mutant. Supprimez <code>__pycache__</code> après chaque mutant, ou lancez avec <code>PYTHONDONTWRITEBYTECODE=1</code>.</p>
+<p class="note">Dans les tests shell, <code>OUT=$(ma_fonction)</code> exécute la fonction dans un sous-shell : un code de sortie qu'elle y range est perdu, et chaque scénario de refus passe au vert. Faites passer la sortie par un fichier et gardez le code de sortie dans le shell courant.</p>
+<p class="note">Un mutant qui survit n'est pas toujours un défaut : certains changements ne peuvent être détectés par aucun test (un « mutant équivalent »). Lisez un score bas comme une couverture, pas comme une note, et regardez chaque survivant avant de conclure.</p>
+<p class="note">Des données de test écrites de mémoire ne prouvent rien sur le vrai système : nos tests étaient verts sur des données inventées pendant que le code lisait des champs qui n'existaient pas dans la vraie réponse de l'API. Construisez vos données de test à partir de réponses mesurées.</p>
