@@ -1,0 +1,22 @@
+<!-- {"title": "Homelab 13 : une liste de tâches pour vous et vos agents avec Vikunja", "summary": "Remplacer Todoist ou Microsoft To Do, importer vos listes, et donner à vos agents une file partagée où les décisions que vous seul pouvez prendre vous attendent.", "order": 21, "series": "homelab"} -->
+<p class="lead">Vikunja est un gestionnaire de tâches open source : projets, listes, tableaux Kanban, échéances, rappels, et une app pour le téléphone. Il importe depuis Todoist et Microsoft To Do. Dans un réseau d'agents, il joue un rôle de plus : une file partagée, où les agents déposent ce qu'ils ont trouvé et où les décisions que seul un humain peut prendre vous attendent.</p>
+
+{{diagram:tasks}}
+
+<h2>1. Le lancer</h2>
+<p>Vikunja tient dans un seul conteneur (interface web et API ensemble). SQLite suffit pour un foyer ; PostgreSQL si plusieurs personnes l'utilisent beaucoup. Réglez au minimum :</p>
+<pre><code>VIKUNJA_SERVICE_PUBLICURL=https://taches.votredomaine.tld/
+VIKUNJA_SERVICE_SECRET=&lt;une longue valeur aléatoire&gt;</code></pre>
+<p>Publiez-le par votre proxy HTTPS (Homelab 2). Créez votre compte, puis fermez les inscriptions :</p>
+<pre><code>VIKUNJA_SERVICE_ENABLEREGISTRATION=false</code></pre>
+
+<h2>2. Rapatrier vos listes</h2>
+<p>Dans vos réglages d'utilisateur, les outils de migration importent projets et tâches depuis Todoist ou Microsoft To Do. Faites-le une fois, vérifiez quelques listes, puis supprimez l'ancien compte.</p>
+
+<h2>3. Donner un jeton à vos agents, pas votre mot de passe</h2>
+<p>Dans <strong>Settings → API Tokens</strong>, créez un jeton par agent, avec une date d'expiration et seulement les droits dont il a besoin (par exemple : lire les projets, créer des tâches). Un agent peut alors déposer une tâche comme « Valider le nouveau calendrier de sauvegarde ? », et vous décidez depuis votre téléphone.</p>
+
+<h2>Pièges</h2>
+<p class="note">Sans <code>VIKUNJA_SERVICE_SECRET</code>, Vikunja tire un secret au hasard à chaque démarrage : chaque redémarrage déconnecte tout le monde, et vous croirez à une panne. Réglez-le une fois.</p>
+<p class="note">Les inscriptions sont ouvertes par défaut. Sur un serveur joignable depuis Internet, fermez-les dès que vos comptes existent.</p>
+<p class="note">Un jeton par agent, jamais partagé : quand un agent se comporte mal, vous révoquez son jeton sans casser les autres.</p>
