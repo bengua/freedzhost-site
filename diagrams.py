@@ -1216,6 +1216,31 @@ def escalation(lang):
     return figure("escalation", 760, 210, L["cap"], body)
 
 
+# ── your own Android app, your own update channel ───────────────────────────
+def apk(lang):
+    L = {
+        "en": labels(cap="Build in a container, sign with your release key, publish the APK and a small version file on your own server. The app compares the version number with its own and offers the update. A version number is used once: published or not, never again.",
+                     src="Repository", ssub="version bumped in the PR", b="Build container", bsub="Android SDK, no install",
+                     sig="Signed APK", sgs="release key, backed up", srv="Your server", svs="APK + latest.json", ph="The phone",
+                     phs="compares versionCode", priv="over your private network"),
+        "fr": labels(cap="Compiler dans un conteneur, signer avec votre clé de publication, publier l'APK et un petit fichier de version sur votre propre serveur. L'app compare le numéro de version au sien et propose la mise à jour. Un numéro de version ne sert qu'une fois : publié ou non, plus jamais.",
+                     src="Dépôt", ssub="version montée dans la PR", b="Conteneur de build", bsub="SDK Android, rien à installer",
+                     sig="APK signée", sgs="clé de publication, sauvegardée", srv="Votre serveur", svs="APK + latest.json", ph="Le téléphone",
+                     phs="compare versionCode", priv="par votre réseau privé"),
+    }[lang]
+    body = box(10, 40, 130, 54, L["src"], L["ssub"])
+    body += box(165, 40, 150, 54, L["b"], L["bsub"])
+    body += box(340, 40, 150, 54, L["sig"], L["sgs"], stroke=ACCENT)
+    body += box(515, 40, 120, 54, L["srv"], L["svs"])
+    body += box(515, 150, 120, 54, L["ph"], L["phs"], stroke=GOOD)
+    body += arrow(140, 67, 163, 67)
+    body += arrow(315, 67, 338, 67)
+    body += arrow(490, 67, 513, 67)
+    body += arrow(575, 148, 575, 96, None, GOOD, marker="good")
+    body += t(585, 128, L["priv"], 11, "start", GOOD)
+    return figure("apk", 760, 215, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -1231,7 +1256,8 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "rotation": rotation, "ram": ram, "egpu": egpu,
             "mtp": mtp, "judge": judge, "rag": rag,
             "f2b": f2b, "errors": errors, "drift": drift, "secrets": secrets,
-            "mutation": mutation, "browsers": browsers, "placement": placement, "escalation": escalation}
+            "mutation": mutation, "browsers": browsers, "placement": placement, "escalation": escalation,
+            "apk": apk}
 
 
 def render(name, lang):
