@@ -789,6 +789,65 @@ def route(lang):
     return figure("route", 760, 160, L["cap"], body)
 
 
+# ── one gateway, names that do not lie ──────────────────────────────────────
+def gateway(lang):
+    L = {
+        "en": labels(cap="Every client knows one address. The gateway's list of models is generated from what the cards actually serve, and each name says exactly which weights answer: no alias, no silent fallback to another model.",
+                     clients=["Agents", "Apps, phone", "Home Assistant"], gw="Gateway", gsub="one address, private network",
+                     gen="generated from the served models", m=["9B · card 0", "27B · card 1", "3B · CPU"], down="not loaded: fails, never substitutes"),
+        "fr": labels(cap="Chaque client connaît une seule adresse. La liste des modèles de la passerelle est générée à partir de ce que les cartes servent vraiment, et chaque nom dit exactement quels poids répondent : pas d'alias, pas de repli silencieux vers un autre modèle.",
+                     clients=["Agents", "Apps, téléphone", "Home Assistant"], gw="Passerelle", gsub="une adresse, réseau privé",
+                     gen="générée depuis les modèles servis", m=["9B · carte 0", "27B · carte 1", "3B · CPU"], down="non chargé : échoue, ne remplace jamais"),
+    }[lang]
+    body = ""
+    for i, c in enumerate(L["clients"]):
+        y = 20 + i * 62
+        body += box(10, y, 150, 46, c, None)
+        body += arrow(160, y + 23, 278, 103)
+    body += box(280, 76, 160, 54, L["gw"], L["gsub"], stroke=ACCENT)
+    for i, m in enumerate(L["m"]):
+        y = 20 + i * 62
+        body += box(560, y, 170, 46, m, None, stroke=GOOD if i < 2 else LINE)
+        body += arrow(440, 103, 558, y + 23)
+    body += t(360, 160, L["gen"], 11, "middle", ACCENT)
+    body += t(645, 206, L["down"], 11, "middle", MUTED)
+    return figure("gateway", 760, 220, L["cap"], body)
+
+
+# ── the grid: models × cards ────────────────────────────────────────────────
+def grid(lang):
+    L = {
+        "en": labels(cap="Each model exists once per place it can run: card 0, card 1, or both cards together. One cell is one container, created once. Swapping is stopping one cell and starting another; a game simply takes card 0 and gives it back.",
+                     cols=["card 0", "card 1", "both cards"], rows=["9B", "14B coder", "27B", "177B"],
+                     declared="serving", game="free-c0: card 0 for a game", cost="swap: 0.5–0.75 s per GB loaded"),
+        "fr": labels(cap="Chaque modèle existe une fois par endroit où il peut tourner : carte 0, carte 1, ou les deux cartes ensemble. Une case est un conteneur, créé une fois. Basculer, c'est arrêter une case et en démarrer une autre ; un jeu prend simplement la carte 0 et la rend.",
+                     cols=["carte 0", "carte 1", "les deux cartes"], rows=["9B", "14B coder", "27B", "177B"],
+                     declared="en service", game="free-c0 : la carte 0 pour un jeu", cost="bascule : 0,5–0,75 s par Go chargé"),
+    }[lang]
+    x0, y0, cw, rh = 150, 40, 150, 44
+    body = ""
+    for j, c in enumerate(L["cols"]):
+        body += t(x0 + j * cw + cw / 2, y0 - 12, c, 12, "middle", MUTED, 600)
+    on = {(0, 0), (2, 1)}
+    absent = {(3, 0), (3, 1)}
+    for i, r in enumerate(L["rows"]):
+        y = y0 + i * rh
+        body += t(x0 - 14, y + 26, r, 13, "end", weight=600)
+        for j in range(3):
+            x = x0 + j * cw
+            if (i, j) in absent:
+                continue
+            serving = (i, j) in on
+            fill = "#2a3a30" if serving else PANEL
+            stroke = GOOD if serving else LINE
+            body += f'<rect x="{x + 6}" y="{y + 6}" width="{cw - 12}" height="{rh - 10}" rx="6" fill="{fill}" stroke="{stroke}" stroke-width="1.5"/>'
+            if serving:
+                body += t(x + cw / 2, y + 27, L["declared"], 11, "middle", GOOD, 600)
+    body += t(x0, y0 + 4 * rh + 24, L["game"], 11, "start", ACCENT)
+    body += t(x0, y0 + 4 * rh + 42, L["cost"], 11, "start", MUTED)
+    return figure("grid", 640, 250, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -799,7 +858,8 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "intent": intent, "office": office,
             "paper": paper, "tasks": tasks,
             "cascade": cascade, "voice": voice,
-            "saas": saas, "clock": clock, "route": route}
+            "saas": saas, "clock": clock, "route": route,
+            "gateway": gateway, "grid": grid}
 
 
 def render(name, lang):
