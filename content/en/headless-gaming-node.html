@@ -1,0 +1,38 @@
+<!-- {"title": "A gaming PC that became an AI server, and still plays", "summary": "No screen on the tower: a virtual display, game streaming encoded by the integrated GPU, and an Android handheld as the console.", "order": 10} -->
+<p class="lead">Our compute node used to be a gaming PC. It now runs AI models around the clock, has no screen, and we still play on it: from an Android handheld, anywhere in the house or outside, through a streaming server. The trick is to give each part of the machine one job.</p>
+
+{{diagram:stream}}
+
+<h2>One job per chip</h2>
+<ul>
+<li><strong>NVIDIA cards</strong>: models, or the game while you play (see <a href="/gpu-for-ai.html">Free your graphics cards for AI</a>).</li>
+<li><strong>Integrated GPU</strong>: the desktop, and encoding the video stream. Its video engine is separate from the NVIDIA cards, so streaming takes nothing from AI.</li>
+<li><strong>A virtual display</strong>: the streaming server needs a screen to capture. We give it one that does not exist physically.</li>
+</ul>
+
+<h2>1. A screen that does not exist</h2>
+<p>The kernel can be told that a monitor is connected to an output, and what that monitor is, through an EDID file (the identity card a real screen sends). Two kernel parameters, on an output of the integrated GPU:</p>
+<pre><code>video=HDMI-A-1:e drm.edid_firmware=HDMI-A-1:edid/virtual-1080p120.bin</code></pre>
+<p>Put the EDID file in <code>/usr/lib/firmware/edid/</code>. Generate it for 1920×1080 at 120 Hz with reduced blanking, and make that mode the preferred one, otherwise the desktop will not pick it by default. Open-source EDID generators exist; check the result before rebooting.</p>
+<ul>
+<li>The output is named by connector (<code>HDMI-A-1</code>, <code>DP-3</code>…), not by card: the card numbers can change from one boot to the next, the connector name does not.</li>
+<li>The EDID is read at boot only: any change means a reboot.</li>
+<li>A forced output has no HDR and no variable refresh rate.</li>
+<li>With the proprietary NVIDIA driver loaded, <code>drm.edid_firmware</code> alone is silently ignored: <code>video=…:e</code> is required too.</li>
+</ul>
+
+<h2>2. The streaming server</h2>
+<p>Sunshine is the open-source game-streaming server; Apollo is a fork with extras. Three settings make the difference on a machine like this one:</p>
+<pre><code>capture = kms              # captures the display directly, lowest latency, any desktop
+encoder = vaapi            # encode on the integrated GPU
+adapter_name = /dev/dri/renderD128   # the integrated GPU's render node, check yours</code></pre>
+<p><code>kms</code> capture needs an extra capability (<code>cap_sys_admin</code>) that the packages usually set. The render node number differs from one machine to another: find the integrated GPU's with <code>ls -l /dev/dri/by-path/</code>.</p>
+
+<h2>3. The console</h2>
+<p>On an Android handheld (ours is an AYN Odin 2 Portal), install Moonlight, or Artemis, a fork made to pair with Apollo. Pair with the PIN shown in the server's web page, pick the game, play. Away from home, go through your private network (Tailscale, WireGuard): never open the streaming ports to the internet.</p>
+
+<h2>Traps we paid for</h2>
+<p class="note">An integrated GPU of the Ryzen 7000 generation decodes AV1 but cannot encode it. Use HEVC: the image is excellent and the handheld decodes it in hardware.</p>
+<p class="note">The server's web interface did not always save our changes. Edit the configuration file with the service stopped, then read the log to see what was really loaded.</p>
+<p class="note">The <code>output_name</code> setting is an index into the server's list of displays, not a connector name. A wrong value makes every encoder fail in a row, and the client only gets an error.</p>
+<p class="note">Forget the old <code>xrandr</code> "dummy screen" tutorials: they only work under X11, not in a Wayland session.</p>

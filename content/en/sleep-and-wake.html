@@ -1,0 +1,29 @@
+<!-- {"title": "Sleep when idle, wake on demand: the energy recipe", "summary": "A tower with big graphics cards should not run for nothing. A small always-on machine wakes it in seconds, from anywhere, without opening anything to the internet.", "order": 11} -->
+<p class="lead">A tower with two large graphics cards draws far more than a small server, even idle. Ours sleeps whenever nobody needs it. A small machine that is on anyway (the Proxmox node of Homelab 1) wakes it up on demand, and the wake command only returns when the tower is really ready to work.</p>
+
+{{diagram:wake}}
+
+<h2>1. Allow the wake-up</h2>
+<ol>
+<li>In the firmware (BIOS): enable <em>Wake on LAN</em> (sometimes <em>Power On By PCI-E</em>), and disable deep power-saving modes such as <em>ErP</em>, which cut power to the network card.</li>
+<li>Use the <strong>wired</strong> network card: Wake on LAN does not work over Wi-Fi on ordinary hardware.</li>
+<li>Check, then make it permanent with NetworkManager:
+<pre><code>sudo ethtool &lt;interface&gt; | grep Wake-on      # "g" means magic packet
+nmcli connection modify &lt;connection&gt; 802-3-ethernet.wake-on-lan magic</code></pre></li>
+<li>Note the card's hardware (MAC) address: <code>ip link show &lt;interface&gt;</code>. Keep it in your notes, not in a public file.</li>
+</ol>
+
+<h2>2. Send the magic packet from inside</h2>
+<p>The magic packet is a broadcast on the local network: it has to leave from a machine on the same network. Use the small always-on machine:</p>
+<pre><code>wakeonlan &lt;MAC address&gt;    # or: etherwake, or a web dashboard such as UpSnap</code></pre>
+<p>From outside, reach that small machine through your private network (Tailscale, WireGuard), then send the packet from there.</p>
+<p class="note">Never forward Wake on LAN from the internet through your box: anyone could switch your machine on, and you gain nothing over a private network.</p>
+
+<h2>3. "Awake" is not "ready"</h2>
+<p>A machine that answers ping may still be starting its services. Our wake command waits for two real answers before it returns: an SSH connection, then the model gateway's health check. Only then do the agents get the green light. Three minutes without an answer is a failure, reported as such.</p>
+
+<h2>4. Go back to sleep</h2>
+<p><code>systemctl suspend</code> puts the tower to sleep. Decide when it sleeps yourself: when no job is queued and nobody is connected, not merely when the mouse has not moved.</p>
+
+<h2>The trap that kept surprising us</h2>
+<p class="note">Our tower kept falling asleep in the middle of remote work, exactly fifteen minutes after each wake-up. The cause was not our session but the <strong>login screen</strong>: its default settings suspend after 900 seconds without <em>local</em> keyboard or mouse activity, and SSH, remote desktops or model requests never reset that timer. The more we worked remotely, the more it slept. The fix: give the login screen its own setting (on GNOME, a dconf profile for <code>gdm</code> with <code>sleep-inactive-ac-type='nothing'</code>) and keep the decision to sleep in your own hands. Its signature is arithmetic: if the tower always sleeps exactly 15 minutes after waking, look nowhere else.</p>

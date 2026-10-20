@@ -1,0 +1,29 @@
+<!-- {"title": "Dormir au repos, se réveiller à la demande : la recette énergie", "summary": "Une tour avec de grosses cartes graphiques ne doit pas tourner pour rien. Une petite machine toujours allumée la réveille en quelques secondes, de partout, sans rien ouvrir sur Internet.", "order": 11} -->
+<p class="lead">Une tour avec deux grosses cartes graphiques consomme bien plus qu'un petit serveur, même au repos. La nôtre dort dès que personne n'en a besoin. Une petite machine allumée de toute façon (le nœud Proxmox du Homelab 1) la réveille à la demande, et la commande de réveil ne rend la main que lorsque la tour est vraiment prête à travailler.</p>
+
+{{diagram:wake}}
+
+<h2>1. Autoriser le réveil</h2>
+<ol>
+<li>Dans le firmware (BIOS) : activez <em>Wake on LAN</em> (parfois <em>Power On By PCI-E</em>), et désactivez les modes d'économie profonds comme <em>ErP</em>, qui coupent l'alimentation de la carte réseau.</li>
+<li>Utilisez la carte réseau <strong>filaire</strong> : le Wake on LAN ne fonctionne pas en Wi-Fi sur du matériel ordinaire.</li>
+<li>Vérifiez, puis rendez-le permanent avec NetworkManager :
+<pre><code>sudo ethtool &lt;interface&gt; | grep Wake-on      # « g » = paquet magique
+nmcli connection modify &lt;connexion&gt; 802-3-ethernet.wake-on-lan magic</code></pre></li>
+<li>Notez l'adresse matérielle (MAC) de la carte : <code>ip link show &lt;interface&gt;</code>. Gardez-la dans vos notes, pas dans un fichier public.</li>
+</ol>
+
+<h2>2. Envoyer le paquet magique de l'intérieur</h2>
+<p>Le paquet magique est une diffusion sur le réseau local : il doit partir d'une machine du même réseau. Utilisez la petite machine toujours allumée :</p>
+<pre><code>wakeonlan &lt;adresse MAC&gt;    # ou : etherwake, ou un tableau de bord web comme UpSnap</code></pre>
+<p>De l'extérieur, rejoignez cette petite machine par votre réseau privé (Tailscale, WireGuard), puis envoyez le paquet de là.</p>
+<p class="note">Ne redirigez jamais le Wake on LAN depuis Internet par votre box : n'importe qui pourrait allumer votre machine, et vous n'y gagnez rien face à un réseau privé.</p>
+
+<h2>3. « Réveillée » n'est pas « prête »</h2>
+<p>Une machine qui répond au ping peut encore être en train de démarrer ses services. Notre commande de réveil attend deux vraies réponses avant de rendre la main : une connexion SSH, puis le test de santé de la passerelle des modèles. Alors seulement les agents ont le feu vert. Trois minutes sans réponse, c'est un échec, signalé comme tel.</p>
+
+<h2>4. Se rendormir</h2>
+<p><code>systemctl suspend</code> endort la tour. Décidez vous-même quand elle dort : quand aucun travail n'attend et que personne n'est connecté, pas simplement quand la souris n'a pas bougé.</p>
+
+<h2>Le piège qui nous a longtemps surpris</h2>
+<p class="note">Notre tour s'endormait en plein travail à distance, exactement quinze minutes après chaque réveil. La cause n'était pas notre session mais <strong>l'écran de connexion</strong> : ses réglages par défaut mettent en veille après 900 secondes sans activité clavier ou souris <em>locale</em>, et SSH, bureau à distance ou requêtes aux modèles ne remettent jamais ce compteur à zéro. Plus on travaillait à distance, plus elle dormait. La correction : donner à l'écran de connexion son propre réglage (sous GNOME, un profil dconf pour <code>gdm</code> avec <code>sleep-inactive-ac-type='nothing'</code>) et garder la décision de dormir entre vos mains. Sa signature est arithmétique : si la tour s'endort toujours exactement 15 minutes après son réveil, ne cherchez pas ailleurs.</p>

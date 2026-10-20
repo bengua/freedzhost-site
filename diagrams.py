@@ -321,10 +321,62 @@ def gpu_split(lang):
     return figure("gpu", 760, 325, L["cap"], body)
 
 
+# ── headless node that still plays ──────────────────────────────────────────
+def stream(lang):
+    L = {
+        "en": labels(cap="No screen on the tower. A virtual 120 Hz display exists only for the kernel; the streaming server captures it, the integrated GPU encodes the video, and the handheld plays it. The NVIDIA cards keep computing.",
+                     tower="The tower, no screen", virt="Virtual display", vsub="EDID forced at boot", cap1="Apollo",
+                     csub="captures (KMS)", enc="Integrated GPU", esub="encodes HEVC", hand="Android handheld",
+                     hsub="Artemis / Moonlight", net="Wi-Fi or tailnet", input="buttons, touch", nv="NVIDIA cards",
+                     nvs="models · or the game", draws="the game draws here"),
+        "fr": labels(cap="Pas d'écran sur la tour. Un écran virtuel à 120 Hz n'existe que pour le noyau ; le serveur de streaming le capture, le GPU intégré encode la vidéo, et la console portable la joue. Les cartes NVIDIA continuent de calculer.",
+                     tower="La tour, sans écran", virt="Écran virtuel", vsub="EDID forcé au démarrage", cap1="Apollo",
+                     csub="capture (KMS)", enc="GPU intégré", esub="encode en HEVC", hand="Console Android",
+                     hsub="Artemis / Moonlight", net="Wi-Fi ou tailnet", input="boutons, tactile", nv="Cartes NVIDIA",
+                     nvs="modèles · ou le jeu", draws="le jeu y dessine"),
+    }[lang]
+    body = f'<rect x="10" y="20" width="520" height="230" rx="12" fill="none" stroke="{LINE}" stroke-dasharray="6 5"/>'
+    body += t(26, 40, L["tower"], 11, "start", MUTED)
+    body += box(30, 60, 150, 54, L["virt"], L["vsub"])
+    body += box(210, 60, 130, 54, L["cap1"], L["csub"])
+    body += box(370, 60, 140, 54, L["enc"], L["esub"], stroke=ACCENT)
+    body += arrow(180, 87, 208, 87)
+    body += arrow(340, 87, 368, 87)
+    body += box(30, 170, 150, 54, L["nv"], L["nvs"])
+    body += arrow(105, 168, 105, 116, None, MUTED, dash=True)
+    body += t(115, 146, L["draws"], 11, "start", MUTED)
+    body += box(600, 60, 150, 54, L["hand"], L["hsub"], stroke=ACCENT)
+    body += arrow(510, 80, 598, 80, L["net"], ACCENT, marker="acc", lx=555, ly=72)
+    body += arrow(598, 100, 512, 100, L["input"], lx=555, ly=118)
+    return figure("stream", 770, 265, L["cap"], body)
+
+
+# ── sleep when idle, wake on demand ─────────────────────────────────────────
+def wake(lang):
+    L = {
+        "en": labels(cap="The big tower sleeps. A small machine that is always on sends the magic packet on the local network; the tower wakes, and the wake command waits until SSH and the model gateway really answer.",
+                     you="Phone or laptop", ysub="anywhere, via tailnet", relay="Always-on node", rsub="small, low power",
+                     pkt="magic packet (LAN broadcast)", tower="The tower", tsub="asleep → awake", ready="ready = SSH + gateway answer",
+                     ask="wake command"),
+        "fr": labels(cap="La grosse tour dort. Une petite machine toujours allumée envoie le paquet magique sur le réseau local ; la tour se réveille, et la commande de réveil attend que SSH et la passerelle des modèles répondent vraiment.",
+                     you="Téléphone ou portable", ysub="de partout, via le tailnet", relay="Nœud toujours allumé", rsub="petit, peu gourmand",
+                     pkt="paquet magique (diffusion LAN)", tower="La tour", tsub="endormie → réveillée", ready="prête = SSH + passerelle répondent",
+                     ask="commande de réveil"),
+    }[lang]
+    body = box(20, 50, 170, 54, L["you"], L["ysub"])
+    body += box(290, 50, 170, 54, L["relay"], L["rsub"])
+    body += box(570, 50, 170, 54, L["tower"], L["tsub"], stroke=ACCENT)
+    body += arrow(190, 77, 288, 77, L["ask"], lx=239, ly=69)
+    body += arrow(460, 77, 568, 77, L["pkt"], ACCENT, marker="acc", lx=514, ly=66)
+    body += arrow(655, 104, 655, 140, None, GOOD, marker="good")
+    body += t(655, 158, L["ready"], 11, "middle", GOOD)
+    return figure("wake", 760, 175, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
-            "gpu": gpu_split}
+            "gpu": gpu_split, "stream": stream, "wake": wake}
 
 
 def render(name, lang):
