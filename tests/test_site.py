@@ -90,3 +90,27 @@ def test_diagrams_exist_in_both_languages():
     for name in diagrams.DIAGRAMS:
         en, fr = diagrams.render(name, "en"), diagrams.render(name, "fr")
         assert en != fr and "<figcaption>" in en and "<figcaption>" in fr
+
+
+def test_sitemap_and_feeds_list_every_page(out):
+    import xml.etree.ElementTree as ET
+
+    sitemap = ET.parse(out / "sitemap.xml").getroot()
+    ns = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+    locs = {e.text for e in sitemap.findall("s:url/s:loc", ns)}
+    for page in pages(out):
+        rel = page.relative_to(out).as_posix()
+        path = "/" + ("" if rel == "index.html" else rel.replace("index.html", ""))
+        assert site_build.SITE + path in locs, path
+    for feed, folder in ((out / "feed.xml", out), (out / "fr" / "feed.xml", out / "fr")):
+        links = {e.text for e in ET.parse(feed).getroot().iter("link")}
+        for article in folder.glob("*.html"):
+            if article.name != "index.html":
+                assert any(link.endswith("/" + article.name) for link in links), (feed, article.name)
+
+
+def test_every_page_has_canonical_and_description(out):
+    for page in pages(out):
+        text = page.read_text(encoding="utf-8")
+        assert '<link rel="canonical" href="https://freedzhost.cloud/' in text, page
+        assert '<meta name="description" content="' in text, page
