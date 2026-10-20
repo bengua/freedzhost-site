@@ -621,6 +621,28 @@ def paper(lang):
     return figure("paper", 770, 205, L["cap"], body)
 
 
+# ── homelab 13: one task list for you and your agents ───────────────────────
+def tasks(lang):
+    L = {
+        "en": labels(cap="One task list, two kinds of users. You work from the web page and the phone; your agents read and write through the API, each with its own token limited to what it needs. A decision only you can take becomes a task waiting for you.",
+                     you="You", ysub="web, phone app", vk="Vikunja", vsub="projects, tasks, due dates",
+                     ag="Your agents", asub="API token, limited", plan="plan, tick off", file="file tasks, read status",
+                     wait="a decision waits for you"),
+        "fr": labels(cap="Une liste de tâches, deux sortes d'utilisateurs. Vous travaillez depuis la page web et le téléphone ; vos agents lisent et écrivent par l'API, chacun avec son jeton limité au nécessaire. Une décision que vous seul pouvez prendre devient une tâche qui vous attend.",
+                     you="Vous", ysub="web, app du téléphone", vk="Vikunja", vsub="projets, tâches, échéances",
+                     ag="Vos agents", asub="jeton d'API, limité", plan="planifier, cocher", file="créer des tâches, lire l'état",
+                     wait="une décision vous attend"),
+    }[lang]
+    body = box(20, 60, 160, 54, L["you"], L["ysub"])
+    body += box(300, 60, 170, 54, L["vk"], L["vsub"], stroke=ACCENT)
+    body += box(625, 60, 140, 54, L["ag"], L["asub"])
+    body += arrow(180, 80, 298, 80, L["plan"], lx=239, ly=72)
+    body += arrow(623, 80, 472, 80, L["file"], lx=548, ly=72)
+    body += arrow(298, 100, 182, 100, None, ACCENT, marker="acc")
+    body += t(240, 128, L["wait"], 11, "middle", ACCENT)
+    return figure("tasks", 770, 150, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -629,7 +651,7 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "remote": remote, "photos": photos,
             "forge": forge, "search": search, "notify": notify,
             "intent": intent, "office": office,
-            "paper": paper}
+            "paper": paper, "tasks": tasks}
 
 
 def render(name, lang):

@@ -1,0 +1,22 @@
+<!-- {"title": "Homelab 13: a task list for you and your agents with Vikunja", "summary": "Replace Todoist or Microsoft To Do, import your lists, and give your agents a shared queue where the decisions only you can take wait for you.", "order": 21, "series": "homelab"} -->
+<p class="lead">Vikunja is an open-source task manager: projects, lists, Kanban boards, due dates, reminders, and an app for the phone. It imports from Todoist and Microsoft To Do. In an agent network it plays one more role: a shared queue, where agents file what they found and where the decisions only a human can take wait for you.</p>
+
+{{diagram:tasks}}
+
+<h2>1. Run it</h2>
+<p>Vikunja ships as a single container (web interface and API together). SQLite is enough for one household; PostgreSQL if several people use it heavily. Set at least:</p>
+<pre><code>VIKUNJA_SERVICE_PUBLICURL=https://tasks.yourdomain.tld/
+VIKUNJA_SERVICE_SECRET=&lt;a long random value&gt;</code></pre>
+<p>Publish it through your HTTPS proxy (Homelab 2). Create your account, then close registration:</p>
+<pre><code>VIKUNJA_SERVICE_ENABLEREGISTRATION=false</code></pre>
+
+<h2>2. Bring your lists</h2>
+<p>In your user settings, the migration tools import projects and tasks from Todoist or Microsoft To Do. Do it once, check a few lists, then delete the old account.</p>
+
+<h2>3. Give your agents a token, not your password</h2>
+<p>In <strong>Settings → API Tokens</strong>, create one token per agent, with an expiry date and only the permissions it needs (for example: read projects, create tasks). An agent can then file a task such as "Approve the new backup schedule?", and you decide from your phone.</p>
+
+<h2>Traps</h2>
+<p class="note">Without <code>VIKUNJA_SERVICE_SECRET</code>, Vikunja draws a random secret at every start: each restart logs everyone out, and you will think something is broken. Set it once.</p>
+<p class="note">Registration is open by default. On a server reachable from the internet, close it as soon as your accounts exist.</p>
+<p class="note">One token per agent, never shared: when an agent misbehaves, you revoke its token without breaking the others.</p>
