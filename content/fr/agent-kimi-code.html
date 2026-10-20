@@ -11,7 +11,15 @@ kimi            # premier lancement : connexion au fournisseur géré</code></pr
 ssh -t serveur tmux attach -t kimi   # depuis le portable, à tout moment</code></pre>
 <p>Un alias d'une ligne sur le portable en fait un seul mot. Depuis un téléphone, la même commande marche dans n'importe quelle appli SSH, par votre réseau privé.</p>
 
-<h2>2. Dans un bac à sable quand il travaille seul</h2>
+<h2>2. Trois entrées : terminal, web, contrôle à distance</h2>
+<ul>
+<li><strong>Le terminal</strong> : la session dans tmux ci-dessus, attachée de partout.</li>
+<li><strong>L'interface web</strong> : <code>kimi web --host &lt;adresse privée&gt; --port &lt;port&gt; --no-open</code> en service utilisateur, joignable par le seul réseau privé.</li>
+<li><strong>Le contrôle à distance</strong> : <code>kimi rc --no-open</code> permet de suivre et de piloter une session depuis un autre appareil.</li>
+</ul>
+<p>L'abonnement propose plusieurs modèles ; le nôtre liste un modèle de code, une variante plus rapide, et un modèle à long contexte de 256k jetons. Prenez le rapide pour les petites modifications, le long pour lire toute une base de code.</p>
+
+<h2>3. Dans un bac à sable quand il travaille seul</h2>
 <p>Quand une file confie une tâche à Kimi sans que vous regardiez (voir <a href="/fr/hybrid-escalation.html">l'hybride par escalade</a>), faites-le tourner dans un bac à sable comme <code>bwrap</code> : le dépôt en lecture-écriture, le reste du système en lecture seule, aucun accès à vos clés. Il ne peut pas casser ce qu'il ne voit pas.</p>
 
 <h2>Pièges</h2>

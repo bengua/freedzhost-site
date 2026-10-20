@@ -1,0 +1,43 @@
+<!-- {"title": "What an agent harness is, and how to choose yours", "summary": "The model writes text; the harness turns it into work: it reads files, runs commands, asks permission, manages the context, and decides when to stop. Six harnesses run here, each for a reason. What sets them apart, and five questions to pick the right one for each job.", "order": 45.5, "series": "agents", "level": "beginner", "time": "15 min", "requires": []} -->
+<p class="lead">A language model, alone, only produces text. What makes it a coding agent is the program around it: the <strong>harness</strong>. It gives the model tools (read a file, run a command, search), checks permissions, decides what goes into the context and what is compacted, connects to a model provider, and shows you what happens. The same model in two harnesses can be brilliant in one and useless in the other.</p>
+
+<p class="proof"><strong>What you get.</strong> A clear map of the harnesses we use every day and why, and five questions that tell you which one fits a given job. Each has its own installation tutorial.</p>
+
+<h2>A bit of history</h2>
+<p>The first coding assistants (2021 onward) completed lines inside an editor. In 2023, open projects started to let a model call tools in a loop until a task was done. In 2025, the large labs shipped their own terminal agents, and open-source ones multiplied. By then the lesson was clear: the loop, the tools and the context management matter as much as the model. That is why the same lab model can feel very different from one harness to another.</p>
+
+<h2>1. What a harness decides for you</h2>
+<ul>
+<li><strong>Tools</strong>: which actions exist, and how they are described to the model (each description costs context at every turn).</li>
+<li><strong>Permissions</strong>: what runs without asking, what waits for your yes, what is refused.</li>
+<li><strong>Context</strong>: what the model sees, when old turns are compacted, how big the window is declared.</li>
+<li><strong>Provider</strong>: a subscription, an API key, or your own models through a gateway.</li>
+<li><strong>Interface</strong>: a terminal, a web page, a phone, or none at all (a queue that works alone).</li>
+</ul>
+
+<h2>2. The six we use, and why</h2>
+<table>
+<tr><th>Harness</th><th>What sets it apart</th><th>Why we use it</th></tr>
+<tr><td><a href="/agent-openfox.html">OpenFox</a></td><td>built for local models; acceptance criteria as a contract; web interface; agents, workflows, skills</td><td>everyday coding on our own cards, from any device, with our own "fh-coder" agent</td></tr>
+<tr><td><a href="/agent-claude-code.html">Claude Code</a></td><td>the most mature loop; hooks that can refuse a command; skills; runs on a subscription or on local models</td><td>operations work on the whole lab, and the engine of the unattended junior</td></tr>
+<tr><td><a href="/agent-kimi-code.html">Kimi Code</a></td><td>one million tokens of context; terminal, web interface and remote control; its own subscription</td><td>long tasks that read a lot, and a second hosted agent when the first one's quota runs out</td></tr>
+<tr><td><a href="/fh-coder.html">FH Coder</a></td><td>not interactive: a queue, a runner, a verification gate, a pull request, a report</td><td>work done while nobody watches, with nothing merged unread</td></tr>
+<tr><td>OpenCode</td><td>an open-source terminal agent, independent of any provider, with plugins and skills</td><td>installed on both machines; our voice console can drive it as its coding agent</td></tr>
+<tr><td><a href="/agent-rooms-foxdesk.html">Cloudroom core</a></td><td>hosts several harnesses behind one protocol; sessions that move between machines</td><td>the base of our rooms, so the phone and the desktop see the same conversations</td></tr>
+</table>
+
+<h2>3. Five questions to choose</h2>
+<ol>
+<li><strong>Which model?</strong> Your own cards favour a harness designed for local models; a frontier model favours its lab's own harness.</li>
+<li><strong>Will you watch, or delegate?</strong> Watching: an interactive harness. Delegating: a queue with a verification gate.</li>
+<li><strong>How much must it read?</strong> A whole repository or a long history: the largest window you can get.</li>
+<li><strong>What may it touch?</strong> Unattended work needs a sandbox, a closed list of files, and no credential within reach (see <a href="/agent-authority.html">agents and authority</a>).</li>
+<li><strong>Where will you be?</strong> On the sofa or on the road: a harness with a web interface or a phone client.</li>
+</ol>
+
+<h2>Traps</h2>
+<p class="note">Declare the real context window in every harness that talks to a local model. Each assumes a large default; when it is wrong, answers stop mid-sentence and the message blames the output limit.</p>
+<p class="note">Do not judge a model in the wrong harness. A model that seems unable to call tools in one may be excellent in another that describes the tools in its style.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.anthropic.com/en/docs/claude-code/overview" rel="noopener">Claude Code documentation</a></li><li><a href="https://github.com/co-l/openfox" rel="noopener">OpenFox, official repository</a></li><li><a href="https://opencode.ai/" rel="noopener">OpenCode</a></li><li><a href="https://www.kimi.com/" rel="noopener">Kimi</a></li><li><a href="https://github.com/davidondrej/cloudroom-core" rel="noopener">Cloudroom core</a></li></ul>

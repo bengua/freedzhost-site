@@ -17,7 +17,10 @@ claude          # premier lancement : connexion avec votre compte</code></pre>
 </ul>
 <p class="note">Un crochet est un petit script qui lit la commande prévue en JSON sur son entrée et sort en erreur pour la refuser, avec un message que l'agent lit. Vingt lignes de Python suffisent.</p>
 
-<h2>3. Sur vos propres modèles : le junior</h2>
+<h2>3. Des crochets au-delà de la sécurité</h2>
+<p>Les crochets se déclenchent à six moments : début et fin de session, chaque message envoyé, chaque outil sur le point de tourner, chaque notification, et la fin de chaque réponse. En plus de refuser les commandes dangereuses, les nôtres lancent et arrêtent la musique de <a href="/fr/purrd.html">Purrd</a> pendant que l'agent travaille, et déclarent l'état de l'agent à une page de console qui joue le son dans le navigateur. Les réglages coupent aussi la télémétrie et les rapports d'erreur (<code>DISABLE_TELEMETRY</code>, <code>DISABLE_ERROR_REPORTING</code>).</p>
+
+<h2>4. Sur vos propres modèles : le junior</h2>
 <p>Claude Code parle l'API Messages d'Anthropic. Une passerelle comme LiteLLM la traduit vers vos modèles locaux. Trois variables suffisent :</p>
 <pre><code>export ANTHROPIC_BASE_URL=http://votre-passerelle:4000
 export ANTHROPIC_MODEL=coder-local            # le nom du modèle dans la passerelle
@@ -25,7 +28,7 @@ export ANTHROPIC_SMALL_FAST_MODEL=coder-local # sinon il réclame un modèle clo
 claude -p "Répare le test qui échoue dans tests/test_parse.py. Ne modifie que src/parse.py."</code></pre>
 <p>Avant de lancer, vérifiez que le modèle répond sur <code>$ANTHROPIC_BASE_URL/v1/messages</code> : un agent lancé sur une carte qui ne porte rien échoue au bout de plusieurs minutes, pas de quelques secondes.</p>
 
-<h2>4. Isoler le junior</h2>
+<h2>5. Isoler le junior</h2>
 <p>Un agent local travaille sans que vous regardiez. Donnez-lui une copie jetable du dépôt, une liste fermée de fichiers, le message de commit et un test à lancer. Il ouvre une demande de fusion ; la CI tourne ; un humain, ou l'agent d'exploitation, lit avant de fusionner. Les tâches courtes reviennent propres ; les longues cassent par fatigue, pas par difficulté.</p>
 
 <h2>Pièges</h2>

@@ -31,7 +31,19 @@ openfox                     # ouvre l'interface ; le premier lancement détecte 
 OPENFOX_MAX_CONTEXT=65536 openfox --no-browser</code></pre>
 <p class="note">Déclarez la vraie fenêtre de votre modèle avec <code>OPENFOX_MAX_CONTEXT</code>. La valeur par défaut suppose 200 000 jetons ; un modèle local à 64k déborderait bien avant qu'OpenFox ne compacte.</p>
 
-<h2>4. Ce que nous avons ajouté autour</h2>
+<h2>4. Le faire tourner en service sur le serveur</h2>
+<p>Le nôtre tourne en service utilisateur sur la machine qui porte les cartes, à l'écoute du seul réseau privé, si bien que le portable et le téléphone atteignent les mêmes sessions :</p>
+<pre><code>[Service]
+Environment=OPENFOX_HOST=&lt;l'adresse du serveur sur le réseau privé&gt;
+Environment=OPENFOX_LLM_URL=http://127.0.0.1:4000/v1
+Environment=OPENFOX_MAX_CONTEXT=180224
+Environment=OPENFOX_LLM_TIMEOUT=900000
+Environment=OPENFOX_WORKDIR=/srv/devlab
+Environment=OPENFOX_DEFAULT_AGENT=fh-coder
+ExecStart=%h/.local/bin/openfox</code></pre>
+<p>Un long délai (15 minutes) laisse la place à un gros modèle qui lit un long prompt ; le dossier de travail cantonne les projets à une seule arborescence ; l'agent par défaut est le nôtre (voir <a href="/fr/fh-coder.html">FH Coder</a>). Agents, workflows et skills vivent en simples fichiers dans <code>~/.config/openfox/</code>, faciles à versionner.</p>
+
+<h2>5. Ce que nous avons ajouté autour</h2>
 <ul>
 <li><strong>Il suit la carte.</strong> Un petit suiveur lit le modèle déclaré par chaque carte et réécrit le modèle par défaut d'OpenFox en conséquence : la configuration de l'agent suit le matériel, jamais l'inverse.</li>
 <li><strong>Une jauge de contexte dans la barre d'état</strong> du portable (voir <a href="/fr/workstation-small-tools.html">trois petits outils</a>).</li>

@@ -1,0 +1,63 @@
+<!-- {"title": "FH Coder : un agent de code local qui travaille pendant que vous dormez, et ne fusionne jamais sans lecture", "summary": "Déposez une intention, recevez une demande de fusion testée. FH Coder est notre chaîne de production pour modèles locaux : une file partagée, un exécutant dans un compte séparé, une barrière de vérification qui corrige seule le style, un compte rendu qui ouvre la demande de fusion et nourrit la base de connaissances. Plus l'agent fh-coder qui porte la même doctrine dans OpenFox. Comment c'est câblé, et comment l'installer.", "order": 45.7, "series": "agents", "level": "advanced", "time": "une soirée", "requires": ["harness-choose", "agent-claude-code", "agent-authority"]} -->
+<p class="lead">Un agent interactif a besoin de vous devant lui. FH Coder, non. Vous écrivez une intention, le travail se fait sur les cartes graphiques pendant que vous dormez, et le matin une demande de fusion attend, testée, avec son compte rendu. Rien n'atteint la branche principale sans être lu. FH veut dire FreedzHost : la chaîne est libre, construite pour tourner entièrement sur des modèles locaux.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Une file de petites tâches de développement faites par des modèles locaux, chacune isolée, vérifiée et publiée en demande de fusion, chaque run (réussites comprises) écrit dans un journal consultable. Les tâches courtes et bien cadrées reviennent propres ; tout l'art est de bien les écrire.</p>
+
+<h2>Un peu d'histoire</h2>
+<p>Le projet a commencé à l'été 2026 comme un « majordome » : une API qui reçoit une demande et pilote un agent sur son propre dépôt. Le faire tourner jour après jour a appris les règles qui le façonnent aujourd'hui : donner à l'agent le texte, pas un chemin de fichier (un modèle de 9B à qui l'on tendait un chemin s'arrêtait en un tour, dix runs sur onze) ; créer la branche dans le code avant que l'agent ne démarre ; corriger le style de façon déterministe au lieu de dépenser un tour d'agent pour le lint ; et garder les droits de publication dans un autre compte que celui qui écrit le code.</p>
+
+<h2>1. Trois comptes, jamais confondus</h2>
+<table>
+<tr><th>Compte</th><th>Ce qu'il fait</th><th>Ce qu'il détient</th></tr>
+<tr><td>poste de pilotage</td><td>décide, lance, lit</td><td>ni jeton ni clé sur la forge</td></tr>
+<tr><td>compte de service</td><td>produit le code</td><td>une clé de push, aucun jeton d'API</td></tr>
+<tr><td>compte de publication</td><td>ouvre les demandes de fusion, publie</td><td>le jeton de la forge</td></tr>
+</table>
+<p>Le compte qui fait tourner le modèle ne détient rien qui pourrait vous nuire si le modèle s'égarait (voir <a href="/fr/agent-authority.html">agents et autorité</a>).</p>
+
+<h2>2. La chaîne, de l'intention à la demande de fusion</h2>
+<pre><code>fh-dev proprietaire/depot "intention, liste fermée de fichiers, sujet du commit"
+  → un fichier JSON dans un dossier de file partagé (écriture par groupe : pas besoin de sudo)
+  → une unité systemd de type path réveille le service de file, dans le compte de service
+  → l'exécutant clone, fait tourner l'agent sur un modèle local, vérifie, pousse une branche
+  → un compte rendu par run
+fh-report (toutes les 5 minutes, compte de publication)
+  → ouvre la demande de fusion, écrit le run dans la base de connaissances, compte les signatures d'échec</code></pre>
+<p>L'agent de l'exécutant est <a href="/fr/agent-claude-code.html">Claude Code</a> pointé vers un modèle local par la passerelle. Avant chaque vérification, la barrière lance le formateur et les corrections automatiques du linter et les commite : un lint rouge ne coûte plus un tour d'agent.</p>
+<p class="note">Une signature d'échec vue trois fois devient une issue sur le dépôt des knowledge packs : le parc cesse de diagnostiquer deux fois la même chose (voir <a href="/fr/knowledge-packs.html">les knowledge packs</a>).</p>
+
+<h2>3. L'API du majordome</h2>
+<pre><code>POST /v1/tasks {"intent": "...", "files": ["src/a.py", "tests/test_a.py"]}  → 202 {task_id}
+GET  /v1/tasks/{id}                                                      → état et liens
+GET  /v1/tasks/{id}/events                                               → journal en direct (SSE)</code></pre>
+<p>Avec <code>files</code>, les écritures de l'agent sont physiquement limitées à cette liste par un pare-feu. Les écritures par le shell ne sont pas couvertes : gardez aussi le bac à sable.</p>
+
+<h2>4. La même doctrine, en interactif : l'agent fh-coder dans OpenFox</h2>
+<p>Pour les jours où vous voulez regarder, OpenFox fait tourner un agent défini dans un seul fichier Markdown. Le nôtre, <code>fh-coder</code>, est ici l'agent par défaut d'OpenFox :</p>
+<pre><code>---
+id: fh-coder
+name: FH Coder
+description: Writes under the FH Coder doctrine: deterministic tools decide, a test
+  executes, nothing superfluous in the context.
+allowedTools: [read_file, write_file, edit_file, run_command, ask_user,
+               load_skill, web_fetch, web_search, workspace, mcp_config]
+---
+# Act first, then answer
+When a tool can give a fact or a decision, call it first ...</code></pre>
+<p>Ses consignes disent : appeler l'outil avant d'écrire ; envoyer chaque petite décision au juge local ; répondre dans une forme fixe (l'action suivante d'abord, des étapes numérotées, une chose concrète à faire à la fin). La forme n'est pas décorative : elle est écrite pour un lecteur TDAH, et elle rend les réponses plus courtes pour tout le monde.</p>
+
+<h2>5. Écrire une intention qui aboutit</h2>
+<ol>
+<li>Quatre livrables au plus ; découpez tout ce qui est plus gros.</li>
+<li>Une liste fermée de fichiers, et le sujet du commit.</li>
+<li>Les données elles-mêmes, collées, pas la description de l'endroit où les trouver.</li>
+<li>Toujours un test qui exécute ce qui a été écrit, si petit soit-il.</li>
+<li>Lisez la demande de fusion : les modèles écrivent du code plausible qui n'a parfois jamais tourné.</li>
+</ol>
+
+<h2>Pièges</h2>
+<p class="note"><code>fh-task</code> s'adresse au majordome, qui ne travaille que sur son propre dépôt ; <code>fh-dev</code> prend n'importe quel dépôt. Envoyée au mauvais, une intention fait chercher à l'agent des fichiers qui n'existent pas.</p>
+<p class="note">Ne lancez rien quand aucun modèle n'est chargé sur une carte : un run sur une carte vide échoue au bout de plusieurs minutes. Interrogez d'abord la grille GPU (voir <a href="/fr/gpu-grid.html">la grille GPU</a>).</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.anthropic.com/en/docs/claude-code/overview" rel="noopener">Claude Code documentation</a></li><li><a href="https://github.com/co-l/openfox" rel="noopener">OpenFox, official repository</a></li><li><a href="https://www.freedesktop.org/software/systemd/man/latest/systemd.path.html" rel="noopener">systemd path units</a></li></ul>
