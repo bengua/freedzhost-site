@@ -1,8 +1,23 @@
 <!-- {"title": "Votre propre nœud d'agents IA souverain", "summary": "Accueil", "order": 0} -->
 <h1>Votre essaim d'agents IA, à la maison</h1>
 <p class="lead">Une série qui part de zéro et finit avec un essaim d'agents IA qui tourne sur votre propre machine : des modèles, un ordonnanceur de cartes graphiques, une cage pour que l'IA code sans rien casser, une mémoire, et une voix. Chaque épisode livre une vraie brique, testée et publiée en open source.</p>
-<video controls preload="none" poster="/media/teaser-poster.jpg" src="/media/teaser-fr.mp4"></video>
-<p class="caption">Le teaser. Voix et personnage générés par IA.</p>
+<section class="player" aria-label="Teaser">
+  <div class="term">
+    <div class="term-bar"><i></i><i></i><i></i><code>foxbot@node:~ $ play teaser.mp4</code><span class="live">local</span></div>
+    <div class="screen">
+      <video id="teaser" preload="metadata" playsinline poster="/media/teaser-poster.jpg">
+        <source src="/media/teaser-fr.mp4" type="video/mp4">
+      </video>
+      <button class="play" type="button" aria-label="Lire le teaser"><span class="tri"></span><span>Lire le teaser <small>47 s · voix et sous-titres en français</small></span></button>
+    </div>
+    <dl class="made">
+      <div><dt>voix</dt><dd>Piper TTS, sur le processeur</dd></div>
+      <div><dt>lèvres</dt><dd>pilotées par le volume de la voix</dd></div>
+      <div><dt>personnage</dt><dd>ComfyUI, sur notre propre GPU</dd></div>
+      <div><dt>API cloud</dt><dd>aucune</dd></div>
+    </dl>
+  </div>
+</section>
 
 <h2>L'app : FoxBot</h2>
 <p>L'essaim a un visage. FoxBot vit dans la console web et dans l'app Android : il se repose quand rien ne tourne, tape au clavier quand un agent travaille, et vous prévient quand quelque chose vous attend.</p>
@@ -21,3 +36,12 @@
 
 <h2>Ce que nous ne promettons pas</h2>
 <p>Un modèle local sur une carte grand public n'est pas un modèle de pointe dans le cloud. Il est plus lent, il se trompe plus, et nous montrons ces erreurs au lieu de les cacher. Ce que vous gagnez, c'est le contrôle : vos données restent sur votre machine et rien ne vous enferme.</p>
+<script>
+(() => {
+  const v = document.getElementById("teaser");
+  const b = document.querySelector(".player .play");
+  if (!v || !b) return;
+  b.addEventListener("click", () => { v.controls = true; b.hidden = true; v.play(); });
+  v.addEventListener("ended", () => { v.controls = false; b.hidden = false; v.load(); });
+})();
+</script>
