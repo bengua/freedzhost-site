@@ -1,0 +1,34 @@
+<!-- {"title": "BMAD avec de petits modèles : le modèle propose, le code décide", "summary": "Une méthode de planification du travail d'agents, adaptée aux modèles locaux : des stories avec un schéma, des scénarios écrits comme des données et lancés par pytest, une seule story vivante à la fois, et aucun modèle qui rend jamais un verdict.", "order": 51, "series": "agents", "level": "advanced", "time": "2 h", "requires": ["agent-claude-code", "mutation-testing"]} -->
+<p class="lead">BMAD est une méthode pour mener des agents IA à travers un projet : découper le travail en stories, donner à chaque story ses scénarios d'acceptation, faire implémenter les stories une par une. Avec un modèle de pointe, une version souple suffit. Avec un modèle de 9B ou 27B sur votre propre carte, ça dérive en moins d'une heure. Voici la version stricte que nous faisons tourner, où tout ce qui peut être vérifié l'est par du code.</p>
+
+{{diagram:bmad}}
+
+<h2>1. Des stories avec un schéma</h2>
+<p>Une story n'est pas un paragraphe. C'est un enregistrement avec des champs : un identifiant, une justification, les fichiers qu'elle peut toucher, les stories dont elle dépend, ses scénarios. Nous écrivons le backlog en TOML et le validons avec un petit programme, un vérificateur de stories, qui refuse en le nommant :</p>
+<ul>
+<li>un champ manquant, un mauvais type, un identifiant en double ;</li>
+<li>une dépendance inconnue ou circulaire ;</li>
+<li>plus d'une story en cours ;</li>
+<li>une story sans justification ;</li>
+<li>un fichier ni présent dans le dépôt ni déclaré nouveau, ou déclaré nouveau alors qu'il existe déjà.</li>
+</ul>
+<p>Le vérificateur n'a ni réseau ni modèle : lancez-le trois fois, vous obtenez trois fois les mêmes octets.</p>
+
+<h2>2. Le modèle propose le découpage, vous l'approuvez</h2>
+<p>Découper un projet a beaucoup de bonnes réponses, ça reste donc le travail d'un modèle. Mais sa sortie est une proposition : le vérificateur la contrôle, puis vous l'approuvez, liste de fichiers comprise. Une contrainte écrite par un modèle et appliquée sans relecture n'est qu'une suggestion bien élevée.</p>
+
+<h2>3. Une seule story vivante à la fois</h2>
+<p>La story suivante ne démarre que quand la précédente est fusionnée. Et l'état du backlog n'est jamais stocké : il est dérivé à chaque appel des runs qui citent chaque story. Un « en cours » stocké survit à un run mort et ment en silence ; un état dérivé ne le peut pas.</p>
+
+<h2>4. Les scénarios sont des données, lancées par pytest</h2>
+<p>Pas de framework BDD, pas d'appariement d'une phrase à une étape. Un scénario est un petit objet, Étant donné / Quand / Alors, posé à côté du code qui l'exécute, et la suite les lance en pytest paramétré. Le verdict est celui de pytest : réussi ou échoué, avec la ligne qui échoue.</p>
+<pre><code>Scenario("S4", given="une story avec une dépendance circulaire",
+         when="le vérificateur lit le backlog",
+         then="il refuse et nomme les deux stories")</code></pre>
+
+<h2>5. La fusion reste humaine</h2>
+<p>La fusion automatique est une exception, désactivée par défaut, avec une liste de zones interdites : le juge des tests lui-même, le code qui détient les droits Git, le bac à sable. Une modification là attend toujours un humain.</p>
+
+<h2>Pièges</h2>
+<p class="note">Relisez les règles à chaque tâche. Un agent garde sa liberté d'implémentation et perd sa liberté de dériver seulement si la doctrine est devant lui à chaque fois, pas une fois au début.</p>
+<p class="note">Un scénario qui n'échoue jamais ne prouve rien. Cassez le code exprès et vérifiez qu'il passe au rouge (voir <a href="/fr/mutation-testing.html">les tests validés par mutation</a>).</p>

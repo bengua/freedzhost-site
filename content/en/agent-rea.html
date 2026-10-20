@@ -1,0 +1,23 @@
+<!-- {"title": "Reverse engineering with evidence: let the agent prove, not guess", "summary": "Before wiring your stack into someone else's program, understand it with proof. An open-source reverse-engineering toolkit that agents can call: analyze once, keep a snapshot, ask follow-up questions, and get answers with their evidence and their limits.", "order": 52, "series": "agents", "level": "advanced", "time": "1 h", "requires": ["agent-claude-code"]} -->
+<p class="lead">An agent asked "how does this program do X" will answer, fluently, after skimming a few files. Often wrong. When we plugged our agents into an open-source agent core, we needed to know exactly what it sends and expects. REA, an open-source (MIT) reverse-engineering toolkit with a command line and a tool server for agents, made the agent answer with proof instead.</p>
+
+<h2>1. What it reads</h2>
+<p>Native binaries (through Ghidra), JavaScript and Electron apps, Android APKs, .NET assemblies, websites. Install it with npm, plus Ghidra and a Java runtime dedicated to it:</p>
+<pre><code>npm install -g rea-agents
+rea --help</code></pre>
+
+<h2>2. The process: analyze, evidence, questions, tested code</h2>
+<ol>
+<li><strong>Analyze</strong> the target once, and keep the snapshot. The first Ghidra pass on a large binary takes longer than ten minutes: run it from the command line, not through a tool call with a short timeout.</li>
+<li><strong>Evidence</strong>: each answer comes with what proves it (a function, a string, a call) and what it does not cover.</li>
+<li><strong>Follow-up questions</strong> reuse the snapshot and answer in seconds.</li>
+<li><strong>Implementation</strong>: only then write the adapter, with a test that exercises the behaviour you proved.</li>
+</ol>
+<p class="note">Our rule for agents: never claim to know how a third-party program works from a skim of its sources when a tool can produce the proof.</p>
+
+<h2>3. The right to look</h2>
+<p>Analyze what you are allowed to: your own software, open-source projects, programs whose licence or local law permits analysis for interoperability. Reverse engineering to bypass a protection or copy a product is another matter, and not what this is for.</p>
+
+<h2>Traps</h2>
+<p class="note">The tool server exposes many tools. Plugged as is into an agent whose provider caps the tool list size, it made every request fail with an error that looked like an outage (see <a href="/agent-kimi-code.html">Kimi Code</a>). Give agents a small wrapper with a few commands instead.</p>
+<p class="note">Keep snapshots out of your repositories: they are large, and they contain someone else's code.</p>

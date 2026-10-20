@@ -10,7 +10,7 @@ ssh -t serveur tmux attach -t kimi   # depuis le portable, à tout moment</code>
 <p>Un alias d'une ligne sur le portable en fait un seul mot. Depuis un téléphone, la même commande marche dans n'importe quelle appli SSH, par votre réseau privé.</p>
 
 <h2>2. Dans un bac à sable quand il travaille seul</h2>
-<p>Quand une file confie une tâche à Kimi sans que vous regardiez (voir <a href="/hybrid-escalation.html">l'hybride par escalade</a>), faites-le tourner dans un bac à sable comme <code>bwrap</code> : le dépôt en lecture-écriture, le reste du système en lecture seule, aucun accès à vos clés. Il ne peut pas casser ce qu'il ne voit pas.</p>
+<p>Quand une file confie une tâche à Kimi sans que vous regardiez (voir <a href="/fr/hybrid-escalation.html">l'hybride par escalade</a>), faites-le tourner dans un bac à sable comme <code>bwrap</code> : le dépôt en lecture-écriture, le reste du système en lecture seule, aucun accès à vos clés. Il ne peut pas casser ce qu'il ne voit pas.</p>
 
 <h2>Pièges</h2>
 <p class="note">La liste d'outils a une limite de taille côté fournisseur. Avec un serveur d'outils qui exposait 170 outils, chaque requête revenait en <code>400 schema exceeds maximum allowed size</code>, ce qui ressemblait à « modèle injoignable ». Exposez moins d'outils, ou découpez le serveur.</p>

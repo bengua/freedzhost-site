@@ -1,0 +1,32 @@
+<!-- {"title": "ComfyUI : images, vidéo et 3D sur vos propres cartes", "summary": "L'éditeur à nœuds des modèles génératifs, lancé comme service qui n'écoute que sur la machine elle-même, une instance par carte. Quel modèle pour quoi, combien de temps prend vraiment un plan vidéo de cinq secondes, et comment le piloter depuis des scripts et des agents.", "order": 53, "series": "ai", "level": "intermediate", "time": "1 h", "requires": ["docker-gpu", "gpu-grid"]} -->
+<p class="lead">ComfyUI est un éditeur libre où l'on câble des modèles génératifs sous forme de nœuds : encodeur de texte, modèle de diffusion, décodeur, sortie. Il dessine des images, fabrique des plans vidéo, transforme une image en objet 3D. Le nôtre fait les rendus de la mascotte et les plans d'une chaîne vidéo automatique, sur les mêmes cartes qui servent les modèles de langage la nuit.</p>
+
+<h2>1. L'installer en service, à l'écoute de la machine seule</h2>
+<pre><code>git clone https://github.com/comfyanonymous/ComfyUI.git ~/comfyui
+cd ~/comfyui &amp;&amp; python -m venv .venv &amp;&amp; .venv/bin/pip install -r requirements.txt
+.venv/bin/python main.py --listen 127.0.0.1 --port 8188</code></pre>
+<p>Faites-en ensuite un service utilisateur, pour qu'il redémarre seul. Gardez <code>--listen 127.0.0.1</code> : ComfyUI n'a pas de connexion, et ses nœuds personnalisés exécutent du code arbitraire. Atteignez-le depuis le portable par un tunnel SSH, jamais en ouvrant le port.</p>
+<pre><code>ssh -L 8188:127.0.0.1:8188 serveur   # puis ouvrir http://localhost:8188</code></pre>
+
+<h2>2. Une instance par carte</h2>
+<p>Avec deux cartes, lancez deux instances, chacune épinglée à sa carte et écrivant dans son propre dossier :</p>
+<pre><code>CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=1 \
+  .venv/bin/python main.py --listen 127.0.0.1 --port 8189 --output-directory ~/comfyui-b/output</code></pre>
+<p class="note">Sans <code>CUDA_DEVICE_ORDER=PCI_BUS_ID</code>, la « carte 1 » de CUDA n'est pas forcément la « carte 1 » de <code>nvidia-smi</code>. Posez-le partout, sinon vous chargerez un modèle sur la carte que vous vouliez garder libre.</p>
+
+<h2>3. Quel modèle pour quoi</h2>
+<table>
+<tr><th>Besoin</th><th>Famille de modèles</th><th>Remarque</th></tr>
+<tr><td>Images façon photo, rapides</td><td>SDXL (Juggernaut, RealVis), variantes Turbo</td><td>tient dans 8 Go</td></tr>
+<tr><td>Images qui suivent fidèlement le prompt</td><td>Flux dev, quantifié (GGUF Q8)</td><td>16 Go avec un encodeur de texte fp8</td></tr>
+<tr><td>Vidéo depuis un texte ou une image</td><td>Wan 2.2 14B (deux experts), LTX-Video 2B</td><td>un LoRA 4 étapes divise le temps</td></tr>
+<tr><td>Un objet en 3D depuis une image</td><td>Trellis 2</td><td>décodeurs de forme et de texture</td></tr>
+</table>
+<p>Mesuré sur une de nos cartes : un plan Wan 2.2 de 5 secondes (81 images à 16 i/s) prend environ 2 minutes en mode rapide et environ 13 minutes à 20 étapes. Pensez une vidéo en plans, pas en minutes de film.</p>
+
+<h2>4. Le piloter depuis des scripts et des agents</h2>
+<p>Enregistrez un workflow au format API ; un script le poste sur <code>/prompt</code> en changeant le prompt et la graine, puis interroge l'historique pour récupérer les fichiers produits. C'est ainsi qu'un agent commande un rendu : il remplit quelques champs, le workflow reste fixe et testé.</p>
+
+<h2>Pièges</h2>
+<p class="note">ComfyUI et un modèle de langage partagent mal une carte. Décidez qui possède quelle carte et quand (voir <a href="/fr/gpu-grid.html">la grille GPU</a>), et arrêtez l'instance ComfyUI plutôt que de les laisser se battre pour la mémoire.</p>
+<p class="note">Installez les nœuds personnalisés comme n'importe quel programme venu d'internet : peu, d'auteurs connus, lus avant d'être lancés. Ils s'exécutent avec vos droits.</p>
