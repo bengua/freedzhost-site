@@ -1,0 +1,32 @@
+<!-- {"title": "D'un mail à une demande de fusion : l'étiquette go", "summary": "Envoyez-vous un mail avec une idée ; il devient une issue rédigée qui vous attend. Posez-y une étiquette, et un agent la prend, travaille, ouvre une demande de fusion, et ferme l'issue une fois fusionnée. Une règle garde le tout sûr : aucun code ne pose jamais l'étiquette.", "order": 80, "series": "agents", "level": "advanced", "time": "une soirée", "requires": ["homelab-n8n", "agent-claude-code", "agent-swarmfox"]} -->
+<p class="lead">Les idées arrivent n'importe où : en marchant, dans une salle d'attente. Vous vous envoyez un mail. Le lendemain matin, c'est une issue sur votre forge, bien rédigée, étiquetée, qui attend. Vous la lisez, vous posez l'étiquette <strong>go</strong> depuis votre téléphone, et un agent fait le travail. Vous lisez la demande de fusion et vous fusionnez.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Une file de travail alimentée par votre boîte mail et vidée par des agents locaux, avec un seul geste humain au milieu. Chaque issue se suit elle-même jusqu'au bout : demande de fusion liée, issue fermée à la fusion, un signal « besoin d'un humain » quand quelque chose échoue.</p>
+
+<h2>1. Le mail devient une issue, et attend</h2>
+<ul>
+<li>Vous écrivez à un alias d'adresse réservé à ça (<code>vous+forge@…</code>), objet <code>[dépôt] ce que vous voulez</code>.</li>
+<li>Une automatisation lit la boîte, et un modèle local rédige l'issue : un titre clair, un corps, un type (bug, fonctionnalité, doc, tâche).</li>
+<li>L'issue reçoit l'étiquette <strong>triage</strong> : elle veut dire <em>en attente de vous</em>. Aucun agent n'y touche.</li>
+</ul>
+
+<h2>2. Une étiquette lance le travail</h2>
+<p>Seule une issue étiquetée <strong>go</strong> est du travail. Un petit ouvrier passe toutes les cinq minutes, prend <em>une</em> issue, et seulement si un modèle est réellement chargé sur une carte :</p>
+<ol>
+<li>il l'étiquette <em>en cours</em> et retire <em>go</em> ;</li>
+<li>il confie le titre et le corps à l'agent de code, qui ouvre une demande de fusion ;</li>
+<li>il commente l'identifiant du run sur l'issue.</li>
+</ol>
+<p>Chaque passage suivant suit le run : demande de fusion liée, issue fermée quand elle fusionne, étiquette <em>needs-human</em> et un commentaire quand le run ou la demande de fusion échoue. Une tâche trop large pour l'agent reçoit <em>needs-split</em>.</p>
+<p class="note">La règle qui rend le tout sûr : <strong>aucun code ne pose jamais l'étiquette go</strong>. Seul votre compte, depuis votre téléphone ou la forge, le peut. Un test vérifie qu'aucun script du dépôt ne la pose.</p>
+
+<h2>3. Écrire la tâche pour un petit modèle</h2>
+<ul>
+<li>Donnez à l'agent le texte, pas le numéro de l'issue : à qui l'on disait « #4 », un modèle de 9B a lancé 208 fois la même recherche dans l'historique.</li>
+<li>Quatre livrables au plus, une liste fermée de fichiers, et un test qui exécute ce qui a été écrit.</li>
+<li>Lisez la demande de fusion avant de fusionner : les changements courts reviennent propres, les longs cassent.</li>
+</ul>
+
+<h2>Pièges</h2>
+<p class="note">La recherche d'issues de notre forge ignorait un filtre d'étiquette quand aucun dépôt ne portait encore cette étiquette, et renvoyait tout. Revérifiez vous-même l'étiquette de chaque résultat avant d'agir.</p>
+<p class="note">Ne lancez pas l'ouvrier quand aucun modèle n'est chargé : un run sur une carte vide échoue au bout de plusieurs minutes et encombre l'issue. Interrogez la grille GPU d'abord.</p>
