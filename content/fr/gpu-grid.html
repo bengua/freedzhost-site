@@ -1,0 +1,20 @@
+<!-- {"title": "Plusieurs modèles, deux cartes graphiques : une grille plutôt qu'un numéro de jonglage", "summary": "Un conteneur par modèle et par carte, des bascules qui coûtent une demi-seconde par gigaoctet, un service vocal qui cède la place, et pourquoi un modèle ne doit jamais remplir sa carte.", "order": 14, "series": "ai"} -->
+<p class="lead">Deux cartes de 16 Go tiennent un gros modèle chacune, ou quelques petits, ou un énorme modèle à cheval sur les deux. Lequel sert dépend de l'heure : un agent qui code, un long document à lire, un jeu. Changer à la main, c'est arrêter des conteneurs, en démarrer d'autres, et en oublier un. Nous avons remplacé ça par une grille et un petit programme qui la gouverne.</p>
+
+{{diagram:grid}}
+
+<h2>1. Une case, un conteneur</h2>
+<p>Chaque modèle existe une fois par endroit où il peut tourner : carte 0, carte 1, ou les deux cartes ensemble. Chacune de ces cases est son propre conteneur, créé une fois avec sa ligne de commande exacte (quelle carte, combien de contexte, quelles options). Un conteneur fige sa ligne de commande à sa création : si un conteneur servait plusieurs cases, chaque bascule demanderait de le recréer.</p>
+<p>Notre grille compte une trentaine de cases. À tout moment, quelques-unes servent ; les autres sont arrêtées, prêtes.</p>
+
+<h2>2. Basculer, et savoir ce que ça coûte</h2>
+<p>Basculer, c'est arrêter les cases en conflit et démarrer celle qu'on veut, puis attendre qu'elle réponde vraiment. Nous avons mesuré le temps de chargement sur nos cartes : <strong>0,48 s par Go</strong> réparti sur les deux cartes, <strong>0,75 s par Go</strong> sur une seule. Un modèle de 9 Go est prêt en sept secondes environ ; un modèle réparti sur les deux cartes est prêt plus vite que sa taille ne le laisse croire. Connaître ce chiffre permet à un ordonnanceur de décider si une bascule en vaut la peine.</p>
+<p>Sur la période comptée, 425 bascules sur 463 ont réussi. Les 38 échecs expliquent pourquoi chaque bascule finit par une vérification, jamais par une supposition.</p>
+
+<h2>3. Des invités qui cèdent la place</h2>
+<p>Certains services ne sont pas des modèles mais veulent quand même une carte : notre service vocal (Homelab 15) utilise 3,9 Go. C'est un <em>invité</em> : il tourne quand sa carte porte un modèle compatible, s'arrête avant qu'un plus gros ne charge, et redémarre ensuite. Un jeu est l'invité le plus fort de tous : il prend la carte 0 en entier, et la grille la rend quand la partie se termine (voir <a href="/fr/gpu-for-ai.html">Libérer vos cartes graphiques pour l'IA</a>).</p>
+
+<h2>Pièges que nous avons payés</h2>
+<p class="note">Ne laissez jamais un modèle remplir sa carte. Un modèle 27B qui occupait 97,4 % de la VRAM se chargeait très bien, puis mourait au premier « bonjour » : plus de place pour les tampons de calcul. Gardez de la marge, sinon le modèle n'est en bonne santé que jusqu'à ce qu'on lui parle.</p>
+<p class="note">Nommez chaque conteneur d'après ce qu'il fait vraiment tourner (modèle, moteur, carte), et vérifiez-le automatiquement : un conteneur dont le nom ment envoie chaque outil au mauvais endroit.</p>
+<p class="note">Tout ce qui est lancé à la main hors de la grille lui est invisible, et la grille chargera sans hésiter un modèle sur une carte que quelque chose d'autre remplit déjà. Déclarez-le, ou laissez l'ordonnanceur le signaler comme étranger.</p>
