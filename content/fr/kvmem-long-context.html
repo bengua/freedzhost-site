@@ -1,0 +1,32 @@
+<!-- {"title": "Contexte long sur une carte de 16 Go : KVMem, et notre version", "summary": "Les agents lisent de longues conversations. KVMem garde tout l'historique en RAM système et seulement les blocs utiles sur la carte : 48 rappels sur 48, une vitesse qui reste plate au-delà de 100k jetons, 4,9 Go de VRAM économisés. Et ce qu'ajoute notre version : un binaire pour deux générations de cartes, les experts en mémoire hôte, les probabilités par jeton, un cache d'experts sur la carte qui fait tourner un 177B sur une seule carte.", "order": 63, "series": "ai", "level": "advanced", "time": "une soirée", "requires": ["kv-cache-trap", "big-moe-two-cards"]} -->
+<p class="lead">La conversation d'un agent de code grimpe à 100 000 jetons et plus. Un serveur normal garde le cache d'attention de toute cette conversation sur la carte, et ralentit à mesure qu'elle grandit. KVMem, une extension libre de llama.cpp, garde l'historique en RAM système et ne ramène sur la carte que les blocs utiles à l'étape en cours. Nous l'avons mesuré face à llama.cpp seul sur nos propres cartes, puis construit notre propre version pour notre machine.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Mesuré ici : 48 rappels sur 48 à 44k et 130k jetons ; à 103k jetons, 150,9 jetons par seconde contre 132,1 pour llama.cpp seul ; 4,9 Go de VRAM libérés. Et un modèle à mélange d'experts de 177B servi depuis une seule carte de 16 Go.</p>
+
+<h2>1. L'idée</h2>
+<p>Les blocs terminés du cache d'attention partent en RAM système. À chaque étape, KVMem choisit les blocs qui comptent pour la question en cours et les place, dans l'ordre, dans une fenêtre de travail bornée sur la carte. L'article de recherche qui le fonde montre qu'une fenêtre résidente de 32k est quasiment sans perte face à l'historique complet de 256k.</p>
+<pre><code>llama-kvmem-server -m modele.gguf -c 262144 --kvmem-budget 8192 \
+  --kvmem-gen-reserve 16384 --spec-type draft-mtp</code></pre>
+<p class="note">Une génération ne peut pas dépasser <code>--kvmem-gen-reserve</code> jetons, réflexion comprise. Dimensionnez-le pour votre plus longue réponse.</p>
+
+<h2>2. Mesurer avant de basculer</h2>
+<ul>
+<li><strong>Rappel</strong> : 48/48 pour llama.cpp, KVMem non borné et KVMem borné à 8 192, avec des questions sur le début et sur la fin de la conversation.</li>
+<li><strong>Vitesse</strong> : llama.cpp seul est plus rapide sur les contextes courts (178,9 contre 151,0 à 39k) ; KVMem reste plat et le dépasse vers 70k jetons sur notre carte la plus rapide, 53k sur l'autre.</li>
+<li><strong>Basculer</strong> de moteur en pleine conversation a coûté 17,9 s, surtout de relecture du contexte : le point de croisement n'est pas le bon point de bascule.</li>
+</ul>
+<p>Notre règle : KVMem pour les agents (contextes longs), llama.cpp seul pour le chat et les appels courts. Deux préréglages, pas de bascule automatique.</p>
+
+<h2>3. Ce que change notre version, et pourquoi</h2>
+<ul>
+<li><strong>Un binaire pour deux générations de cartes.</strong> L'original compile pour la seule architecture la plus récente ; un hôte avec une seconde carte plus ancienne charge le modèle et échoue sur elle, sans bruit. Nous compilons pour les deux (<code>89-real;120a-real</code>), pour comparer les cartes sans rien changer d'autre.</li>
+<li><strong>Les experts en mémoire hôte</strong> : <code>--cpu-moe</code>, <code>--n-cpu-moe</code>, <code>-ot</code> et <code>--no-repack</code> dans le serveur KVMem, pour que les experts d'un énorme modèle MoE restent en cache de pages évictable au lieu de 21 Go de mémoire épinglée.</li>
+<li><strong>Un plantage corrigé</strong> pour l'architecture de Flash-Next : le contexte mémoire remis au graphe n'était pas du bon type, et le serveur s'arrêtait sur une assertion au démarrage.</li>
+<li><strong>Les probabilités par jeton</strong> (<code>logprobs</code>, <code>top_logprobs</code>) sur le point d'accès de chat : l'hésitation du modèle, jeton par jeton, pour un agent qui décide quand demander de l'aide.</li>
+<li><strong>Un cache d'experts sur la carte</strong>, en se rebasant sur un fork de llama.cpp qui en a un : les experts sollicités restent sur la carte. La pointe la plus récente de ce fork décodait à 28,6 jetons par seconde, le commit que nous avons épinglé à 36,9 : nous avons gardé le plus rapide.</li>
+</ul>
+
+<h2>Pièges</h2>
+<p class="note">Oubliez <code>scripts/apply-patches.sh</code> après la mise à jour du sous-module, et la compilation échoue loin dedans, sur des membres manquants, ce qui ressemble à une mauvaise version du sous-module. Ce n'en est pas une. Le lancer deux fois ne casse rien.</p>
+<p class="note">Un commentaire placé entre deux lignes d'une continuation <code>\</code> coupe la commande en silence : notre appel à CMake a perdu ses options CUDA, et <code>bash -n</code> trouvait le fichier correct. Seule l'exécution du script l'a révélé ; le test vérifie désormais les arguments que CMake reçoit vraiment.</p>
+<p class="note">Certaines familles de modèles ne sont pas prises en charge (l'attention à fenêtre glissante, par exemple) : elles restent sur llama.cpp seul.</p>

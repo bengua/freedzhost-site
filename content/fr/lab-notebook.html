@@ -1,0 +1,41 @@
+<!-- {"title": "Le carnet de labo : ce qu'on a essayé sur l'infra, ce qu'on a gardé", "summary": "Chaque essai mené sur nos machines, avec son verdict et le chiffre qui l'a tranché. Gardé, rejeté, en pause. Le moyen le plus rapide de savoir ce qui vaut une soirée avant de dépenser la vôtre.", "order": 64, "series": "ai", "level": "read", "time": "15 min", "requires": []} -->
+<p class="lead">Un homelab, c'est une suite d'expériences. La plupart des comptes rendus ne montrent que ce qui a marché. Voici le carnet entier : ce que nous avons essayé, la mesure qui a tranché, et ce que nous en avons fait. Chaque ligne renvoie au tutoriel complet quand il existe.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Des mois d'essais et d'erreurs en une page. Avant d'essayer quelque chose, regardez s'il est ici : le chiffre qui a tranché pour nous peut trancher pour vous.</p>
+
+<h2>Gardé</h2>
+<table>
+<tr><th>Essai</th><th>Le chiffre qui a tranché</th></tr>
+<tr><td>Un modèle MoE de 177B sur deux cartes grand public (<a href="/fr/big-moe-two-cards.html">tutoriel</a>)</td><td>55,6 jetons/s, 2,1 fois plus vite une fois les poids bien placés</td></tr>
+<tr><td>Décodage spéculatif, MTP (<a href="/fr/speculative-decoding.html">tutoriel</a>)</td><td>65,7 jetons/s pour un 27B sur une carte</td></tr>
+<tr><td>KVMem pour les longs contextes d'agents (<a href="/fr/kvmem-long-context.html">tutoriel</a>)</td><td>48/48 en rappel, plat au-delà de 100k jetons, −4,9 Go de VRAM</td></tr>
+<tr><td>Un juge de 0,8B sur le processeur, puis un 9B (<a href="/fr/local-judge.html">tutoriel</a>)</td><td>0,87 à 0,91 sur de vrais mails, 0,05 s par décision</td></tr>
+<tr><td>Un classifieur d'intention entraîné plutôt qu'une recherche par mots-clés</td><td>84,0 % contre 63,7 %, et 72,6 % pour « toujours la valeur par défaut »</td></tr>
+<tr><td>Régénérer la description des périphériques GPU au démarrage (<a href="/fr/gpu-container-on-cpu.html">tutoriel</a>)</td><td>la cause supprimée à la source, à chaque démarrage</td></tr>
+</table>
+
+<h2>Rejeté</h2>
+<table>
+<tr><th>Essai</th><th>Pourquoi</th></tr>
+<tr><td>Compresser le cache V en q4_0 (<a href="/fr/kv-cache-trap.html">tutoriel</a>)</td><td>lecture du prompt 21 fois plus lente pour 1,8 Go gagnés</td></tr>
+<tr><td>Charger les poids du modèle en résident plutôt qu'en projection mémoire</td><td>+3 % de vitesse, puis deux gels de la machine : 47,6 Go de RAM impossibles à libérer</td></tr>
+<tr><td>Une calibration des probabilités meilleure sur le papier</td><td>86,9 % au lieu de 84,0 %, mais elle ne prédisait plus jamais la classe « difficile »</td></tr>
+<tr><td>Un second petit juge, aligné plutôt qu'entraîné</td><td>0,42 à 0,55 sur les mêmes mails : supprimé</td></tr>
+<tr><td>Demander à un agent, dans son prompt, de consulter le juge</td><td>il l'a fait 0 fois sur 3 ; le routage est passé dans le code</td></tr>
+</table>
+
+<h2>En pause</h2>
+<table>
+<tr><th>Essai</th><th>Où il s'est arrêté</th></tr>
+<tr><td>La voix en duplex intégral (parler en même temps, comme au téléphone)</td><td>un modèle de 35B plus les modèles de parole : trop lourd à côté de tout le reste sur deux cartes. Rendre la voix de la maison plus réactive passe d'abord</td></tr>
+<tr><td>Une bascule automatique entre KVMem et llama.cpp seul</td><td>basculer coûte 17,9 s ; deux préréglages suffisent</td></tr>
+<tr><td>Guider un modèle local jeton par jeton avec le serveur de langage</td><td>pas de masquage de jetons dans llama-server ; le contournement, découper la requête en segments, ne coûte que 0,7 ms chacun. Faisabilité prouvée, pas encore construit</td></tr>
+</table>
+
+<h2>La méthode</h2>
+<ol>
+<li>Une variable à la fois, trois runs, médiane et écart.</li>
+<li>Mesurer là où ça sert : un agent dans une vraie session, pas un <code>curl</code>.</li>
+<li>Casser exprès pour voir le test passer au rouge (voir <a href="/fr/mutation-testing.html">les tests validés par mutation</a>).</li>
+<li>Noter le verdict, avec son chiffre, le jour même.</li>
+</ol>

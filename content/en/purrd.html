@@ -1,0 +1,32 @@
+<!-- {"title": "Purrd: music while the agent works, silence when it is done", "summary": "Stop staring at a terminal. A small open-source program plays generated lo-fi music while a long task runs; the return of silence tells you it finished. It wraps any command, follows Claude Code through hooks, and can speak a line when the agent needs you.", "order": 61, "series": "desk", "level": "beginner", "time": "15 min", "requires": []} -->
+<p class="lead">You start a build or hand a task to an agent, and then you watch the terminal. Or you look away, forget it, and come back an hour late. Purrd turns waiting into sound: music plays while the work runs, and silence returns when it stops. A beep is easy to miss; the end of music is not.</p>
+
+<p class="proof"><strong>What you get.</strong> Your ears keep watch for you. Sound means working, silence means done, a short voice line means "the agent is waiting for you". Five commands to install, GPL licence, no model, no network.</p>
+
+<h2>1. Install and try</h2>
+<pre><code>git clone https://your-forge/purrd.git &amp;&amp; cd purrd
+uv sync
+uv run purrd demo          # listen to the loop, Ctrl+C to stop
+uv run purrd make -j8      # music during the build; silence = done</code></pre>
+<p>It needs a system audio player and picks the one present: PipeWire (<code>pw-cat</code>), ALSA (<code>aplay</code>) or ffmpeg (<code>ffplay</code>).</p>
+
+<h2>2. Wrap any command</h2>
+<pre><code>purrd ./long-script.sh               # any command
+purrd --seed 3 ./run.sh              # another seed, another melody
+purrd --style noir pytest            # classic, chill, drive, noir, minimal</code></pre>
+<p>The music is generated, not a playlist: a style picks its drum patterns, bass riffs and scale, and the seed varies the melody. Two sessions never sound exactly alike, so it never becomes a tic you stop hearing.</p>
+
+<h2>3. Follow a coding agent</h2>
+<p>For Claude Code, purrd runs as a small daemon driven by the agent's hooks: the start of a task starts the music, the end stops it.</p>
+<pre><code>purrd start     # in the hook that fires when the agent starts working
+purrd stop      # in the hook that fires when it stops</code></pre>
+<p>Optional voices speak short lines on four events: start, done, permission asked, error. They come from community sound packs in the CESP format; purrd picks a line by the event's category and at random, so the same sentence does not come back every time.</p>
+<pre><code>purrd import-pack ~/Downloads/peon
+purrd say permission</code></pre>
+
+<h2>4. Your own tracks</h2>
+<p>Prefer finished music? Drop audio files in an "ambience bank" folder and set the mix: <code>purrd bank ratio 0.5</code> plays half bank, half generated. An empty bank silently falls back to the generator.</p>
+
+<h2>Traps</h2>
+<p class="note">Sound plays where purrd runs. Our agent ran on a headless server: for days purrd played to an empty room, and we thought the hook did not fire. When you drive the agent from a browser, have the hooks <em>declare</em> the state to the page, and let the page play.</p>
+<p class="note">A page left open for hours does not reload its script after you deploy a new one. Force a reload before looking for a bug.</p>

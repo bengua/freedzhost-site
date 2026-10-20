@@ -1,0 +1,29 @@
+<!-- {"title": "Inframagotchi : un chat dont la santé est celle de votre homelab", "summary": "Une supervision qu'on regarde vraiment. Un chat de gouttière façon manga vit dans une fenêtre de votre bureau : les yeux brillants quand tout tourne, en sueur, pansé, puis K.-O. quand les services tombent. De vraies sondes dessous, un dessin qui ne connaît qu'un nombre, tout dessiné en code.", "order": 62, "series": "desk", "level": "intermediate", "time": "45 min", "requires": ["homelab-ntfy"]} -->
+<p class="lead">Les tableaux de bord sont honnêtes et personne ne les ouvre. Une petite créature dans le coin de l'écran, on la regarde cinquante fois par jour. Inframagotchi est un tamagotchi pour votre infrastructure : un chat de gouttière façon manga dont la santé est celle de votre labo. Ludique en surface, vraie supervision dessous.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Un coup d'œil vous dit comment va le labo, sans rien ouvrir : yeux brillants, goutte de sueur, veine de stress, pansement, yeux en croix. Libre, entièrement dessiné en code, sans image d'un tiers, sur une seule machine ou avec le moteur sur le serveur et le chat sur le portable.</p>
+
+<h2>1. Le chat ne connaît qu'un nombre</h2>
+<p>Le dessin ne lit jamais vos systèmes. Il reçoit une valeur, la santé de 100 à 0, et une seconde, l'activité, qui ne règle que le tempo de son animation :</p>
+<pre><code>sondes → planificateur → état de santé → render(santé, activité)</code></pre>
+<p>Une règle le rend crédible : <code>mouvement = activité × porte(santé)</code>. Un chat mal en point ne court pas partout, et tout se fige quand il est K.-O. Quand le moteur lui-même ne répond plus, une pierre tombale et un petit fantôme apparaissent, avec la raison : connexion perdue, délai dépassé, moteur arrêté.</p>
+
+<h2>2. Pourquoi une fenêtre native, pas un onglet</h2>
+<p>Un navigateur ne peut pas lire <code>systemctl</code>, l'expiration d'un certificat ou le remplissage d'un disque. Un petit programme local, si. Inframagotchi est une appli Python qui dessine dans la vue web du système (pywebview) et pousse la santé au chat.</p>
+<pre><code>sudo pacman -S --needed webkit2gtk-4.1 python-gobject python-cairo   # Arch ; équivalents ailleurs
+uv venv --system-site-packages     # l'environnement doit voir les liaisons GTK du système
+uv sync
+uv run python app.py</code></pre>
+
+<h2>3. Le moteur sur le serveur, le chat sur le portable</h2>
+<pre><code>uv run python app.py --serve                          # sur le serveur : le moteur seul
+uv run python app.py --connect http://localhost:8080  # sur le portable, par un tunnel SSH
+uv run python app.py --connect ... --pet --pet-size 180   # sans cadre, toujours au premier plan</code></pre>
+<p>Gardez le moteur lié à la machine elle-même et atteignez-le par un tunnel SSH : vos données de santé restent hors du réseau. Notre lanceur vérifie <code>/health</code> d'abord, démarre le tunnel au besoin, et dit où regarder au lieu d'ouvrir une fenêtre vide.</p>
+
+<h2>4. Un bestiaire</h2>
+<p>Cinq créatures partagent le même contrat : le chat (le héros), un chien qui halète, un poisson rouge dont le bocal se trouble, un hamster, un lama qui mâchonne avec dédain. Chacun se dégrade à sa façon, avec les codes manga que tout le monde lit : étoiles, goutte, veine, cernes, spirale.</p>
+
+<h2>Pièges</h2>
+<p class="note">Un seul compagnon à la fois : arrêtez le précédent par son fichier PID, jamais en cherchant son nom (voir <a href="/fr/ssh-for-agents.html">SSH pour un poste agentique</a>).</p>
+<p class="note">Gardez-le drôle, ou il meurt. Nous avons essayé des œuvres du domaine public : c'était moche et pas drôle, abandonné. La règle : dessiné en code, original, et c'est le mouvement qui porte l'humour.</p>

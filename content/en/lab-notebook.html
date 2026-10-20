@@ -1,0 +1,41 @@
+<!-- {"title": "The lab notebook: what we tried on the infrastructure, what we kept", "summary": "Every experiment on our machines, with its verdict and the number that decided it. Kept, rejected, paused. The fastest way to know what is worth an evening before you spend yours.", "order": 64, "series": "ai", "level": "read", "time": "15 min", "requires": []} -->
+<p class="lead">A homelab is a series of experiments. Most write-ups only show what worked. Here is the whole notebook: what we tried, the measure that settled it, and what we did with it. Each line links to the full tutorial when there is one.</p>
+
+<p class="proof"><strong>What you get.</strong> Months of trial and error in one page. Before you try something, check whether it is here: the number that decided for us may decide for you.</p>
+
+<h2>Kept</h2>
+<table>
+<tr><th>Experiment</th><th>The deciding number</th></tr>
+<tr><td>A 177B MoE model on two consumer cards (<a href="/big-moe-two-cards.html">tutorial</a>)</td><td>55.6 tokens/s, 2.1× faster once the weights were placed right</td></tr>
+<tr><td>Speculative decoding, MTP (<a href="/speculative-decoding.html">tutorial</a>)</td><td>65.7 tokens/s on a 27B on one card</td></tr>
+<tr><td>KVMem for long agent contexts (<a href="/kvmem-long-context.html">tutorial</a>)</td><td>48/48 recall, flat past 100k tokens, −4.9 GB VRAM</td></tr>
+<tr><td>A 0.8B judge on the processor, then a 9B (<a href="/local-judge.html">tutorial</a>)</td><td>0.87 to 0.91 on real e-mails, 0.05 s per decision</td></tr>
+<tr><td>A trained intent classifier instead of keyword matching</td><td>84.0 % against 63.7 %, and 72.6 % for "always the default"</td></tr>
+<tr><td>Regenerating the GPU device description at boot (<a href="/gpu-container-on-cpu.html">tutorial</a>)</td><td>the cause removed at its source, at every boot</td></tr>
+</table>
+
+<h2>Rejected</h2>
+<table>
+<tr><th>Experiment</th><th>Why</th></tr>
+<tr><td>Compressing the V cache to q4_0 (<a href="/kv-cache-trap.html">tutorial</a>)</td><td>21× slower prompt reading for 1.8 GB saved</td></tr>
+<tr><td>Model weights loaded resident instead of mapped</td><td>+3 % speed, then two machine freezes: 47.6 GB of RAM that could not be freed</td></tr>
+<tr><td>A probability calibration that scored better on paper</td><td>86.9 % instead of 84.0 %, but it never predicted the "hard" class again</td></tr>
+<tr><td>A second small judge, aligned rather than trained</td><td>0.42 to 0.55 on the same e-mails: deleted</td></tr>
+<tr><td>Telling an agent, in its prompt, to ask the judge</td><td>it did so 0 times out of 3; routing went into code</td></tr>
+</table>
+
+<h2>Paused</h2>
+<table>
+<tr><th>Experiment</th><th>Where it stopped</th></tr>
+<tr><td>Full-duplex voice (talking over each other, like a phone call)</td><td>a 35B model plus speech models: too heavy next to everything else on two cards. Making the house voice more responsive comes first</td></tr>
+<tr><td>An automatic switch between KVMem and plain llama.cpp</td><td>switching costs 17.9 s; two presets do the job</td></tr>
+<tr><td>Steering a local model token by token with the language server</td><td>no token masking inside llama-server; the workaround, cutting the request into segments, costs only 0.7 ms each. Feasibility proven, not built yet</td></tr>
+</table>
+
+<h2>The method</h2>
+<ol>
+<li>One variable at a time, three runs, median and range.</li>
+<li>Measure where it is used: an agent in a real session, not a <code>curl</code>.</li>
+<li>Break it on purpose to see the test go red (see <a href="/mutation-testing.html">mutation testing</a>).</li>
+<li>Write the verdict down, with its number, the same day.</li>
+</ol>
