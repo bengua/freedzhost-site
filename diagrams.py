@@ -962,6 +962,53 @@ def egpu(lang):
     return figure("egpu", 760, 280, L["cap"], body)
 
 
+# ── speculative decoding: where n_max stops paying ──────────────────────────
+def mtp(lang):
+    L = {
+        "en": labels(cap="Tokens per second on our setup as the number of drafted tokens grows. The gain stops at 5 and falls after: the best value depends on your hardware, so measure yours instead of copying someone else's.",
+                     unit="tokens per second (code prompt)", off="off"),
+        "fr": labels(cap="Jetons par seconde sur notre installation selon le nombre de jetons proposés à l'avance. Le gain s'arrête à 5 et baisse ensuite : la meilleure valeur dépend de votre matériel, mesurez la vôtre au lieu de copier celle d'un autre.",
+                     unit="jetons par seconde (prompt de code)", off="sans"),
+    }[lang]
+    data = [(L["off"], 45.3), ("1", 76), ("3", 115), ("5", 134), ("8", 134), ("10", 123)]
+    x0, base, h = 70, 200, 150
+    body = t(x0, 20, L["unit"], 11, "start", MUTED)
+    body += f'<line x1="{x0 - 10}" y1="{base}" x2="{x0 + 6 * 90}" y2="{base}" stroke="{LINE}"/>'
+    for i, (k, v) in enumerate(data):
+        x = x0 + i * 90
+        hh = v / 134 * h
+        col = GOOD if k == "5" else (MUTED if i == 0 else ACCENT)
+        body += f'<rect x="{x}" y="{base - hh:.1f}" width="56" height="{hh:.1f}" rx="4" fill="{col}" fill-opacity="0.85"/>'
+        val = f"{v:g}".replace(".", ",") if lang == "fr" else f"{v:g}"
+        body += t(x + 28, base - hh - 6, val, 12, "middle", weight=600)
+        body += t(x + 28, base + 18, "n_max " + k if i else k, 11, "middle", MUTED)
+    return figure("mtp", 640, 235, L["cap"], body)
+
+
+# ── a tiny judge: typed questions, honest confidence ────────────────────────
+def judge(lang):
+    L = {
+        "en": labels(cap="The code, not the prompt, sends a decision to the judge. The judge answers a typed question with a probability. Above the threshold the code acts; below it, the question goes up the cascade instead of being guessed.",
+                     code="Your code", csub="decides to ask", q="Typed question", qsub="yes/no · choice · score",
+                     j="Small judge", jsub="0.8B on the CPU, 0.05 s", ok="confidence ≥ 0.8", okd="act (38 % of cases, no error)",
+                     up="below", upd="next step: rules, bigger model, or you"),
+        "fr": labels(cap="C'est le code, pas le prompt, qui envoie une décision au juge. Le juge répond à une question typée par une probabilité. Au-dessus du seuil le code agit ; en dessous, la question remonte la cascade au lieu d'être devinée.",
+                     code="Votre code", csub="décide de demander", q="Question typée", qsub="oui/non · choix · note",
+                     j="Petit juge", jsub="0,8B sur CPU, 0,05 s", ok="confiance ≥ 0,8", okd="agir (38 % des cas, sans erreur)",
+                     up="en dessous", upd="étape suivante : règles, modèle plus gros, ou vous"),
+    }[lang]
+    body = box(10, 60, 140, 54, L["code"], L["csub"])
+    body += box(190, 60, 160, 54, L["q"], L["qsub"])
+    body += box(390, 60, 160, 54, L["j"], L["jsub"], stroke=ACCENT)
+    body += arrow(150, 87, 188, 87)
+    body += arrow(350, 87, 388, 87)
+    body += arrow(550, 75, 600, 40, None, GOOD, marker="good")
+    body += t(605, 34, L["ok"], 12, "start", GOOD, 600) + t(605, 52, L["okd"], 11, "start", MUTED)
+    body += arrow(550, 100, 600, 135, None, ACCENT, marker="acc")
+    body += t(605, 140, L["up"], 12, "start", ACCENT, 600) + t(605, 158, L["upd"], 11, "start", MUTED)
+    return figure("judge", 870, 180, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -974,7 +1021,8 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "cascade": cascade, "voice": voice,
             "saas": saas, "clock": clock, "route": route,
             "gateway": gateway, "grid": grid, "snapshots": snapshots, "keep": keep,
-            "rotation": rotation, "ram": ram, "egpu": egpu}
+            "rotation": rotation, "ram": ram, "egpu": egpu,
+            "mtp": mtp, "judge": judge}
 
 
 def render(name, lang):
