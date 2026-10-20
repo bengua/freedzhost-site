@@ -1,0 +1,27 @@
+<!-- {"title": "Docker with access to your GPU", "summary": "Install Docker and the NVIDIA Container Toolkit, test it, and avoid the trap after a driver update.", "order": 4} -->
+<p class="lead">Every model server in this series runs in a container: it installs cleanly, it uninstalls cleanly, and you can run two versions side by side. Two pieces, neither of them ours: Docker, and NVIDIA's Container Toolkit.</p>
+
+<h2>1. Docker</h2>
+<p>Docker's own convenience script installs the latest version. Docker documents it for test and development machines; for a production server, use the repository method of their documentation.</p>
+<pre><code>curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh</code></pre>
+
+<h2>2. NVIDIA Container Toolkit (Ubuntu, Debian)</h2>
+<p>From NVIDIA's installation guide:</p>
+<pre><code>curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+  | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+  | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+  | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker</code></pre>
+<p>Other distributions: follow the same guide on NVIDIA's site.</p>
+
+<h2>3. Test</h2>
+<pre><code>sudo docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi</code></pre>
+<p>The same table as on the host, printed from inside a container: your containers can see the card.</p>
+
+<h2>The trap after a driver update</h2>
+<p class="note">If you use CDI (the <code>/etc/cdi/nvidia.yaml</code> file), it describes the driver libraries as they were when it was generated. After a driver update it can point to files that no longer exist, and no GPU container starts. Regenerate it: <code>sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml</code>. We now regenerate it at every boot.</p>

@@ -16,12 +16,12 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "CHANGE-ME"
+name = "freedzhost-site"
 version = "0.1.0"
-description = "One sentence, English, saying what this delivers."
+description = "Static website of freedzhost.cloud: manifesto and free tutorials, in English and French."
 readme = "README.md"
 requires-python = ">=3.10"
-license = "MIT"
+license = "CC-BY-SA-4.0"
 authors = [{ name = "Zordur" }]
 dependencies = []
 
@@ -36,10 +36,11 @@ dev = ["ruff==0.16.6", "pytest>=8"]
 # versioned, installed, upgraded or rolled back — see docs/CONVENTIONS.md
 # section 5. Delete this table only if the repository truly exposes no command.
 [project.scripts]
-# tool-name = "package.module:main"
+freedzhost-site-build = "site_build:main"
 
 [tool.setuptools]
 packages = []
+py-modules = ["site_build"]
 
 [tool.ruff]
 line-length = 88

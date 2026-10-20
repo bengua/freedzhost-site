@@ -1,0 +1,20 @@
+<!-- {"title": "Installer le pilote NVIDIA et vérifier sa carte", "summary": "La dépendance sur laquelle tout repose, et comment savoir qu'elle marche vraiment.", "order": 3} -->
+<p class="lead">Rien n'est de nous ici : le pilote vient de NVIDIA et de votre distribution. Installez-le comme votre distribution le recommande, puis vérifiez-le correctement.</p>
+
+<h2>Installer</h2>
+<ul>
+<li><strong>Ubuntu</strong> : <code>sudo ubuntu-drivers install</code>, puis redémarrez.</li>
+<li><strong>Arch et dérivées</strong> : le paquet <code>nvidia-open</code> (cartes récentes), puis redémarrez.</li>
+<li><strong>Fedora</strong> : le paquet <code>akmod-nvidia</code> de RPM Fusion.</li>
+<li><strong>Debian</strong> : le paquet <code>nvidia-driver</code> de la section <code>non-free</code>.</li>
+</ul>
+<p>La documentation de votre distribution fait foi : les pilotes bougent plus vite qu'un tuto.</p>
+
+<h2>Vérifier</h2>
+<pre><code>nvidia-smi</code></pre>
+<p>Vous devez voir votre carte, sa mémoire, et une version de CUDA en haut à droite. Si la commande manque ou dit qu'elle ne peut pas parler au pilote, arrêtez-vous là : rien de ce qui suit ne marchera.</p>
+<pre><code>nvidia-smi --query-gpu=name,memory.total,memory.used --format=csv</code></pre>
+<p>Notez <code>memory.total</code> : c'est le chiffre qui décide des modèles que vous pourrez faire tourner.</p>
+
+<h2>Un piège que nous avons payé</h2>
+<p class="note">Une session de bureau utilise déjà un peu de VRAM (quelques centaines de Mo). Sur une carte de 16 Go, prévoyez environ 15 Go utilisables, pas 16.</p>

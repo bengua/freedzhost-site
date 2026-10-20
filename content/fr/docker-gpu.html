@@ -1,0 +1,27 @@
+<!-- {"title": "Docker avec accès à votre carte graphique", "summary": "Installer Docker et le NVIDIA Container Toolkit, tester, et éviter le piège après une mise à jour du pilote.", "order": 4} -->
+<p class="lead">Chaque serveur de modèles de cette série tourne dans un conteneur : il s'installe proprement, se désinstalle proprement, et deux versions peuvent cohabiter. Deux pièces, aucune n'est de nous : Docker, et le Container Toolkit de NVIDIA.</p>
+
+<h2>1. Docker</h2>
+<p>Le script d'installation de Docker installe la dernière version. Docker le réserve aux machines de test et de développement ; pour un serveur de production, utilisez la méthode par dépôt de leur documentation.</p>
+<pre><code>curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh</code></pre>
+
+<h2>2. NVIDIA Container Toolkit (Ubuntu, Debian)</h2>
+<p>D'après le guide d'installation de NVIDIA :</p>
+<pre><code>curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+  | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+  | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+  | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker</code></pre>
+<p>Autres distributions : suivez le même guide sur le site de NVIDIA.</p>
+
+<h2>3. Tester</h2>
+<pre><code>sudo docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi</code></pre>
+<p>Le même tableau que sur l'hôte, affiché depuis l'intérieur d'un conteneur : vos conteneurs voient la carte.</p>
+
+<h2>Le piège après une mise à jour du pilote</h2>
+<p class="note">Si vous utilisez CDI (le fichier <code>/etc/cdi/nvidia.yaml</code>), il décrit les bibliothèques du pilote telles qu'elles étaient au moment où il a été généré. Après une mise à jour du pilote, il peut pointer vers des fichiers qui n'existent plus, et plus aucun conteneur GPU ne démarre. Régénérez-le : <code>sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml</code>. Chez nous, il est désormais régénéré à chaque démarrage.</p>

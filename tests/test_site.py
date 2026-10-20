@@ -1,0 +1,72 @@
+"""Build the site for real and check what a visitor would hit."""
+
+import re
+
+import pytest
+
+import site_build
+
+LEAK = re.compile(
+    r"192\.168\.\d+\.\d+|100\.\d+\.\d+\.\d+|tailb0ff14|ts\.net|/home/zordur|zordur\.fr"
+    r"|benoit\.guarnaccia|cachyos-x8664|mindhub|sentinelle"
+)
+
+
+@pytest.fixture(scope="module")
+def out(tmp_path_factory):
+    return site_build.build(tmp_path_factory.mktemp("public"))
+
+
+def pages(out):
+    return sorted(out.rglob("*.html"))
+
+
+def test_both_languages_have_the_same_pages(out):
+    en = {p.name for p in out.glob("*.html")}
+    fr = {p.name for p in (out / "fr").glob("*.html")}
+    assert en == fr
+    assert {"index.html", "manifesto.html", "first-model.html"} <= en
+
+
+def test_every_page_declares_its_language(out):
+    for page in pages(out):
+        lang = "fr" if page.parent.name == "fr" else "en"
+        assert f'<html lang="{lang}">' in page.read_text(encoding="utf-8"), page
+
+
+def test_every_local_link_resolves(out):
+    for page in pages(out):
+        for ref in re.findall(r'(?:href|src|poster)="(/[^"]*)"', page.read_text(encoding="utf-8")):
+            target = out / ref.lstrip("/")
+            if ref.endswith("/"):
+                target = target / "index.html"
+            assert target.exists(), f"{page.relative_to(out)} -> {ref}"
+
+
+def test_home_lists_every_article(out):
+    for home, folder in ((out / "index.html", out), (out / "fr" / "index.html", out / "fr")):
+        text = home.read_text(encoding="utf-8")
+        for article in folder.glob("*.html"):
+            if article.name != "index.html":
+                assert article.name in text, f"{home} misses {article.name}"
+
+
+def test_nothing_internal_leaks_into_the_public_site(out):
+    for path in out.rglob("*"):
+        if path.suffix in (".html", ".css"):
+            found = LEAK.findall(path.read_text(encoding="utf-8"))
+            assert not found, f"{path.relative_to(out)}: {found}"
+
+
+def test_a_page_without_translation_is_refused(tmp_path, monkeypatch):
+    root = tmp_path / "root"
+    for lang in ("en", "fr"):
+        (root / "content" / lang).mkdir(parents=True)
+        (root / "content" / lang / "index.html").write_text(
+            '<!-- {"title": "t", "summary": "s", "order": 0} -->\n{{articles}}', encoding="utf-8")
+    (root / "content" / "en" / "only.html").write_text(
+        '<!-- {"title": "t", "summary": "s", "order": 1} -->\nx', encoding="utf-8")
+    (root / "static").mkdir()
+    monkeypatch.setattr(site_build, "ROOT", root)
+    with pytest.raises(ValueError, match="without translation"):
+        site_build.build(tmp_path / "out")
