@@ -1,0 +1,42 @@
+<!-- {"title": "Homelab : un ChatGPT privé, tous les outils PDF, et la transcription à la maison", "summary": "Trois services utilisés chaque semaine ici : Open WebUI pour discuter avec vos propres modèles, Stirling-PDF pour fusionner, découper, signer et passer à l'OCR des documents, Scriberr pour transformer des enregistrements en texte. Chacun remplace un abonnement ou un envoi sur le serveur d'un inconnu, et chacun demande les trois mêmes réglages de sécurité.", "order": 84, "series": "homelab", "level": "beginner", "time": "1 h", "requires": ["homelab-proxy", "first-model"]} -->
+<p class="lead">Trois services web couvrent beaucoup de besoins du quotidien. Une fenêtre de discussion pour vos propres modèles, pour que la famille ne colle pas de choses privées dans un chatbot public. Une boîte à outils PDF, pour que contrats et fiches de paie ne partent pas sur des convertisseurs « gratuits ». Et la transcription, pour qu'une réunion ou un mémo vocal devienne du texte sans quitter la maison.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> De quoi remplacer un abonnement à un chatbot, les convertisseurs PDF en ligne et les services de transcription, sur vos propres machines. Ici, l'interface de discussion seule a servi environ 1 900 requêtes en une semaine.</p>
+
+<h2>1. Open WebUI : une discussion privée avec vos modèles</h2>
+<pre><code>docker run -d --name openwebui -p 127.0.0.1:3000:8080 \
+  -v openwebui:/app/backend/data \
+  -e WEBUI_AUTH=true -e ENABLE_SIGNUP=false \
+  -e OLLAMA_BASE_URL=http://votre-serveur-de-modeles:11434 \
+  ghcr.io/open-webui/open-webui:main</code></pre>
+<ul>
+<li>Il parle à Ollama, ou à votre <a href="/fr/model-gateway.html">passerelle de modèles</a> en connexion compatible OpenAI : chaque modèle que vous servez apparaît dans la liste.</li>
+<li>La recherche web peut passer par votre propre <a href="/fr/homelab-searxng.html">SearXNG</a>, pour que les questions d'actualité restent privées elles aussi.</li>
+<li>Créez les comptes vous-même, puis laissez l'inscription fermée.</li>
+</ul>
+
+<h2>2. Stirling-PDF : tous les outils PDF, hors ligne</h2>
+<pre><code>docker run -d --name stirling-pdf -p 127.0.0.1:8081:8080 \
+  -v stirling-configs:/configs \
+  -e DOCKER_ENABLE_SECURITY=true \
+  stirlingtools/stirling-pdf:latest</code></pre>
+<p>Fusionner, découper, faire pivoter, compresser, convertir, signer, et passer à l'OCR des documents scannés avec Tesseract, dans le navigateur, sans que les fichiers quittent votre réseau. Avec la sécurité activée, il demande une connexion ; changez le mot de passe initial dès la première connexion.</p>
+
+<h2>3. Scriberr : des enregistrements au texte</h2>
+<p>Déposez un fichier audio, obtenez une transcription horodatée, produite par WhisperX sur votre propre machine. Le nôtre tourne à côté des cartes graphiques, attaché à la machine elle-même, et s'atteint par le réseau privé en HTTPS, seule origine qu'il accepte.</p>
+<pre><code>docker run -d --name scriberr --network host \
+  -e HOST=127.0.0.1 -e PORT=8080 \
+  -e ALLOWED_ORIGINS=https://votre-machine.votre-tailnet.ts.net:8080 \
+  -v scriberr-data:/app/data -v scriberr-whisperx:/app/whisperx-env \
+  ghcr.io/rishikanthc/scriberr:v1.2.0</code></pre>
+
+<h2>Les trois mêmes réglages pour les trois</h2>
+<ol>
+<li><strong>Attachez-les à la machine elle-même</strong> (<code>127.0.0.1</code>) et publiez-les par votre <a href="/fr/homelab-proxy.html">proxy inverse</a> ou votre <a href="/fr/homelab-remote.html">réseau privé</a>, jamais en ouvrant le port à tout le monde.</li>
+<li><strong>Connexion activée, inscription fermée.</strong> C'est vous qui créez les comptes.</li>
+<li><strong>Épinglez une version</strong> plutôt que <code>latest</code> ou <code>main</code> pour ce qui compte, pour qu'une mise à jour arrive quand vous le décidez.</li>
+</ol>
+
+<h2>Pièges</h2>
+<p class="note">Ne coupez pas la vérification des certificats pour faire « marcher » un chargeur web : vous accepteriez n'importe quelle réponse de n'importe quel imposteur. Corrigez plutôt le certificat.</p>
+<p class="note">Donnez par défaut le rôle le plus restreint aux nouveaux utilisateurs. Une interface où chaque nouveau compte est administrateur n'est qu'à une invitation égarée d'un problème.</p>
