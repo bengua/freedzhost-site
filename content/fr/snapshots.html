@@ -18,7 +18,7 @@ sudo snapper -c home set-config ALLOW_USERS=$USER SYNC_ACL=yes \
 <h2>3. Annuler</h2>
 <p>Voir ce qui a changé depuis l'instantané 42, puis faire revenir un fichier :</p>
 <pre><code>snapper -c home status 42..0
-snapper -c home undochange 42..0 /home/vous/.ssh/config</code></pre>
+snapper -c home undochange 42..0 $HOME/.ssh/config</code></pre>
 <p>Ou lisez simplement l'ancienne version : chaque instantané est un dossier normal, <code>/home/.snapshots/42/snapshot/</code>.</p>
 
 <h2>Pièges que nous avons payés</h2>
