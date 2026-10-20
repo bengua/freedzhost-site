@@ -1,7 +1,7 @@
-<!-- {"title": "Homelab : un ChatGPT privé, tous les outils PDF, et la transcription à la maison", "summary": "Trois services utilisés chaque semaine ici : Open WebUI pour discuter avec vos propres modèles, Stirling-PDF pour fusionner, découper, signer et passer à l'OCR des documents, Scriberr pour transformer des enregistrements en texte. Chacun remplace un abonnement ou un envoi sur le serveur d'un inconnu, et chacun demande les trois mêmes réglages de sécurité.", "order": 84, "series": "homelab", "level": "beginner", "time": "1 h", "requires": ["homelab-proxy", "first-model"]} -->
+<!-- {"title": "Homelab : un ChatGPT privé, tous les outils PDF, et la transcription à la maison", "summary": "Trois services auto-hébergés : Open WebUI pour discuter avec vos propres modèles, Stirling-PDF pour fusionner, découper, signer et passer à l'OCR des documents, Scriberr pour transformer des enregistrements en texte. Chacun remplace un abonnement ou un envoi sur le serveur d'un inconnu, et chacun demande les trois mêmes réglages de sécurité, appris à nos dépens.", "order": 84, "series": "homelab", "level": "beginner", "time": "1 h", "requires": ["homelab-proxy", "first-model"]} -->
 <p class="lead">Trois services web couvrent beaucoup de besoins du quotidien. Une fenêtre de discussion pour vos propres modèles, pour que la famille ne colle pas de choses privées dans un chatbot public. Une boîte à outils PDF, pour que contrats et fiches de paie ne partent pas sur des convertisseurs « gratuits ». Et la transcription, pour qu'une réunion ou un mémo vocal devienne du texte sans quitter la maison.</p>
 
-<p class="proof"><strong>Ce que vous y gagnez.</strong> De quoi remplacer un abonnement à un chatbot, les convertisseurs PDF en ligne et les services de transcription, sur vos propres machines. Ici, l'interface de discussion seule a servi environ 1 900 requêtes en une semaine.</p>
+<p class="proof"><strong>Ce que vous y gagnez.</strong> De quoi remplacer un abonnement à un chatbot, les convertisseurs PDF en ligne et les services de transcription, sur vos propres machines, et les trois réglages qui les gardent à vous.</p>
 
 <h2>1. Open WebUI : une discussion privée avec vos modèles</h2>
 <pre><code>docker run -d --name openwebui -p 127.0.0.1:3000:8080 \
@@ -14,6 +14,7 @@
 <li>La recherche web peut passer par votre propre <a href="/fr/homelab-searxng.html">SearXNG</a>, pour que les questions d'actualité restent privées elles aussi.</li>
 <li>Créez les comptes vous-même, puis laissez l'inscription fermée.</li>
 </ul>
+<p class="note">Nous l'avons fait tourner des mois, puis retiré : notre propre <a href="/fr/agent-swarmfox.html">console sur téléphone</a> fait désormais le travail. Ses journaux ont montré une chose à savoir : publié sur internet, presque toutes ses requêtes venaient de scanners automatiques, pas de nous. Si seul votre foyer s'en sert, atteignez-le par votre réseau privé et ne le publiez pas du tout.</p>
 
 <h2>2. Stirling-PDF : tous les outils PDF, hors ligne</h2>
 <pre><code>docker run -d --name stirling-pdf -p 127.0.0.1:8081:8080 \

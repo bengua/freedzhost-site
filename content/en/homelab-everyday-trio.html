@@ -1,7 +1,7 @@
-<!-- {"title": "Homelab: a private ChatGPT, every PDF tool, and transcription at home", "summary": "Three services used every week here: Open WebUI to chat with your own models, Stirling-PDF to merge, split, sign and OCR documents, Scriberr to turn recordings into text. Each replaces a subscription or an upload to a stranger's server, and each needs the same three safety settings.", "order": 84, "series": "homelab", "level": "beginner", "time": "1 h", "requires": ["homelab-proxy", "first-model"]} -->
+<!-- {"title": "Homelab: a private ChatGPT, every PDF tool, and transcription at home", "summary": "Three self-hosted services: Open WebUI to chat with your own models, Stirling-PDF to merge, split, sign and OCR documents, Scriberr to turn recordings into text. Each replaces a subscription or an upload to a stranger's server, and each needs the same three safety settings, learned the hard way.", "order": 84, "series": "homelab", "level": "beginner", "time": "1 h", "requires": ["homelab-proxy", "first-model"]} -->
 <p class="lead">Three web services cover a lot of everyday needs. A chat window for your own models, so the family does not paste private things into a public chatbot. A toolbox for PDFs, so contracts and payslips are not uploaded to "free" converters. And transcription, so a meeting or a voice memo becomes text without leaving the house.</p>
 
-<p class="proof"><strong>What you get.</strong> Replacements for a chatbot subscription, online PDF converters and transcription services, running on your own machines. Here, the chat interface alone served about 1,900 requests in a week.</p>
+<p class="proof"><strong>What you get.</strong> Replacements for a chatbot subscription, online PDF converters and transcription services, running on your own machines, and the three settings that keep them yours.</p>
 
 <h2>1. Open WebUI: a private chat for your models</h2>
 <pre><code>docker run -d --name openwebui -p 127.0.0.1:3000:8080 \
@@ -14,6 +14,7 @@
 <li>Web search can go through your own <a href="/homelab-searxng.html">SearXNG</a>, so questions about the news stay private too.</li>
 <li>Create the accounts yourself, then leave sign-up closed.</li>
 </ul>
+<p class="note">We ran it for months, then retired it: our own <a href="/agent-swarmfox.html">phone console</a> now does the job. Its logs showed something worth knowing: published on the internet, almost every request came from automated scanners, not from us. If only your household uses it, reach it through your private network and do not publish it at all.</p>
 
 <h2>2. Stirling-PDF: every PDF tool, offline</h2>
 <pre><code>docker run -d --name stirling-pdf -p 127.0.0.1:8081:8080 \
