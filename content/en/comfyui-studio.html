@@ -1,6 +1,8 @@
 <!-- {"title": "ComfyUI: images, video and 3D on your own cards", "summary": "The node editor for generative models, run as a service that only listens on the machine itself, one instance per card. Which model for what, how long a five-second video shot really takes, and how to drive it from scripts and agents.", "order": 53, "series": "ai", "level": "intermediate", "time": "1 h", "requires": ["docker-gpu", "gpu-grid"]} -->
 <p class="lead">ComfyUI is an open-source editor where you wire generative models as nodes: text encoder, diffusion model, decoder, output. It draws images, makes video clips, turns a picture into a 3D object. Ours makes the mascot's renders and the shots of an automatic video pipeline, on the same cards that serve language models at night.</p>
 
+<p class="proof"><strong>What you get.</strong> Your own image, video and 3D studio, on the cards you already have, ordered by your agents: a five-second video shot in about two minutes, no subscription, no upload.</p>
+
 <h2>1. Install it as a service, listening on the machine only</h2>
 <pre><code>git clone https://github.com/comfyanonymous/ComfyUI.git ~/comfyui
 cd ~/comfyui &amp;&amp; python -m venv .venv &amp;&amp; .venv/bin/pip install -r requirements.txt

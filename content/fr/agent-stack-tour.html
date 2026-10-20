@@ -1,0 +1,27 @@
+<!-- {"title": "Un seul client, tout votre labo : la visite", "summary": "Depuis une seule appli sur votre téléphone ou votre bureau : des agents de code sur chaque machine, des images et de la vidéo sur vos cartes, les alertes de la machine de garde, vos workflows et votre maison. Le concept paraît énorme. Chaque brique est petite, lisible, et tourne déjà ici.", "order": 45, "series": "agents", "level": "read", "time": "10 min", "requires": []} -->
+<p class="lead">Imaginez. Vous êtes sur le canapé. Sur votre téléphone, vous ouvrez une seule appli. Vous demandez à un agent de code de réparer un test sur le serveur, vous le regardez travailler ligne à ligne, vous validez sa commande d'un tap. Une notification vous dit que le rendu d'image commandé il y a une heure est prêt. Une autre, que la machine de garde vient de bannir une adresse qui scannait votre proxy. Tout ça sur votre matériel, sans facture mensuelle au jeton.</p>
+
+{{diagram:wiring}}
+
+<p class="proof"><strong>Éprouvé ici, tous les jours.</strong> Pas une maquette : c'est l'installation avec laquelle ce site a été construit. Chaque brique ci-dessous a son tutoriel pas à pas, avec les commandes, les chiffres mesurés et les pièges qui nous ont coûté une soirée.</p>
+
+<h2>Ce qu'un seul client vous permet</h2>
+<ul>
+<li><strong>Coder sur chaque machine.</strong> Ouvrez une session <a href="/fr/agent-openfox.html">OpenFox</a> sur n'importe laquelle de vos machines, suivez-la en direct, intervenez, validez. Les tâches longues partent chez <a href="/fr/agent-kimi-code.html">Kimi Code</a>, les délicates chez <a href="/fr/agent-claude-code.html">Claude Code</a>, celles du quotidien restent locales et gratuites.</li>
+<li><strong>Garder le fil.</strong> Les <a href="/fr/agent-rooms-foxdesk.html">salles</a> survivent à l'appli fermée, au réseau perdu, au changement d'écran : commencez sur le portable, finissez sur le téléphone.</li>
+<li><strong>Créer.</strong> Images, plans vidéo, objets 3D avec <a href="/fr/comfyui-studio.html">ComfyUI</a> sur vos propres cartes, commandés par un agent qui remplit un workflow testé.</li>
+<li><strong>Veiller sur le labo.</strong> La machine de garde (<a href="/fr/homelab-proxy.html">proxy</a>, <a href="/fr/homelab-fail2ban.html">fail2ban</a>), les erreurs, les sauvegardes, quel modèle est sur quelle carte : tout dans un résumé, les alertes poussées par <a href="/fr/homelab-ntfy.html">ntfy</a>.</li>
+<li><strong>Décider, d'un tap.</strong> L'orchestrateur local lit tout seul et propose ; rien n'agit sans votre tap sur une carte (voir <a href="/fr/agent-swarmfox.html">SwarmFox</a>).</li>
+</ul>
+
+<h2>Pourquoi ça reste simple</h2>
+<p>Le concept est ambitieux ; les briques ne le sont pas. Trois règles le garantissent :</p>
+<ol>
+<li><strong>Des petites pièces, un rôle chacune.</strong> Une API qui lit, un contrôleur qui garde les conversations, des agents qui codent. Chacune tient dans la tête, chacune se remplace.</li>
+<li><strong>Le modèle propose, le code décide.</strong> Verdicts, fusions et actions sont de simples programmes ou votre tap, jamais l'humeur d'un modèle (voir <a href="/fr/agent-bmad.html">BMAD avec de petits modèles</a>).</li>
+<li><strong>Une seule passerelle vers tous les modèles.</strong> Changez de modèle, de carte ou de fournisseur : rien d'autre ne bouge (voir <a href="/fr/model-gateway.html">la passerelle de modèles</a>).</li>
+</ol>
+
+<h2>Par où commencer</h2>
+<p>On ne le construit pas d'un bloc. Commencez par la <a href="/fr/model-gateway.html">passerelle</a> et <a href="/fr/agent-openfox.html">OpenFox</a> : une soirée, et vous avez déjà un agent de code local. Chaque tutoriel suivant ajoute une brique qui marche toute seule.</p>
+<p class="note">Envie qu'on vous l'installe, ou qu'on l'adapte à votre propre labo ? <a href="/fr/help.html">Écrivez-nous</a>.</p>

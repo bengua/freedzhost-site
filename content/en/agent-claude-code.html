@@ -1,6 +1,8 @@
 <!-- {"title": "Claude Code, two ways: on the subscription and on your own models", "summary": "The same agent in two roles: the operations agent on the subscription, with rules and hooks that refuse dangerous commands, and an isolated junior on local models through three environment variables.", "order": 47, "series": "agents", "level": "intermediate", "time": "45 min", "requires": ["model-gateway", "agent-openfox"]} -->
 <p class="lead">Claude Code is Anthropic's coding agent in the terminal. Most people use it one way: with a subscription, on Anthropic's models. It can also run on your own models, as long as something on your side speaks its protocol. We use both: the subscription for operations work, local models for an isolated junior that writes small patches all day.</p>
 
+<p class="proof"><strong>What you get.</strong> The best of both worlds with one program: the frontier model when it matters, your own models for the hundred small patches of the day. Three variables switch between them.</p>
+
 <h2>1. On the subscription: the operations agent</h2>
 <pre><code>npm install -g @anthropic-ai/claude-code
 claude          # first run: sign in with your account</code></pre>
