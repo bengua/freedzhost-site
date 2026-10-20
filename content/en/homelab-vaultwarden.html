@@ -1,0 +1,44 @@
+<!-- {"title": "Homelab 3: your own password manager with Vaultwarden", "summary": "Replace the password manager you rent. The server never sees your passwords, and the backup that actually restores.", "order": 8} -->
+<p class="lead">Vaultwarden is an open-source server compatible with the Bitwarden apps: you keep the polished official apps on your phone and in your browser, and the server runs at home. It is small (a few dozen MB of RAM) and it is the service that protects all the others, so it gets the most care in this series.</p>
+
+{{diagram:vault}}
+
+<h2>Why the server can be at home</h2>
+<p>Bitwarden apps encrypt your vault on the device, with a key derived from your master password, before anything is sent. The server stores ciphertext it cannot read. A stolen server leaks encrypted blobs; a forgotten master password, on the other hand, locks you out for good. Plan for the second case first.</p>
+
+<h2>1. Run it</h2>
+<pre><code>services:
+  vaultwarden:
+    image: vaultwarden/server:1.37.4
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./vw-data:/data
+    environment:
+      - DOMAIN=https://vault.yourdomain.tld
+      - SIGNUPS_ALLOWED=true</code></pre>
+<pre><code>docker compose up -d</code></pre>
+<p>Publish it through your HTTPS proxy (Homelab 2): the web vault and the apps need HTTPS to work at all.</p>
+
+<h2>2. Create your account, then close the door</h2>
+<ol>
+<li>Open <code>https://vault.yourdomain.tld</code>, create your account.</li>
+<li>Write the master password on paper and keep it at home. Not in a note app, not in the vault itself: a key locked inside the box it opens opens nothing.</li>
+<li>Set <code>SIGNUPS_ALLOWED=false</code> and run <code>docker compose up -d</code> again. From now on, nobody else can register on your server.</li>
+<li>Check it: a new registration attempt must be refused.</li>
+</ol>
+
+<h2>3. Connect the apps</h2>
+<p>In the Bitwarden app or browser extension, before logging in, choose a <strong>self-hosted</strong> server and enter your address. Everything else works as usual: autofill, phone unlock by fingerprint, password generator.</p>
+
+<h2>4. The backup that restores</h2>
+<p>From the official documentation: copy the database with SQLite's own backup command, which stays consistent while the server writes.</p>
+<pre><code>sqlite3 vw-data/db.sqlite3 ".backup '/backups/db-$(date '+%Y%m%d-%H%M').sqlite3'"</code></pre>
+<p>Also back up <code>vw-data/attachments/</code> and the <code>rsa_key*</code> files. Run it every night, to another disk.</p>
+<p>To restore: stop Vaultwarden, put the files back, and <strong>delete any <code>db.sqlite3-wal</code> left in the folder</strong> before starting again, or the restored database can be corrupted.</p>
+<p class="note">Do a test restore once, on another machine or another folder, and log in with the apps. A backup you have never restored is a hope.</p>
+
+<h2>Traps</h2>
+<p class="note">The real risk at home is not the server being stolen, it is losing the master password. A device that is already unlocked will keep working for a while and hide the problem until it restarts. If you change your master password, write the new one on paper the same minute.</p>
+<p class="note">Also export your vault, encrypted, from time to time and keep the file offline: it is your way out if the server itself is gone.</p>

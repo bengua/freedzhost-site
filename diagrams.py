@@ -264,9 +264,39 @@ def proxy(lang):
     return figure("proxy", 770, 265, L["cap"], body)
 
 
+# ── homelab 3: where each secret lives ──────────────────────────────────────
+def vault(lang):
+    L = {
+        "en": labels(cap="Your devices encrypt before sending: the server only ever stores ciphertext. The one secret that opens everything is typed on the device and lives on paper, not in the vault.",
+                     dev="Your devices", dsub="app, browser extension", enc="encrypts here", paper="Master password",
+                     psub="on paper, at home", typed="typed, never sent", proxy="HTTPS proxy", vw="Vaultwarden",
+                     vsub="one container", db="db.sqlite3", dbsub="ciphertext only", backup="2nd disk", bsub="sqlite3 .backup",
+                     nightly="nightly", sends="encrypted items"),
+        "fr": labels(cap="Vos appareils chiffrent avant d'envoyer : le serveur ne stocke jamais que du chiffré. Le seul secret qui ouvre tout se tape sur l'appareil et vit sur papier, pas dans le coffre.",
+                     dev="Vos appareils", dsub="app, extension navigateur", enc="chiffre ici", paper="Mot de passe maître",
+                     psub="sur papier, à la maison", typed="tapé, jamais envoyé", proxy="Proxy HTTPS", vw="Vaultwarden",
+                     vsub="un conteneur", db="db.sqlite3", dbsub="du chiffré seulement", backup="2e disque", bsub="sqlite3 .backup",
+                     nightly="chaque nuit", sends="fiches chiffrées"),
+    }[lang]
+    body = box(20, 30, 160, 50, L["paper"], L["psub"])
+    body += arrow(100, 80, 100, 128, None, dash=True)
+    body += t(110, 108, L["typed"], 11, "start", MUTED)
+    body += box(20, 130, 160, 54, L["dev"], L["dsub"], stroke=ACCENT)
+    body += t(100, 202, L["enc"], 11, "middle", ACCENT, 600)
+    body += box(250, 130, 120, 54, L["proxy"])
+    body += box(420, 130, 130, 54, L["vw"], L["vsub"])
+    body += box(600, 130, 140, 54, L["db"], L["dbsub"])
+    body += arrow(180, 157, 248, 157, L["sends"], lx=214, ly=149)
+    body += arrow(370, 157, 418, 157)
+    body += arrow(550, 157, 598, 157)
+    body += box(600, 240, 140, 50, L["backup"], L["bsub"], stroke=ACCENT)
+    body += arrow(670, 184, 670, 238, L["nightly"], ACCENT, marker="acc", lx=715, ly=215)
+    return figure("vault", 760, 305, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
-            "proxy": proxy}
+            "proxy": proxy, "vault": vault}
 
 
 def render(name, lang):
