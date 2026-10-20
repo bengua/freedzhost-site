@@ -397,11 +397,36 @@ def dns(lang):
     return figure("dns", 760, 290, L["cap"], body)
 
 
+# ── homelab 5: the copy is pulled, never pushed ─────────────────────────────
+def backups(lang):
+    L = {
+        "en": labels(cap="Copy 1 is written by the hypervisor every night. Copy 2 is pulled by another machine, with a key that can only read: whatever takes over the hypervisor cannot reach it.",
+                     pve="Hypervisor", psub="writes copy 1, 02:00", d1="Copy 1", d1s="external disk, 7 daily + 4 weekly",
+                     other="Another machine", osub="pulls copy 2, 03:00", d2="Copy 2", d2s="mirror + quarantine",
+                     key="pulled with a read-only key (rrsync -ro)", bad="no access, no write", nightly="nightly backup"),
+        "fr": labels(cap="La copie 1 est écrite par l'hyperviseur chaque nuit. La copie 2 est tirée par une autre machine, avec une clé qui ne sait que lire : ce qui prendrait le contrôle de l'hyperviseur ne peut pas l'atteindre.",
+                     pve="Hyperviseur", psub="écrit la copie 1, 02:00", d1="Copie 1", d1s="disque externe, 7 jours + 4 semaines",
+                     other="Une autre machine", osub="tire la copie 2, 03:00", d2="Copie 2", d2s="miroir + quarantaine",
+                     key="tirée avec une clé en lecture seule (rrsync -ro)", bad="aucun accès, aucune écriture", nightly="sauvegarde nocturne"),
+    }[lang]
+    body = box(20, 40, 210, 54, L["pve"], L["psub"])
+    body += box(20, 170, 210, 54, L["d1"], L["d1s"])
+    body += arrow(125, 94, 125, 168, L["nightly"], lx=180, ly=135)
+    body += box(540, 40, 200, 54, L["other"], L["osub"], stroke=ACCENT)
+    body += box(540, 170, 200, 54, L["d2"], L["d2s"], stroke=ACCENT)
+    body += arrow(640, 94, 640, 168)
+    body += arrow(230, 190, 538, 90, None, ACCENT, marker="acc")
+    body += t(400, 222, L["key"], 11, "middle", ACCENT)
+    body += arrow(230, 58, 538, 58, None, BAD, dash=True, marker="bad")
+    body += t(384, 50, L["bad"], 11, "middle", BAD)
+    return figure("backups", 760, 240, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
             "gpu": gpu_split, "stream": stream, "wake": wake,
-            "dns": dns}
+            "dns": dns, "backups": backups}
 
 
 def render(name, lang):
