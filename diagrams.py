@@ -474,12 +474,44 @@ def photos(lang):
     return figure("photos", 790, 255, L["cap"], body)
 
 
+# ── homelab 8: nothing reaches main without a green check ───────────────────
+def forge(lang):
+    L = {
+        "en": labels(cap="Nobody, human or agent, pushes to main. A change arrives as a pull request; the runner picks its job by label and runs the tests; the protected branch accepts the merge only when the required check is green.",
+                     who="You or an agent", wsub="works on a branch", pr="Pull request", psub="the proposed change",
+                     run="Runner", rsub="label ubuntu-latest", job="Job container", jsub="image with node",
+                     main="main", msub="protected", check="required check: green", blocked="direct push refused",
+                     picks="picks the job by label"),
+        "fr": labels(cap="Personne, humain ou agent, ne pousse sur main. Un changement arrive en pull request ; le runner prend son job selon son label et lance les tests ; la branche protégée n'accepte la fusion que si le contrôle exigé est vert.",
+                     who="Vous ou un agent", wsub="travaille sur une branche", pr="Pull request", psub="le changement proposé",
+                     run="Runner", rsub="label ubuntu-latest", job="Conteneur du job", jsub="image avec node",
+                     main="main", msub="protégée", check="contrôle exigé : vert", blocked="push direct refusé",
+                     picks="prend le job selon le label"),
+    }[lang]
+    body = box(20, 40, 160, 54, L["who"], L["wsub"])
+    body += box(250, 40, 160, 54, L["pr"], L["psub"])
+    body += box(250, 170, 160, 54, L["run"], L["rsub"])
+    body += box(480, 170, 160, 54, L["job"], L["jsub"])
+    body += box(560, 40, 160, 54, L["main"], L["msub"], stroke=ACCENT)
+    body += arrow(180, 67, 248, 67)
+    body += arrow(330, 94, 330, 168, L["picks"], lx=420, ly=158)
+    body += arrow(410, 197, 478, 197)
+    body += arrow(560, 168, 630, 96, None, GOOD, marker="good")
+    body += t(680, 140, L["check"], 11, "middle", GOOD)
+    body += arrow(410, 67, 558, 67, None, GOOD, marker="good")
+    body += (f'<polyline points="100,94 100,122 600,122 600,98" fill="none" stroke="{BAD}" stroke-width="1.6" '
+             f'stroke-dasharray="5 4" marker-end="url(#bad)"/>')
+    body += t(170, 138, L["blocked"], 11, "middle", BAD)
+    return figure("forge", 760, 245, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
             "gpu": gpu_split, "stream": stream, "wake": wake,
             "dns": dns, "backups": backups,
-            "remote": remote, "photos": photos}
+            "remote": remote, "photos": photos,
+            "forge": forge}
 
 
 def render(name, lang):
