@@ -1,0 +1,43 @@
+<!-- {"title": "Reconstruire vos machines en une commande, et savoir ce que vous avez changé à la main (Ansible)", "summary": "Décrivez chaque machine dans un dépôt ; --check --diff vous dit ce qui a dérivé, sans rien toucher. Un premier playbook, et les pièges du débutant.", "order": 43, "series": "desk", "level": "intermediate", "time": "une demi-journée", "requires": []} -->
+<p class="lead">Après quelques mois, chaque machine porte des changements faits à la main dont personne ne se souvient : un paquet ici, un fichier de réglages là, un service modifié sur place. Ansible décrit ce qu'une machine doit être, dans de simples fichiers que vous gardez dans Git, et la met en conformité. Sa commande la plus utile ne change rien : elle vous dit ce qui diffère.</p>
+
+{{diagram:drift}}
+
+<h2>1. Installer</h2>
+<pre><code>pipx install --include-deps ansible
+ansible --version</code></pre>
+<p>Ansible n'a besoin que de SSH sur les machines qu'il gère : rien à y installer.</p>
+
+<h2>2. Un inventaire et un premier test</h2>
+<pre><code># inventory.ini
+[workstations]
+laptop ansible_host=192.0.2.20
+server ansible_host=192.0.2.30</code></pre>
+<pre><code>ansible -i inventory.ini all -m ping</code></pre>
+
+<h2>3. Un premier playbook</h2>
+<pre><code># site.yml
+- hosts: workstations
+  become: true
+  tasks:
+    - name: Les outils que je veux toujours
+      ansible.builtin.package:
+        name: [git, htop, rsync]
+        state: present
+    - name: Mes réglages du shell
+      ansible.builtin.template:
+        src: bashrc.j2
+        dest: /home/{{ ansible_user }}/.bashrc
+        mode: '0644'</code></pre>
+<pre><code>ansible-playbook -i inventory.ini site.yml --ask-become-pass</code></pre>
+<p>Lancez-le deux fois : le second passage doit afficher <strong>0 changed</strong>. C'est l'idempotence, et c'est ce qui permet de le relancer à tout moment sans risque.</p>
+
+<h2>4. La commande que vous utiliserez le plus</h2>
+<pre><code>ansible-playbook -i inventory.ini site.yml --check --diff</code></pre>
+<p>Elle compare la description aux machines et affiche chaque différence, sans rien toucher. Elle répond à la question à laquelle personne d'autre ne sait répondre : « qu'est-ce que j'ai changé à la main ? »</p>
+
+<h2>Pièges du débutant</h2>
+<p class="note">YAML s'indente avec des espaces, deux par niveau, jamais de tabulation. Mettez les droits de fichier entre guillemets : <code>mode: '0644'</code>, sinon le nombre peut être lu en octal ou en décimal selon la version.</p>
+<p class="note">Certaines distributions annoncent le nom de leur parente : CachyOS apparaît comme <code>Archlinux</code> dans <code>ansible_facts.distribution</code>. Affichez les faits une fois (<code>ansible laptop -m setup</code>) avant d'écrire des conditions.</p>
+<p class="note">Ansible configure des machines qui existent ; les créer (VM, réseaux) est le travail d'OpenTofu, le fork open source de Terraform. N'étirez pas un outil pour faire le travail de l'autre.</p>
+<p class="note">Si vous installez Ansible par un gestionnaire de versions, vérifiez après chaque mise à jour de ce gestionnaire que les commandes tournent encore : un changement de format de configuration nous a laissé des versions installées et aucune commande qui marche, derrière un avertissement qui était en fait une panne.</p>

@@ -1082,6 +1082,50 @@ def errors(lang):
     return figure("errors", 740, 215, L["cap"], body)
 
 
+# ── Ansible: the desired state, and the drift ───────────────────────────────
+def drift(lang):
+    L = {
+        "en": labels(cap="The repository describes what each machine should be. --check --diff compares it with what the machine really is and lists every difference, without touching anything. Applying makes the machine match; running it twice changes nothing the second time.",
+                     repo="Repository", rsub="the desired state", check="--check --diff", csub="lists the drift, touches nothing",
+                     m=["Laptop", "Server"], apply="apply", again="2nd run: 0 changed"),
+        "fr": labels(cap="Le dépôt décrit ce que chaque machine doit être. --check --diff le compare à ce que la machine est vraiment et liste chaque différence, sans rien toucher. Appliquer met la machine en conformité ; le relancer ne change rien la deuxième fois.",
+                     repo="Dépôt", rsub="l'état voulu", check="--check --diff", csub="liste l'écart, ne touche à rien",
+                     m=["Portable", "Serveur"], apply="appliquer", again="2e passage : 0 changement"),
+    }[lang]
+    body = box(20, 60, 150, 54, L["repo"], L["rsub"])
+    body += box(230, 60, 210, 54, L["check"], L["csub"], stroke=ACCENT)
+    for i, m in enumerate(L["m"]):
+        y = 20 + i * 90
+        body += box(560, y, 160, 50, m, None)
+        body += arrow(440, 87, 558, y + 25, L["apply"] if i == 0 else None, GOOD, marker="good", lx=500, ly=50)
+    body += arrow(170, 87, 228, 87)
+    body += t(640, 170, L["again"], 11, "middle", GOOD)
+    return figure("drift", 740, 180, L["cap"], body)
+
+
+# ── secrets that never touch a file ─────────────────────────────────────────
+def secrets(lang):
+    L = {
+        "en": labels(cap="The secret goes from the vault to the program that needs it through a pipe, and nowhere else. You unlock the vault yourself; a script, or an agent, only ever asks for a named secret and passes it on, without seeing it.",
+                     you="You", ysub="type the master password", v="Vault", vsub="unlocked for this session", c="The program",
+                     csub="reads it on its input", pipe="get NAME |", never=["a file", "the command line", "the screen"],
+                     no="never in"),
+        "fr": labels(cap="Le secret passe du coffre au programme qui en a besoin par un tuyau, et nulle part ailleurs. C'est vous qui déverrouillez le coffre ; un script, ou un agent, ne fait que demander un secret par son nom et le transmettre, sans le voir.",
+                     you="Vous", ysub="tapez la phrase maître", v="Coffre", vsub="déverrouillé pour la session", c="Le programme",
+                     csub="le lit sur son entrée", pipe="get NOM |", never=["un fichier", "la ligne de commande", "l'écran"],
+                     no="jamais dans"),
+    }[lang]
+    body = box(20, 40, 150, 54, L["you"], L["ysub"])
+    body += box(250, 40, 170, 54, L["v"], L["vsub"], stroke=ACCENT)
+    body += box(540, 40, 180, 54, L["c"], L["csub"], stroke=GOOD)
+    body += arrow(170, 67, 248, 67)
+    body += arrow(420, 67, 538, 67, L["pipe"], GOOD, marker="good", lx=479, ly=59)
+    body += t(335, 130, L["no"], 12, "middle", BAD, 600)
+    for i, n in enumerate(L["never"]):
+        body += t(335, 152 + i * 18, "✕ " + n, 11, "middle", BAD)
+    return figure("secrets", 740, 210, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -1096,7 +1140,7 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "gateway": gateway, "grid": grid, "snapshots": snapshots, "keep": keep,
             "rotation": rotation, "ram": ram, "egpu": egpu,
             "mtp": mtp, "judge": judge, "rag": rag,
-            "f2b": f2b, "errors": errors}
+            "f2b": f2b, "errors": errors, "drift": drift, "secrets": secrets}
 
 
 def render(name, lang):
