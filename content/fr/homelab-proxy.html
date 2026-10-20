@@ -1,4 +1,4 @@
-<!-- {"title": "Homelab 2 : une seule entrée HTTPS pour tous vos services", "summary": "Un proxy inverse avec des certificats gratuits : comment ce site même a été mis en ligne, en quinze minutes.", "order": 7, "series": "homelab"} -->
+<!-- {"title": "Homelab 2 : une seule entrée HTTPS pour tous vos services", "summary": "Un proxy inverse avec des certificats gratuits : comment ce site même a été mis en ligne, en quinze minutes.", "order": 7, "series": "homelab", "level": "beginner", "time": "1 h", "requires": ["homelab-proxmox"]} -->
 <p class="lead">Chaque service que vous hébergez a besoin d'une adresse et d'un cadenas. Plutôt que d'ouvrir une porte par service, ouvrez-en une : un proxy inverse. Il reçoit chaque visiteur, garde les certificats HTTPS, et passe chaque requête au bon service à l'intérieur de votre réseau. Le nôtre, c'est Nginx Proxy Manager (NPM) : open source, avec une interface web, et il renouvelle seul les certificats Let's Encrypt.</p>
 
 {{diagram:proxy}}

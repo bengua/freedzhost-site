@@ -76,3 +76,10 @@ footer { color: var(--muted); font-size: .85rem; padding-block: 40px; border-top
 .diagram svg { display: block; margin: 0 auto; min-width: 520px; }
 .diagram figcaption { color: var(--muted); font-size: .9rem; margin-top: 10px; }
 .series { margin: 28px 0 10px; font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.fiche { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 12px 16px; margin: 0 0 22px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--muted); border-radius: 0 8px 8px 0; font-size: .92rem; color: var(--muted); }
+.fiche b { color: var(--text); font-weight: 600; margin-right: 4px; }
+.fiche.level-beginner { border-left-color: #7ee2a8; }
+.fiche.level-intermediate { border-left-color: var(--accent); }
+.fiche.level-advanced { border-left-color: #ff6b6b; }
+.glossary dt { font-weight: 700; margin-top: 18px; color: var(--accent); }
+.glossary dd { margin: 4px 0 0; }

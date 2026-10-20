@@ -114,3 +114,12 @@ def test_every_page_has_canonical_and_description(out):
         text = page.read_text(encoding="utf-8")
         assert '<link rel="canonical" href="https://freedzhost.cloud/' in text, page
         assert '<meta name="description" content="' in text, page
+
+
+def test_every_article_has_a_level_and_reaches_the_glossary(out):
+    for page in pages(out):
+        if page.name in ("index.html", "glossary.html"):
+            continue
+        text = page.read_text(encoding="utf-8")
+        assert 'class="fiche level-' in text, page
+        assert "glossary.html" in text, page
