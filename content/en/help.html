@@ -1,0 +1,67 @@
+<!-- {"title": "Need help? I set it up with you", "summary": "Configure, build, set up, or redesign to measure: everything on this site, done on your own hardware.", "order": 0, "nav": true} -->
+<article>
+<h1>Need help? I set it up with you</h1>
+<p class="lead">Everything on this site, I built and I run every day. I can do it with you, on <strong>your</strong> hardware, so that your data stays yours and you stay in control.</p>
+<ul class="offers">
+<li><strong>Configure</strong><span>Tune what you already have: proxy, DNS, backups, security, a service that misbehaves.</span></li>
+<li><strong>Build</strong><span>A complete homelab or a local AI node, from choosing the hardware to the first services.</span></li>
+<li><strong>Set up</strong><span>Move from Google or Microsoft to your own services; automations with n8n; local agents.</span></li>
+<li><strong>Redesign to measure</strong><span>Audit an existing installation, harden it, write the recovery plan, rebuild what must be.</span></li>
+</ul>
+<h2>How it works</h2>
+<ol>
+<li>You describe your need in the form below.</li>
+<li>I answer with questions and a first opinion.</li>
+<li>A quote, if we go ahead.</li>
+<li>The work happens on your hardware, remotely through a private network, or on site depending on where you are.</li>
+<li>You get the documentation. I keep no access once the job is done.</li>
+</ol>
+<p class="note">Your data stays with you · open-source tools · you remain autonomous · price on quote.</p>
+<h2>Describe your need</h2>
+<form id="contact" class="contact" novalidate data-text="{&quot;sending&quot;: &quot;Sending…&quot;, &quot;thanks&quot;: &quot;Thank you, your request is received. I will answer by e-mail.&quot;, &quot;fix&quot;: &quot;Please check the highlighted fields.&quot;, &quot;slow&quot;: &quot;Too many attempts: please wait a minute.&quot;, &quot;down&quot;: &quot;The form is unavailable right now. Please try again later.&quot;}">
+<label>Your name<input name="name" autocomplete="name" maxlength="120" required></label>
+<label>E-mail (to answer you)<input name="email" type="email" autocomplete="email" maxlength="200" required></label>
+<label>What you need<select name="need" required>
+<option value="configure">Configure</option>
+<option value="build">Build</option>
+<option value="setup">Set up</option>
+<option value="redesign">Redesign to measure</option>
+<option value="other">Something else</option>
+</select></label>
+<label>Your project, in a few lines<textarea name="message" rows="6" maxlength="4000" required></textarea></label>
+<label class="trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+<label class="check"><input type="checkbox" name="consent"> I agree that this information is used only to answer me.</label>
+<button type="submit">Send</button>
+<p class="form-status" role="status" aria-live="polite"></p>
+</form>
+<p class="caption">Your information is used only to answer you. It is stored on my own servers, never with a third party, and deleted 12 months after our last exchange, or on request.</p>
+</article>
+<script>
+(() => {
+  const f = document.getElementById("contact");
+  if (!f) return;
+  const out = f.querySelector(".form-status");
+  const T = JSON.parse(f.dataset.text);
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    f.querySelectorAll(".invalid").forEach((el) => el.classList.remove("invalid"));
+    const d = Object.fromEntries(new FormData(f));
+    const body = { name: d.name || "", email: d.email || "", need: d.need || "", message: d.message || "",
+                   consent: f.consent.checked, website: d.website || "", lang: document.documentElement.lang };
+    const btn = f.querySelector("button");
+    btn.disabled = true; out.textContent = T.sending; out.className = "form-status";
+    try {
+      const r = await fetch("/api/contact", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      if (r.status === 429) throw new Error(T.slow);
+      const j = await r.json();
+      if (j.ok) { f.reset(); out.textContent = T.thanks; out.className = "form-status ok"; }
+      else {
+        (j.errors || []).forEach((n) => { const el = f.elements[n]; if (el) el.classList.add("invalid"); });
+        out.textContent = T.fix; out.className = "form-status bad";
+      }
+    } catch (err) {
+      out.textContent = err.message === T.slow ? T.slow : T.down; out.className = "form-status bad";
+    } finally { btn.disabled = false; }
+  });
+})();
+</script>

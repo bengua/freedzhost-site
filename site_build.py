@@ -19,7 +19,7 @@ ROOT = pathlib.Path(__file__).parent
 SITE = "https://freedzhost.cloud"
 LANGS = {
     "en": {"prefix": "", "name": "English", "home": "Home", "read": "Read",
-           "articles": "Articles", "switch": "Français",
+           "articles": "Articles", "switch": "Français", "help": "Need help?",
            "levels": {"read": "Reading", "beginner": "Beginner", "intermediate": "Intermediate", "advanced": "Advanced"},
            "fiche": {"level": "Level", "time": "Estimated time", "before": "Read first", "words": "A word you don't know?",
                      "glossary": "Glossary"},
@@ -29,7 +29,7 @@ LANGS = {
            "footer":
            "Content under CC BY-SA 4.0. No trackers, no cookies, no third-party fonts."},
     "fr": {"prefix": "fr/", "name": "Français", "home": "Accueil", "read": "Lire",
-           "articles": "Articles", "switch": "English",
+           "articles": "Articles", "switch": "English", "help": "Besoin d'aide ?",
            "levels": {"read": "Lecture", "beginner": "Débutant", "intermediate": "Intermédiaire", "advanced": "Avancé"},
            "fiche": {"level": "Niveau", "time": "Temps estimé", "before": "À lire avant", "words": "Un mot inconnu ?",
                      "glossary": "Lexique"},
@@ -106,6 +106,7 @@ def layout(lang, slug, title, body, description):
 <header class="top">
   <a class="brand" href="{url(lang, 'index')}">freedzhost<span>.cloud</span></a>
   <nav><a href="{url(lang, 'index')}">{t['home']}</a>
+  <a class="help" href="{url(lang, 'help')}">{t['help']}</a>
   <a class="lang" href="{url(other, slug)}" hreflang="{other}">{LANGS[other]['name']}</a></nav>
 </header>
 <main>
@@ -134,7 +135,7 @@ def write_feeds_and_sitemap(out, catalogue):
         encoding="utf-8")
     for lang, pages in catalogue.items():
         t = LANGS[lang]
-        newest = sorted((s for s in pages if s != "index"), key=lambda s: -pages[s]["order"])
+        newest = sorted((s for s in pages if s != "index" and not pages[s].get("nav")), key=lambda s: -pages[s]["order"])
         items = "".join(
             f"<item><title>{html.escape(pages[s]['title'])}</title>"
             f"<link>{SITE}{url(lang, s)}</link><guid>{SITE}{url(lang, s)}</guid>"
@@ -160,7 +161,7 @@ def build(out):
         pages = {p.stem: read_page(p) for p in sorted((ROOT / "content" / lang).glob("*.html"))}
         slugs[lang] = set(pages)
         catalogue[lang] = {slug: meta for slug, (meta, _) in pages.items()}
-        articles = sorted((s for s in pages if s != "index"), key=lambda s: pages[s][0]["order"])
+        articles = sorted((s for s in pages if s != "index" and not pages[s][0].get("nav")), key=lambda s: pages[s][0]["order"])
         groups = []
         for key, heading in LANGS[lang]["series"].items():
             members = [a for a in articles if pages[a][0].get("series") == key]
@@ -180,7 +181,7 @@ def build(out):
             body = re.sub(r"\{\{diagram:([a-z]+)\}\}", lambda m, lang=lang: diagrams.render(m.group(1), lang), body)
             if slug == "index":
                 body = body.replace("{{articles}}", cards)
-            else:
+            elif not meta.get("nav"):  # a nav page brings its own layout
                 body = f'<article>\n<h1>{html.escape(meta["title"])}</h1>\n{fiche(lang, meta, pages)}{body}</article>'
             target = out / LANGS[lang]["prefix"] / ("index.html" if slug == "index" else f"{slug}.html")
             target.parent.mkdir(parents=True, exist_ok=True)
