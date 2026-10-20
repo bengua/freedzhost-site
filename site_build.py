@@ -9,8 +9,11 @@ Standard library only: the site must build on any machine with Python.
 import html
 import json
 import pathlib
+import re
 import shutil
 import sys
+
+import diagrams
 
 ROOT = pathlib.Path(__file__).parent
 LANGS = {
@@ -83,6 +86,7 @@ def build(out):
             for s in articles
         )
         for slug, (meta, body) in pages.items():
+            body = re.sub(r"\{\{diagram:([a-z]+)\}\}", lambda m, lang=lang: diagrams.render(m.group(1), lang), body)
             if slug == "index":
                 body = body.replace("{{articles}}", f'<ul class="cards">\n{cards}\n</ul>')
             else:

@@ -1,6 +1,8 @@
 <!-- {"title": "Docker with access to your GPU", "summary": "Install Docker and the NVIDIA Container Toolkit, test it, and avoid the trap after a driver update.", "order": 4} -->
 <p class="lead">Every model server in this series runs in a container: it installs cleanly, it uninstalls cleanly, and you can run two versions side by side. Two pieces, neither of them ours: Docker, and NVIDIA's Container Toolkit.</p>
 
+{{diagram:docker}}
+
 <h2>1. Docker</h2>
 <p>Docker's own convenience script installs the latest version. Docker documents it for test and development machines; for a production server, use the repository method of their documentation.</p>
 <pre><code>curl -fsSL https://get.docker.com -o get-docker.sh

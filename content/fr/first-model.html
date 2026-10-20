@@ -22,6 +22,8 @@ curl -L -o ~/models/Qwen3-8B-Q4_K_M.gguf \
 <li><code>-p 127.0.0.1:8080:8080</code> : joignable depuis cette machine seulement. Ne l'ouvrez pas à votre réseau avant d'avoir mis quelque chose devant.</li>
 </ul>
 
+{{diagram:request}}
+
 <h2>3. Lui parler</h2>
 <pre><code>curl http://127.0.0.1:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
@@ -29,4 +31,5 @@ curl -L -o ~/models/Qwen3-8B-Q4_K_M.gguf \
 <p>Ou ouvrez <code>http://127.0.0.1:8080</code> dans un navigateur : le serveur fournit une petite page de discussion.</p>
 
 <h2>Un piège que nous avons mesuré</h2>
+{{diagram:kv}}
 <p class="note">Pour gagner de la mémoire, on peut compresser le cache de contexte avec <code>-ctk q8_0 -ctv q8_0</code>. N'allez pas plus loin côté V : avec <code>-ctv q4_0</code>, flash attention se désactive sans prévenir et la lecture d'un long prompt est devenue <strong>21 fois plus lente</strong> sur notre carte (62,7 au lieu de 1 330 jetons par seconde), alors que la vitesse de génération n'a pas bougé. Un test qui ne mesure que la génération ne l'aurait jamais vu.</p>

@@ -70,3 +70,19 @@ def test_a_page_without_translation_is_refused(tmp_path, monkeypatch):
     monkeypatch.setattr(site_build, "ROOT", root)
     with pytest.raises(ValueError, match="without translation"):
         site_build.build(tmp_path / "out")
+
+
+def test_every_diagram_marker_is_drawn_and_described(out):
+    for page in pages(out):
+        text = page.read_text(encoding="utf-8")
+        assert "{{diagram:" not in text, page
+        for svg in re.findall(r"<svg[^>]*>", text):
+            assert 'role="img"' in svg and 'aria-label="' in svg, page
+
+
+def test_diagrams_exist_in_both_languages():
+    import diagrams
+
+    for name in diagrams.DIAGRAMS:
+        en, fr = diagrams.render(name, "en"), diagrams.render(name, "fr")
+        assert en != fr and "<figcaption>" in en and "<figcaption>" in fr
