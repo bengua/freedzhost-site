@@ -3,6 +3,9 @@
 
 {{diagram:office}}
 
+<h2>Un peu d'histoire</h2>
+<p>Nextcloud a été fondé en 2016 par Frank Karlitschek et la plupart des développeurs d'ownCloud, le projet qu'il avait lancé en 2010, après un désaccord sur sa direction. Il couvre fichiers, agendas, contacts et plus encore. Pour les documents modifiés dans le navigateur, il se branche à une suite bureautique comme OnlyOffice, si bien qu'un tableur s'ouvre et s'enregistre sans quitter votre serveur.</p>
+
 <h2>1. Nextcloud</h2>
 <p>Lancez l'image officielle de Nextcloud avec une base PostgreSQL et Redis pour le cache, épinglez la version majeure, et publiez-la par votre proxy HTTPS (Homelab 2). Derrière un proxy, dites à Nextcloud comment on le joint, dans <code>config/config.php</code> :</p>
 <pre><code>'trusted_domains' =&gt; ['cloud.votredomaine.tld'],

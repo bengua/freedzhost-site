@@ -3,6 +3,9 @@
 
 {{diagram:drift}}
 
+<h2>A bit of history</h2>
+<p>Ansible was created in 2012 by Michael DeHaan, with an idea that set it apart: no agent to install on the machines, only SSH and a readable description of the desired state in YAML. Red Hat acquired it in 2015. Run twice, a good playbook changes nothing the second time: that property, idempotence, is what makes a machine rebuildable.</p>
+
 <h2>1. Install</h2>
 <pre><code>pipx install --include-deps ansible
 ansible --version</code></pre>

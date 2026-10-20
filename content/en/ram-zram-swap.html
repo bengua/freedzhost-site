@@ -3,6 +3,9 @@
 
 {{diagram:ram}}
 
+<h2>A bit of history</h2>
+<p>Swap, writing memory pages to disk when RAM runs out, is as old as virtual memory. zram, merged into the Linux kernel in 2014, offers another way: a compressed block of RAM used as swap, so pages are squeezed rather than written to a slow disk. It is fast and free, but it is still RAM: sized too large, it steals from the very models it was meant to help.</p>
+
 <h2>Thief 1: zram sized to all the RAM</h2>
 <p>zram is swap compressed into RAM. Some distributions size it to the whole RAM by default. On a normal desktop it compresses about three to one and it is a good deal. On an AI machine, what gets swapped are the pages of the model file, already compressed by quantisation: ours compressed at 1.14 to one. zram held 35.8 GB of real RAM to save 5, and those pages were exactly the cache that kept the model fast.</p>
 <p>Check it, then cap it in <code>/etc/systemd/zram-generator.conf</code> (which overrides the distribution's file):</p>

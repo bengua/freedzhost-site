@@ -3,6 +3,9 @@
 
 {{diagram:vault}}
 
+<h2>A bit of history</h2>
+<p>Bitwarden, an open-source password manager, appeared in 2016. In 2018 Daniel García rewrote a compatible server in Rust, light enough for a Raspberry Pi; first called bitwarden_rs, it was renamed Vaultwarden in 2021. It speaks the same protocol, so the official Bitwarden apps and browser extensions work with it unchanged.</p>
+
 <h2>Why the server can be at home</h2>
 <p>Bitwarden apps encrypt your vault on the device, with a key derived from your master password, before anything is sent. The server stores ciphertext it cannot read. A stolen server leaks encrypted blobs; a forgotten master password, on the other hand, locks you out for good. Plan for the second case first.</p>
 

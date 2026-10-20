@@ -3,6 +3,9 @@
 
 {{diagram:wake}}
 
+<h2>A bit of history</h2>
+<p>Wake-on-LAN goes back to the mid-1990s: AMD's "Magic Packet" is a network frame carrying the target's hardware address repeated sixteen times. A sleeping network card keeps listening for it and powers the computer on. Thirty years later, the same packet lets a home server sleep most of the day and wake the moment you need it.</p>
+
 <h2>1. Allow the wake-up</h2>
 <ol>
 <li>In the firmware (BIOS): enable <em>Wake on LAN</em> (sometimes <em>Power On By PCI-E</em>), and disable deep power-saving modes such as <em>ErP</em>, which cut power to the network card.</li>

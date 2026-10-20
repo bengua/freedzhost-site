@@ -3,6 +3,9 @@
 
 {{diagram:voice}}
 
+<h2>Un peu d'histoire</h2>
+<p>Home Assistant a été lancé en 2013 par Paulus Schoutsen pour piloter une maison sans dépendre du cloud de chaque marque. En 2023, ses créateurs ont déclaré « l'année de la voix » : le protocole Wyoming pour brancher des moteurs de reconnaissance et de synthèse vocales, et Piper, une voix locale rapide. La parole peut désormais aller du micro à l'ampoule sans quitter la maison.</p>
+
 <h2>1. Les pièces vocales parlent Wyoming</h2>
 <p>Home Assistant parle aux moteurs vocaux par le protocole Wyoming. Le projet Rhasspy publie des conteneurs tout prêts : <code>wyoming-whisper</code> pour la reconnaissance (port 10300) et <code>wyoming-piper</code> pour la synthèse (port 10200). Ajoutez-les dans Home Assistant avec l'intégration <strong>Wyoming Protocol</strong>, puis montez un pipeline Assist qui les utilise.</p>
 <pre><code>wyoming-whisper:  --model small-int8 --language fr --beam-size 1

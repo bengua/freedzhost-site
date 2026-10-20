@@ -3,6 +3,9 @@
 
 {{diagram:voice}}
 
+<h2>A bit of history</h2>
+<p>Home Assistant was started in 2013 by Paulus Schoutsen to control a home without depending on each brand's cloud. In 2023, its makers declared "the year of the voice": the Wyoming protocol to plug speech-to-text and text-to-speech engines, and Piper, a fast local voice. Speech can now go from microphone to light bulb without leaving the house.</p>
+
 <h2>1. The speech parts speak Wyoming</h2>
 <p>Home Assistant talks to speech engines over the Wyoming protocol. The Rhasspy project publishes ready containers: <code>wyoming-whisper</code> for recognition (port 10300) and <code>wyoming-piper</code> for synthesis (port 10200). Add them in Home Assistant with the <strong>Wyoming Protocol</strong> integration, then build an Assist pipeline that uses them.</p>
 <pre><code>wyoming-whisper:  --model small-int8 --language fr --beam-size 1

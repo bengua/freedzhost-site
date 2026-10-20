@@ -3,6 +3,9 @@
 
 {{diagram:gateway}}
 
+<h2>Un peu d'histoire</h2>
+<p>Quand l'API de discussion d'OpenAI est devenue le standard de fait en 2023, chaque serveur local s'est mis à l'imiter : llama.cpp, Ollama, vLLM. Une passerelle comme LiteLLM, sortie cette année-là, a retourné l'idée : une seule adresse qui parle aux outils les formats d'OpenAI et d'Anthropic, et envoie chaque requête au modèle, local ou hébergé, qui se trouve derrière un nom.</p>
+
 <h2>1. Une adresse</h2>
 <p>Agents, apps, téléphone, Home Assistant : chaque client parle à la passerelle, jamais directement à un serveur de modèle. Gardez la passerelle sur votre réseau privé (Homelab 6). Quand un modèle passe d'une carte à l'autre, aucun client ne change quoi que ce soit.</p>
 

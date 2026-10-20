@@ -3,6 +3,9 @@
 
 {{diagram:f2b}}
 
+<h2>A bit of history</h2>
+<p>fail2ban dates from 2004. Its idea has not aged: read the logs, count failures per address, and when an address fails too often, add a firewall rule against it for a while. It knows nothing about attacks; it only knows patterns in log lines, which is why a pattern that does not match your log format leaves it silently blind.</p>
+
 <h2>1. A filter for the proxy's logs</h2>
 <p>For Nginx Proxy Manager, a filter that catches errors and refused requests:</p>
 <pre><code># filter.d/npm-docker.conf

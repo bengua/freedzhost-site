@@ -1,6 +1,9 @@
 <!-- {"title": "Your first local model with llama.cpp", "summary": "Download an open model, serve it on your GPU, talk to it with the same API as the big clouds.", "order": 5, "series": "ai", "level": "beginner", "time": "30 min", "requires": ["docker-gpu"]} -->
 <p class="lead">llama.cpp is the open-source engine that runs most local models. Its server speaks the same API as the large cloud providers, so most tools can use it without changes.</p>
 
+<h2>A bit of history</h2>
+<p>In March 2023, a few days after Meta's LLaMA weights circulated, Georgi Gerganov published llama.cpp: plain C and C++ that ran a large language model on a laptop's processor. Quantisation, storing weights in 4 or 5 bits instead of 16, made it fit in ordinary memory. In August 2023 the project introduced the GGUF file format, now the common currency of local models.</p>
+
 <h2>1. Download a model</h2>
 <p>Qwen3 8B, compressed to 4 bits (Q4_K_M), 5.0 GB: it fits on an 8 GB card.</p>
 <pre><code>mkdir -p ~/models
