@@ -675,6 +675,33 @@ def cascade(lang):
     return figure("cascade", 760, 230, L["cap"], body)
 
 
+# ── homelab 15: a voice that never leaves the house ─────────────────────────
+def voice(lang):
+    L = {
+        "en": labels(cap="Home Assistant hears, thinks and answers without the cloud. Speech goes through one relay: the GPU pair answers when the card is free, the CPU pair when a game or a model holds it. Slower, never mute.",
+                     ha="Home Assistant", hsub="Assist pipeline", relay="Voice relay", rsub="one address",
+                     gpu="GPU pair", gsub="Whisper turbo + Kyutai TTS", cpu="CPU fallback", csub="Whisper small + Piper",
+                     llm="Local model", lsub="OpenAI-compatible", wy="Wyoming: speech in, speech out", txt="text",
+                     free="card free", busy="card busy"),
+        "fr": labels(cap="Home Assistant entend, réfléchit et répond sans le cloud. La parole passe par un seul relais : le duo GPU répond quand la carte est libre, le duo CPU quand un jeu ou un modèle la tient. Plus lent, jamais muet.",
+                     ha="Home Assistant", hsub="pipeline Assist", relay="Relais vocal", rsub="une seule adresse",
+                     gpu="Duo GPU", gsub="Whisper turbo + TTS Kyutai", cpu="Repli CPU", csub="Whisper small + Piper",
+                     llm="Modèle local", lsub="compatible OpenAI", wy="Wyoming : parole entrante, parole sortante", txt="texte",
+                     free="carte libre", busy="carte prise"),
+    }[lang]
+    body = box(20, 90, 160, 54, L["ha"], L["hsub"], stroke=ACCENT)
+    body += box(280, 90, 150, 54, L["relay"], L["rsub"])
+    body += box(530, 30, 210, 54, L["gpu"], L["gsub"], stroke=GOOD)
+    body += box(530, 150, 210, 54, L["cpu"], L["csub"])
+    body += box(20, 220, 160, 50, L["llm"], L["lsub"])
+    body += arrow(180, 117, 278, 117, None)
+    body += t(229, 109, "Wyoming", 11, "middle", MUTED)
+    body += arrow(430, 105, 528, 62, L["free"], GOOD, marker="good", lx=470, ly=72)
+    body += arrow(430, 130, 528, 172, L["busy"], MUTED, marker="a", lx=470, ly=168)
+    body += arrow(100, 144, 100, 218, L["txt"], lx=125, ly=185)
+    return figure("voice", 760, 285, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -684,7 +711,7 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "forge": forge, "search": search, "notify": notify,
             "intent": intent, "office": office,
             "paper": paper, "tasks": tasks,
-            "cascade": cascade}
+            "cascade": cascade, "voice": voice}
 
 
 def render(name, lang):
