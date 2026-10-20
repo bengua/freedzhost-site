@@ -1,0 +1,63 @@
+<!-- {"title": "FH Coder: a local coding agent that works while you sleep, and never merges unread", "summary": "Drop an intention, get a tested pull request. FH Coder is our production chain for local models: a shared queue, a runner in a separate account, a verification gate that fixes the style by itself, a report that opens the pull request and feeds the knowledge base. Plus the fh-coder agent that brings the same doctrine into OpenFox. How it is wired, and how to set it up.", "order": 45.7, "series": "agents", "level": "advanced", "time": "an evening", "requires": ["harness-choose", "agent-claude-code", "agent-authority"]} -->
+<p class="lead">An interactive agent needs you in front of it. FH Coder does not. You write one intention, the work happens on the graphics cards while you sleep, and in the morning a pull request waits, tested, with its record. Nothing reaches the main branch without being read. FH stands for FreedzHost: the chain is open source, built to run entirely on local models.</p>
+
+<p class="proof"><strong>What you get.</strong> A queue of small development tasks done by local models, each one isolated, verified and published as a pull request, with every run (successes included) written to a searchable journal. Short, well-framed tasks come back clean; that is the whole art of writing them.</p>
+
+<h2>A bit of history</h2>
+<p>The project started in summer 2026 as a "majordomo": an API that receives a request and drives an agent on its own repository. Running it day after day taught the rules that now shape it: give the agent the text, not a file path (a 9B model handed a path stopped in one turn, ten runs out of eleven); create the branch in code before the agent starts; fix the style deterministically instead of spending an agent turn on lint; and keep the publishing rights in a different account from the one that writes code.</p>
+
+<h2>1. Three accounts, never merged</h2>
+<table>
+<tr><th>Account</th><th>What it does</th><th>What it holds</th></tr>
+<tr><td>control workstation</td><td>decides, launches, reads</td><td>no token, no key on the forge</td></tr>
+<tr><td>service account</td><td>produces code</td><td>a push key, no API token</td></tr>
+<tr><td>publishing account</td><td>opens the pull requests, publishes</td><td>the forge token</td></tr>
+</table>
+<p>The account that runs the model holds nothing that could hurt you if the model went astray (see <a href="/agent-authority.html">agents and authority</a>).</p>
+
+<h2>2. The chain, from intention to pull request</h2>
+<pre><code>fh-dev owner/repo "intention, closed file list, commit subject"
+  → a JSON file in a shared queue directory (group-writable: no sudo needed)
+  → a systemd path unit wakes the queue service, in the service account
+  → the runner clones, runs the agent on a local model, verifies, pushes a branch
+  → a record per run
+fh-report (every 5 minutes, publishing account)
+  → opens the pull request, writes the run to the knowledge base, counts failure signatures</code></pre>
+<p>The runner's agent is <a href="/agent-claude-code.html">Claude Code</a> pointed at a local model through the gateway. Before each verification, the gate runs the formatter and the linter's automatic fixes and commits them: a red lint no longer costs an agent turn.</p>
+<p class="note">A failure signature seen three times becomes an issue on the knowledge-pack repository: the fleet stops diagnosing the same thing twice (see <a href="/knowledge-packs.html">knowledge packs</a>).</p>
+
+<h2>3. The majordomo API</h2>
+<pre><code>POST /v1/tasks {"intent": "...", "files": ["src/a.py", "tests/test_a.py"]}  → 202 {task_id}
+GET  /v1/tasks/{id}                                                      → state and links
+GET  /v1/tasks/{id}/events                                               → live journal (SSE)</code></pre>
+<p>With <code>files</code>, the agent's writes are physically limited to that list by a firewall. Writes through the shell are not covered: keep the sandbox too.</p>
+
+<h2>4. The same doctrine, interactive: the fh-coder agent in OpenFox</h2>
+<p>For the days you want to watch, OpenFox runs an agent defined in one Markdown file. Ours, <code>fh-coder</code>, is OpenFox's default agent here:</p>
+<pre><code>---
+id: fh-coder
+name: FH Coder
+description: Writes under the FH Coder doctrine: deterministic tools decide, a test
+  executes, nothing superfluous in the context.
+allowedTools: [read_file, write_file, edit_file, run_command, ask_user,
+               load_skill, web_fetch, web_search, workspace, mcp_config]
+---
+# Act first, then answer
+When a tool can give a fact or a decision, call it first ...</code></pre>
+<p>Its instructions say: call the tool before writing; send every small decision to the local judge; answer in a fixed shape (the next action first, numbered steps, one concrete thing to do at the end). The shape is not decoration: it is written for a reader with ADHD, and it makes answers shorter for everyone.</p>
+
+<h2>5. Writing an intention that lands</h2>
+<ol>
+<li>Four deliverables at most; split anything bigger.</li>
+<li>A closed list of files, and the commit subject.</li>
+<li>The data itself, pasted, not a description of where to find it.</li>
+<li>Always a test that runs what was written, however small.</li>
+<li>Read the pull request: models write plausible code that sometimes never ran.</li>
+</ol>
+
+<h2>Traps</h2>
+<p class="note"><code>fh-task</code> talks to the majordomo, which only works on its own repository; <code>fh-dev</code> takes any repository. Sent to the wrong one, an intention makes the agent search for files that do not exist.</p>
+<p class="note">Start nothing when no model is loaded on a card: a run on an empty card fails after minutes. Ask the GPU grid first (see <a href="/gpu-grid.html">the GPU grid</a>).</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.anthropic.com/en/docs/claude-code/overview" rel="noopener">Claude Code documentation</a></li><li><a href="https://github.com/co-l/openfox" rel="noopener">OpenFox, official repository</a></li><li><a href="https://man7.org/linux/man-pages/man5/systemd.path.5.html" rel="noopener">systemd path units</a></li></ul>

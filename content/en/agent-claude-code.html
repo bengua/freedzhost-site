@@ -17,7 +17,10 @@ claude          # first run: sign in with your account</code></pre>
 </ul>
 <p class="note">A hook is a small script that reads the planned command as JSON on its input and exits non-zero to refuse it, with a message the agent reads. Twenty lines of Python are enough.</p>
 
-<h2>3. On your own models: the junior</h2>
+<h2>3. Hooks beyond safety</h2>
+<p>Hooks fire at six moments: session start and end, each prompt you send, each tool about to run, each notification, and the end of each answer. Besides refusing dangerous commands, ours start and stop the music of <a href="/purrd.html">Purrd</a> while the agent works, and declare the agent's state to a console page that plays the sound in the browser. Settings also turn off telemetry and error reporting (<code>DISABLE_TELEMETRY</code>, <code>DISABLE_ERROR_REPORTING</code>).</p>
+
+<h2>4. On your own models: the junior</h2>
 <p>Claude Code speaks the Anthropic Messages API. A gateway such as LiteLLM translates it to your local models. Three variables are enough:</p>
 <pre><code>export ANTHROPIC_BASE_URL=http://your-gateway:4000
 export ANTHROPIC_MODEL=coder-local            # the model name in the gateway
@@ -25,7 +28,7 @@ export ANTHROPIC_SMALL_FAST_MODEL=coder-local # otherwise it asks for a cloud mo
 claude -p "Fix the failing test in tests/test_parse.py. Change only src/parse.py."</code></pre>
 <p>Before launching, check the model answers on <code>$ANTHROPIC_BASE_URL/v1/messages</code>: an agent started on a card that holds nothing fails after minutes, not seconds.</p>
 
-<h2>4. Isolate the junior</h2>
+<h2>5. Isolate the junior</h2>
 <p>A local agent works without you watching. Give it a disposable copy of the repository, a closed list of files, the commit message, and a test to run. It opens a pull request; the CI runs; a human, or the operations agent, reads before merging. Short tasks come back clean; long ones break from fatigue, not difficulty.</p>
 
 <h2>Traps</h2>

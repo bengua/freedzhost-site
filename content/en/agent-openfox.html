@@ -31,7 +31,19 @@ openfox                     # opens the interface; the first run detects your ba
 OPENFOX_MAX_CONTEXT=65536 openfox --no-browser</code></pre>
 <p class="note">Declare the real window of your model with <code>OPENFOX_MAX_CONTEXT</code>. The default assumes 200,000 tokens; a local model with 64k would overflow long before OpenFox compacts.</p>
 
-<h2>4. What we added around it</h2>
+<h2>4. Run it as a service on the server</h2>
+<p>Ours runs as a user service on the machine with the cards, listening only on the private network, so the laptop and the phone reach the same sessions:</p>
+<pre><code>[Service]
+Environment=OPENFOX_HOST=&lt;the server's private-network address&gt;
+Environment=OPENFOX_LLM_URL=http://127.0.0.1:4000/v1
+Environment=OPENFOX_MAX_CONTEXT=180224
+Environment=OPENFOX_LLM_TIMEOUT=900000
+Environment=OPENFOX_WORKDIR=/srv/devlab
+Environment=OPENFOX_DEFAULT_AGENT=fh-coder
+ExecStart=%h/.local/bin/openfox</code></pre>
+<p>A long timeout (15 minutes) leaves room for a large model reading a long prompt; the work folder confines projects to one tree; the default agent is our own (see <a href="/fh-coder.html">FH Coder</a>). Agents, workflows and skills live as plain files in <code>~/.config/openfox/</code>, easy to version.</p>
+
+<h2>5. What we added around it</h2>
 <ul>
 <li><strong>It follows the card.</strong> A small follower reads which model each card declares and rewrites OpenFox's default model to match: the agent's configuration follows the hardware, never the reverse.</li>
 <li><strong>A context meter in the status bar</strong> of the laptop (see <a href="/workstation-small-tools.html">three small tools</a>).</li>

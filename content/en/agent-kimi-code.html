@@ -11,7 +11,15 @@ kimi            # first run: sign in to the managed provider</code></pre>
 ssh -t server tmux attach -t kimi    # from the laptop, any time</code></pre>
 <p>A one-line alias on the laptop turns that into a single word. From a phone, the same command works in any SSH app over your private network.</p>
 
-<h2>2. In a sandbox when it runs alone</h2>
+<h2>2. Three ways in: terminal, web, remote control</h2>
+<ul>
+<li><strong>Terminal</strong>: the session in tmux above, attached from anywhere.</li>
+<li><strong>Web interface</strong>: <code>kimi web --host &lt;private address&gt; --port &lt;port&gt; --no-open</code> as a user service, reachable from the private network only.</li>
+<li><strong>Remote control</strong>: <code>kimi rc --no-open</code> lets you follow and drive a session from another device.</li>
+</ul>
+<p>The subscription offers several models; ours lists a coding model, a faster variant, and a long-context model with 256k tokens. Pick the fast one for small edits, the long one for reading a whole codebase.</p>
+
+<h2>3. In a sandbox when it runs alone</h2>
 <p>When a queue hands a task to Kimi without you watching (see <a href="/hybrid-escalation.html">hybrid by escalation</a>), run it in a sandbox such as <code>bwrap</code>: the repository read-write, the rest of the system read-only, no access to your keys. It cannot break what it cannot see.</p>
 
 <h2>Traps</h2>
