@@ -16,15 +16,20 @@ import sys
 import diagrams
 
 ROOT = pathlib.Path(__file__).parent
+SITE = "https://freedzhost.cloud"
 LANGS = {
     "en": {"prefix": "", "name": "English", "home": "Home", "read": "Read",
            "articles": "Articles", "switch": "Français",
            "series": {"start": "Start here", "ai": "Local AI", "homelab": "Homelab: replace the subscriptions"},
+           "description": "Free tutorials to run your own AI agent swarm and homelab at home: hardware, local models, and the services that replace your subscriptions.",
+           "locale": "en_US", "feed": "New articles",
            "footer":
            "Content under CC BY-SA 4.0. No trackers, no cookies, no third-party fonts."},
     "fr": {"prefix": "fr/", "name": "Français", "home": "Accueil", "read": "Lire",
            "articles": "Articles", "switch": "English",
            "series": {"start": "Commencer ici", "ai": "IA locale", "homelab": "Homelab : remplacer les abonnements"},
+           "description": "Tutos gratuits pour monter votre essaim d'agents IA et votre homelab à la maison : matériel, modèles locaux, et les services qui remplacent vos abonnements.",
+           "locale": "fr_FR", "feed": "Nouveaux articles",
            "footer":
            "Contenu sous licence CC BY-SA 4.0. Ni traceur, ni cookie, ni police externe."},
 }
@@ -48,17 +53,32 @@ def url(lang, slug):
     return "/" + LANGS[lang]["prefix"] + page
 
 
-def layout(lang, slug, title, body):
+def layout(lang, slug, title, body, description):
     t = LANGS[lang]
     other = OTHER[lang]
+    here = SITE + url(lang, slug)
+    desc = html.escape(description)
+    full = html.escape(title) + " · freedzhost.cloud"
     return f"""<!doctype html>
 <html lang="{lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{html.escape(title)} · freedzhost.cloud</title>
+<title>{full}</title>
+<meta name="description" content="{desc}">
+<link rel="canonical" href="{here}">
+<link rel="alternate" hreflang="{lang}" href="{here}">
+<link rel="alternate" hreflang="{other}" href="{SITE}{url(other, slug)}">
+<link rel="alternate" hreflang="x-default" href="{SITE}{url("en", slug)}">
+<link rel="alternate" type="application/rss+xml" title="{html.escape(t['feed'])}" href="/{t['prefix']}feed.xml">
+<meta property="og:type" content="{'website' if slug == 'index' else 'article'}">
+<meta property="og:title" content="{full}">
+<meta property="og:description" content="{desc}">
+<meta property="og:url" content="{here}">
+<meta property="og:image" content="{SITE}/media/teaser-poster.jpg">
+<meta property="og:locale" content="{t['locale']}">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="/style.css">
-<link rel="alternate" hreflang="{other}" href="{url(other, slug)}">
 </head>
 <body>
 <header class="top">
@@ -75,14 +95,49 @@ def layout(lang, slug, title, body):
 """
 
 
+def write_feeds_and_sitemap(out, catalogue):
+    """sitemap.xml with language alternates, one RSS feed per language, robots.txt."""
+    urls = []
+    for slug in sorted(catalogue["en"]):
+        for lang in LANGS:
+            alts = "".join(
+                f'<xhtml:link rel="alternate" hreflang="{other}" href="{SITE}{url(other, slug)}"/>'
+                for other in LANGS
+            )
+            urls.append(f"<url><loc>{SITE}{url(lang, slug)}</loc>{alts}</url>")
+    (out / "sitemap.xml").write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+        'xmlns:xhtml="http://www.w3.org/1999/xhtml">\n' + "\n".join(urls) + "\n</urlset>\n",
+        encoding="utf-8")
+    for lang, pages in catalogue.items():
+        t = LANGS[lang]
+        newest = sorted((s for s in pages if s != "index"), key=lambda s: -pages[s]["order"])
+        items = "".join(
+            f"<item><title>{html.escape(pages[s]['title'])}</title>"
+            f"<link>{SITE}{url(lang, s)}</link><guid>{SITE}{url(lang, s)}</guid>"
+            f"<description>{html.escape(pages[s]['summary'])}</description></item>"
+            for s in newest
+        )
+        (out / t["prefix"] / "feed.xml").write_text(
+            '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0"><channel>'
+            f"<title>freedzhost.cloud · {html.escape(t['feed'])}</title><link>{SITE}{url(lang, 'index')}</link>"
+            f"<description>{html.escape(t['description'])}</description><language>{lang}</language>"
+            f"{items}</channel></rss>\n",
+            encoding="utf-8")
+    (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {SITE}/sitemap.xml\n", encoding="utf-8")
+
+
 def build(out):
     if out.exists():
         shutil.rmtree(out)
     shutil.copytree(ROOT / "static", out)
     slugs = {}
+    catalogue = {}
     for lang in LANGS:
         pages = {p.stem: read_page(p) for p in sorted((ROOT / "content" / lang).glob("*.html"))}
         slugs[lang] = set(pages)
+        catalogue[lang] = {slug: meta for slug, (meta, _) in pages.items()}
         articles = sorted((s for s in pages if s != "index"), key=lambda s: pages[s][0]["order"])
         groups = []
         for key, heading in LANGS[lang]["series"].items():
@@ -107,9 +162,11 @@ def build(out):
                 body = f'<article>\n<h1>{html.escape(meta["title"])}</h1>\n{body}</article>'
             target = out / LANGS[lang]["prefix"] / ("index.html" if slug == "index" else f"{slug}.html")
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(layout(lang, slug, meta["title"], body), encoding="utf-8")
+            description = LANGS[lang]["description"] if slug == "index" else meta["summary"]
+            target.write_text(layout(lang, slug, meta["title"], body, description), encoding="utf-8")
     if slugs["en"] != slugs["fr"]:
         raise ValueError(f"pages without translation: {sorted(slugs['en'] ^ slugs['fr'])}")
+    write_feeds_and_sitemap(out, catalogue)
     return out
 
 
