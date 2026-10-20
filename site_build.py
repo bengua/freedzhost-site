@@ -20,6 +20,7 @@ SITE = "https://freedzhost.cloud"
 LANGS = {
     "en": {"prefix": "", "name": "English", "home": "Home", "read": "Read",
            "articles": "Articles", "switch": "Français", "help": "Need help?", "support": "Support",
+           "banner": ("This tutorial helped you? It is free, with no ads and no trackers, thanks to people like you.", "Support the project"),
            "menu": "Menu", "close": "Close", "prev": "Previous", "next": "Next", "drawer": "All tutorials",
            "quick": {"index": "Home", "support": "Support the project", "findings": "Our findings", "workshop": "The workshop", "faq": "FAQ", "inspirations": "Inspirations", "help": "Need help?"},
            "levels": {"read": "Reading", "beginner": "Beginner", "intermediate": "Intermediate", "advanced": "Advanced"},
@@ -32,6 +33,7 @@ LANGS = {
            "Content under CC BY-SA 4.0. No trackers, no cookies, no third-party fonts."},
     "fr": {"prefix": "fr/", "name": "Français", "home": "Accueil", "read": "Lire",
            "articles": "Articles", "switch": "English", "help": "Besoin d'aide ?", "support": "Soutenir",
+           "banner": ("Ce tuto vous a aidé ? Il est gratuit, sans pub ni traceur, grâce à des gens comme vous.", "Soutenir le projet"),
            "menu": "Menu", "close": "Fermer", "prev": "Précédent", "next": "Suivant", "drawer": "Tous les tutos",
            "quick": {"index": "Accueil", "support": "Soutenir le projet", "findings": "Nos constats", "workshop": "L'atelier", "faq": "FAQ", "inspirations": "Inspirations", "help": "Besoin d'aide ?"},
            "levels": {"read": "Lecture", "beginner": "Débutant", "intermediate": "Intermédiaire", "advanced": "Avancé"},
@@ -82,6 +84,16 @@ def fox(series, size, cls="fox"):
         return ""
     return (f'<img class="{cls}" src="/media/fox/{series}.webp" alt="" width="{size}" height="{size}" '
             f'loading="lazy" decoding="async">')
+
+
+
+def banner(lang, slug):
+    """A quiet donation banner at the end of each tutorial (not on the support page itself)."""
+    if slug == "support":
+        return ""
+    text, action = LANGS[lang]["banner"]
+    return (f'<aside class="give-banner"><p>{html.escape(text)}</p>'
+            f'<a class="give" href="{url(lang, "support")}">{html.escape(action)}</a></aside>\n')
 
 
 QUICK = ("index", "support", "findings", "workshop", "faq", "inspirations", "help")
@@ -245,7 +257,7 @@ def build(out):
             elif not meta.get("nav"):  # a nav page brings its own layout
                 members = series_members.get(meta.get("series"), [])
                 body = (f'<article>\n{fox(meta.get("series", ""), 88, "guide")}<h1>{html.escape(meta["title"])}</h1>\n{fiche(lang, meta, pages)}{body}'
-                        f'{pager(lang, slug, pages, members)}</article>')
+                        f'{banner(lang, slug)}{pager(lang, slug, pages, members)}</article>')
             target = out / LANGS[lang]["prefix"] / ("index.html" if slug == "index" else f"{slug}.html")
             target.parent.mkdir(parents=True, exist_ok=True)
             description = LANGS[lang]["description"] if slug == "index" else meta["summary"]

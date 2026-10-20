@@ -1,0 +1,31 @@
+<!-- {"title": "ntfy partout : la voix de tout le labo", "summary": "Un petit serveur de notifications auto-hébergé, et chaque recoin du labo peut joindre votre téléphone : services en échec, un agent qui attend votre accord, un nouveau message sur le formulaire de contact. Comment nous utilisons les sujets, les priorités et les liens qui ouvrent exactement l'écran voulu, sans Google.", "order": 96, "series": "homelab", "level": "beginner", "time": "45 min", "requires": ["homelab-ntfy"]} -->
+<p class="lead">Dès que ntfy tourne (voir <a href="/fr/homelab-ntfy.html">Homelab : ntfy</a>), n'importe quel script peut joindre votre téléphone d'une seule requête HTTP. La partie intéressante vient après : décider ce qui mérite de sonner, et faire que chaque notification mène quelque part d'utile. Voici comment ntfy est devenu la voix de tout notre labo.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Un téléphone qui vous dit ce qui compte et rien d'autre : un agent qui attend votre oui, un service qui a échoué, un nouveau message d'un visiteur. Touchez la notification et vous arrivez exactement sur le bon écran. Aucun service Google en jeu.</p>
+
+<h2>Un peu d'histoire</h2>
+<p>Les téléphones reçoivent leurs notifications par un service de push tenu par la plateforme : celui de Google sur Android, celui d'Apple sur iOS. Chaque appli qui veut réveiller votre téléphone passe par lui. ntfy, un projet libre de Philipp Heckel publié pour la première fois en 2021, a renversé la logique : un tout petit serveur que vous hébergez, où publier est une simple requête HTTP et s'abonner une appli qui garde sa propre connexion. En parallèle, le projet UnifiedPush a défini un standard ouvert pour que n'importe quelle appli Android reçoive ses notifications par un distributeur de votre choix, ntfy compris.</p>
+
+<h2>1. Un sujet par usage</h2>
+<ul>
+<li><strong>Les alertes du parc</strong> : seulement les événements de gravité <em>error</em> ou <em>critical</em>, tirés de la <a href="/fr/fleet-events.html">table d'événements</a> du labo.</li>
+<li><strong>Les agents</strong> : une session de code qui demande une autorisation, une tâche finie, une demande de fusion prête à lire.</li>
+<li><strong>Le contact</strong> : un nouveau message du formulaire du site auquel le tri n'a pas su répondre seul.</li>
+</ul>
+<p>Des sujets séparés permettent d'en couper un sans perdre les autres, et de donner à chacun son propre son sur le téléphone.</p>
+
+<h2>2. La gravité décide si ça sonne</h2>
+<p>Chaque événement porte une gravité. <em>Info</em> ne sonne jamais : c'est là quand vous regardez. <em>Warning</em> arrive en silence. <em>Error</em> et <em>critical</em> sonnent. Un « je suis vivant » quotidien de chaque machine est une info ; le silence d'une machine trop longtemps est une erreur (voir <a href="/fr/failures-that-call.html">des pannes qui vous appellent</a>).</p>
+<pre><code>curl -H "Priority: high" -H "Tags: warning" \
+     -d "backup.service a échoué sur le serveur" https://ntfy.votre-labo.example/fleet-alerts</code></pre>
+
+<h2>3. Des liens qui ouvrent le bon écran</h2>
+<p>Une notification peut porter une action au toucher : une adresse web, ou une adresse qui ouvre votre propre appli. Notre console sur téléphone déclare son propre schéma, si bien qu'une notification « session en attente d'accord » ouvre exactement cette session dans l'appli, à un tap de la valider (voir <a href="/fr/agent-swarmfox.html">SwarmFox</a>).</p>
+<pre><code>curl -H "Click: swarmfox://session/4182" -d "L'agent demande à lancer les tests" https://ntfy.votre-labo.example/agents</code></pre>
+
+<h2>4. Sans Google</h2>
+<p>Sur Android, l'appli ntfy garde sa propre connexion à votre serveur, et peut servir de distributeur <strong>UnifiedPush</strong> : d'autres applis (la nôtre comprise) reçoivent leurs notifications par elle au lieu du service de push de Google. Rien de votre labo ne passe par un tiers.</p>
+
+<h2>Pièges</h2>
+<p class="note">La lassitude des notifications est réelle : une semaine d'alertes bruyantes et vous cessez de les lire. Signalez une panne une fois et son retour à la normale une fois ; ne répétez jamais chaque minute.</p>
+<p class="note">Gardez le serveur joignable depuis le téléphone par votre réseau privé, et fermez la publication aux inconnus : un sujet ouvert permet à n'importe qui de vous envoyer des notifications.</p>
