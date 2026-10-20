@@ -25,5 +25,5 @@ nmcli connection modify &lt;connexion&gt; 802-3-ethernet.wake-on-lan magic</code
 <h2>4. Se rendormir</h2>
 <p><code>systemctl suspend</code> endort la tour. Décidez vous-même quand elle dort : quand aucun travail n'attend et que personne n'est connecté, pas simplement quand la souris n'a pas bougé.</p>
 
-<h2>Le piège qui nous a valu une semaine de surprises</h2>
+<h2>Le piège qui nous a longtemps surpris</h2>
 <p class="note">Notre tour s'endormait en plein travail à distance, exactement quinze minutes après chaque réveil. La cause n'était pas notre session mais <strong>l'écran de connexion</strong> : ses réglages par défaut mettent en veille après 900 secondes sans activité clavier ou souris <em>locale</em>, et SSH, bureau à distance ou requêtes aux modèles ne remettent jamais ce compteur à zéro. Plus on travaillait à distance, plus elle dormait. La correction : donner à l'écran de connexion son propre réglage (sous GNOME, un profil dconf pour <code>gdm</code> avec <code>sleep-inactive-ac-type='nothing'</code>) et garder la décision de dormir entre vos mains. Sa signature est arithmétique : si la tour s'endort toujours exactement 15 minutes après son réveil, ne cherchez pas ailleurs.</p>
