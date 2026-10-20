@@ -915,6 +915,53 @@ def rotation(lang):
     return figure("rotation", 760, 150, L["cap"], body)
 
 
+# ── RAM: three thieves, one tenfold ─────────────────────────────────────────
+def ram(lang):
+    L = {
+        "en": labels(cap="Same model, same card, same settings: generation went from 1.9 to about 20 tokens per second once three things stopped eating the RAM that held the model's experts.",
+                     before="before", after="after", unit="tokens per second", th=["zram sized to all the RAM: 35.8 GB used to save 5",
+                     "an app leaking about 30 GB in 25 hours", "the out-of-memory killer set to kill the model first"]),
+        "fr": labels(cap="Même modèle, même carte, mêmes réglages : la génération est passée de 1,9 à environ 20 jetons par seconde une fois que trois choses ont cessé de manger la RAM qui tenait les experts du modèle.",
+                     before="avant", after="après", unit="jetons par seconde", th=["zram à la taille de toute la RAM : 35,8 Go occupés pour en économiser 5",
+                     "une app qui fuyait environ 30 Go en 25 heures", "le tueur de mémoire réglé pour tuer le modèle en premier"]),
+    }[lang]
+    x0, w = 140, 420
+    body = t(x0, 22, L["unit"], 11, "start", MUTED)
+    body += t(x0 - 12, 52, L["before"], 13, "end", BAD, 600)
+    body += f'<rect x="{x0}" y="36" width="{w * 1.9 / 20:.1f}" height="24" rx="4" fill="{BAD}"/>'
+    body += t(x0 + w * 1.9 / 20 + 8, 53, "1.9" if lang == "en" else "1,9", 13, color=BAD, weight=600)
+    body += t(x0 - 12, 96, L["after"], 13, "end", GOOD, 600)
+    body += f'<rect x="{x0}" y="80" width="{w}" height="24" rx="4" fill="{GOOD}" fill-opacity="0.8"/>'
+    body += t(x0 + w + 8, 97, "~20", 13, weight=600)
+    for i, th in enumerate(L["th"]):
+        body += t(x0, 140 + i * 20, "✕ " + th, 12, "start", MUTED)
+    return figure("ram", 640, 200, L["cap"], body)
+
+
+# ── a second card through OCuLink ───────────────────────────────────────────
+def egpu(lang):
+    L = {
+        "en": labels(cap="The processor has a fixed number of PCIe lanes. The big card takes the x16 slot; the second card borrows the four lanes of an M.2 slot through an OCuLink adapter and cable, into an external enclosure. Four lanes are plenty for inference.",
+                     cpu="Processor", csub="its own PCIe lanes", g1="Card 1", g1s="x16 slot · 252 Gb/s", ssd="System SSD", ssds="M.2 slot 1 · x4",
+                     ad="M.2 → OCuLink", ads="adapter with ReDriver", g2="Card 2", g2s="external enclosure · x4 · 63 Gb/s",
+                     chip="Chipset", chs="other disks share x4", cable="OCuLink cable"),
+        "fr": labels(cap="Le processeur a un nombre fixe de lignes PCIe. La grosse carte prend l'emplacement x16 ; la seconde emprunte les quatre lignes d'un emplacement M.2 par un adaptateur et un câble OCuLink, vers un boîtier externe. Quatre lignes suffisent largement pour l'inférence.",
+                     cpu="Processeur", csub="ses propres lignes PCIe", g1="Carte 1", g1s="emplacement x16 · 252 Gb/s", ssd="SSD système", ssds="emplacement M.2 1 · x4",
+                     ad="M.2 → OCuLink", ads="adaptateur avec ReDriver", g2="Carte 2", g2s="boîtier externe · x4 · 63 Gb/s",
+                     chip="Chipset", chs="les autres disques partagent x4", cable="câble OCuLink"),
+    }[lang]
+    body = box(20, 110, 150, 54, L["cpu"], L["csub"], stroke=ACCENT)
+    body += box(260, 10, 200, 50, L["g1"], L["g1s"], stroke=GOOD)
+    body += box(260, 80, 200, 50, L["ssd"], L["ssds"])
+    body += box(260, 150, 200, 50, L["ad"], L["ads"])
+    body += box(260, 220, 200, 50, L["chip"], L["chs"])
+    body += box(560, 150, 190, 50, L["g2"], L["g2s"], stroke=GOOD)
+    for y in (35, 105, 175, 245):
+        body += arrow(170, 137, 258, y)
+    body += arrow(460, 175, 558, 175, L["cable"], GOOD, marker="good", lx=509, ly=167)
+    return figure("egpu", 760, 280, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -927,7 +974,7 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "cascade": cascade, "voice": voice,
             "saas": saas, "clock": clock, "route": route,
             "gateway": gateway, "grid": grid, "snapshots": snapshots, "keep": keep,
-            "rotation": rotation}
+            "rotation": rotation, "ram": ram, "egpu": egpu}
 
 
 def render(name, lang):
