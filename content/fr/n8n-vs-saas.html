@@ -1,0 +1,32 @@
+<!-- {"title": "n8n face à Zapier, Make, IFTTT et Power Automate : pourquoi auto-héberger vos automatisations", "summary": "Les services hébergés facturent chaque étape et font passer vos données par leur cloud. n8n auto-hébergé tourne à la maison, appelle vos modèles locaux, et ne coûte rien à l'exécution. Et quand le SaaS reste le meilleur choix.", "order": 30, "series": "n8n"} -->
+<p class="lead">Zapier, Make, IFTTT et Power Automate ont rendu l'automatisation facile : relier deux apps, et quelque chose se passe tout seul. Ils partagent tous un modèle : vos données passent par leur cloud, et vous payez à l'étape. Pour un réseau d'agents qui tourne chaque minute et appelle des modèles sur des données privées, l'un et l'autre sont rédhibitoires. n8n fait tourner le même genre de workflows à la maison.</p>
+
+{{diagram:saas}}
+
+<h2>Le paysage</h2>
+<div class="table"><table>
+<tr><th>Outil</th><th>Où il tourne</th><th>Comment on paie</th><th>Licence</th></tr>
+<tr><td>Zapier</td><td>leur cloud seulement</td><td>à la tâche</td><td>propriétaire</td></tr>
+<tr><td>Make (ex-Integromat)</td><td>leur cloud seulement</td><td>à l'opération</td><td>propriétaire</td></tr>
+<tr><td>IFTTT</td><td>leur cloud seulement</td><td>formules d'abonnement</td><td>propriétaire</td></tr>
+<tr><td>Power Automate</td><td>cloud Microsoft (plus un agent Windows)</td><td>par utilisateur ou par flux</td><td>propriétaire</td></tr>
+<tr><td><strong>n8n</strong></td><td><strong>votre serveur</strong> (ou leur cloud)</td><td><strong>auto-hébergé : rien à l'exécution</strong></td><td>fair-code (code disponible, Sustainable Use License)</td></tr>
+<tr><td>Node-RED</td><td>votre serveur</td><td>gratuit</td><td>open source (Apache-2.0)</td></tr>
+<tr><td>Activepieces</td><td>votre serveur ou le leur</td><td>édition communautaire auto-hébergée gratuite</td><td>cœur open source (MIT)</td></tr>
+<tr><td>Windmill</td><td>votre serveur ou le leur</td><td>niveau gratuit auto-hébergé</td><td>open source (AGPL)</td></tr>
+<tr><td>Huginn</td><td>votre serveur</td><td>gratuit</td><td>open source (MIT)</td></tr>
+</table></div>
+<p>Les prix et les formules changent souvent : vérifiez les pages des éditeurs pour les chiffres du jour. Ce qui compte pour un réseau d'agents, ce sont les modes de paiement ci-dessus.</p>
+
+<h2>Pourquoi n8n pour des agents locaux</h2>
+<ul>
+<li><strong>Les exécutions restent à la maison.</strong> Vos mails, vos fichiers, vos capteurs ne traversent jamais un tiers.</li>
+<li><strong>Pas de compteur.</strong> Une horloge qui bat chaque minute, c'est plus de 40 000 exécutions par mois. Facturé à l'étape, c'est un budget ; auto-hébergé, ce sont quelques centaines de Mo de RAM.</li>
+<li><strong>Vos modèles.</strong> Un nœud HTTP joint votre passerelle de modèles locale comme n'importe quelle API ; rien ne vous pousse vers une IA hébergée.</li>
+<li><strong>Votre base de données.</strong> Les workflows lisent et écrivent PostgreSQL directement : événements, registres, files deviennent de simples tables qu'on interroge.</li>
+<li><strong>Du code quand il le faut.</strong> Un nœud Code exécute du JavaScript ; les workflows eux-mêmes sont du JSON, donc ils se génèrent et se versionnent (voir le troisième article de cette série).</li>
+</ul>
+
+<h2>Quand le SaaS reste le meilleur choix</h2>
+<p>Si vous avez besoin d'un des milliers de connecteurs tout faits vers des apps commerciales, d'aucun serveur à maintenir, et de quelqu'un à appeler quand ça casse, un service hébergé le fait mieux. n8n à la maison, c'est vous l'exploitant : mises à jour, sauvegardes, clé de chiffrement. Cette série est pour ceux qui veulent ce contrôle.</p>
+<p class="note">Honnêteté sur la licence de n8n : il est libre d'auto-hébergement pour votre propre usage, mais il n'est pas open source au sens strict. Si cela compte pour vous, Node-RED, Activepieces ou Windmill sont des alternatives vraiment ouvertes ; les schémas de cette série s'y appliquent aussi.</p>
