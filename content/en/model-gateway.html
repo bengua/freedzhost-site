@@ -1,0 +1,25 @@
+<!-- {"title": "One gateway for all your models, and three ways a local model freezes your agents", "summary": "One address for every client, model names that never lie, and the three settings that froze our agents for days.", "order": 13, "series": "ai"} -->
+<p class="lead">Once you run more than one model, every tool asks the same questions: which address, which name, what happens when that model is not loaded. Put a gateway in front of them, an OpenAI-compatible proxy such as LiteLLM, and the answers live in one place. Then learn the three settings that can make a perfectly healthy model look dead to your agents.</p>
+
+{{diagram:gateway}}
+
+<h2>1. One address</h2>
+<p>Agents, apps, the phone, Home Assistant: every client talks to the gateway, never to a model server directly. Keep the gateway on your private network (Homelab 6). When a model moves from one card to another, no client changes anything.</p>
+
+<h2>2. Names that never lie</h2>
+<p>We started with friendly role names ("writer", "reader") and fallback chains: if the preferred model was down, another one answered under the same name. It looked robust and made everything unreadable: a quality comparison between two "writers" compared two different models. Now:</p>
+<ul>
+<li>the model's name comes from one place, its weights file, and every other name is derived from it;</li>
+<li>the gateway's configuration is <strong>generated</strong> from the list of models the cards actually serve, never edited by hand;</li>
+<li>a name whose model is not loaded <strong>fails</strong>; it never quietly substitutes another one.</li>
+</ul>
+<p class="note">"The water changes with the flowers, but the vase is still called 9B." A name that encodes a role lies the day you change the model behind it.</p>
+
+<h2>3. Three ways a healthy model freezes your agents</h2>
+<p>One night our node was healthy, the model loaded, the container reported healthy, and a ten-byte request timed out after a minute. Three causes, stacked, all measured:</p>
+<ol>
+<li><strong>One slot for everyone.</strong> With <code>--parallel 1</code>, the server serves one request at a time. A coding agent asked for 32,000 tokens by default; at 12 tokens per second that is 35 minutes during which nobody else gets an answer. Cap <code>max_tokens</code> for agents, or give the server more slots.</li>
+<li><strong>Thinking on a tiny budget.</strong> The same question with reasoning enabled and a 16-token budget returned an empty answer; with reasoning off, "Ready" in 3 tokens. Turn thinking off for agents that call tools; keep it where you read the answer yourself.</li>
+<li><strong>A small micro-batch.</strong> <code>-ub 128</code> made the model read prompts at 21.9 tokens per second. An agent's harness weighs about 8,000 tokens: six minutes before the first word. The agent timed out, retried, and every retry read the prompt again. Measure prompt speed, not only generation speed.</li>
+</ol>
+<p class="note">Read the server's own counters before blaming the network: llama.cpp's <code>/slots</code> showed the request holding the only slot, and <code>/metrics</code> the deferred ones.</p>

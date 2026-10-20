@@ -1,0 +1,25 @@
+<!-- {"title": "Une passerelle pour tous vos modèles, et trois façons dont un modèle local gèle vos agents", "summary": "Une adresse pour chaque client, des noms de modèles qui ne mentent jamais, et les trois réglages qui ont gelé nos agents pendant des jours.", "order": 13, "series": "ai"} -->
+<p class="lead">Dès que vous faites tourner plus d'un modèle, chaque outil pose les mêmes questions : quelle adresse, quel nom, que se passe-t-il quand ce modèle n'est pas chargé. Placez une passerelle devant eux, un proxy compatible OpenAI comme LiteLLM, et les réponses vivent à un seul endroit. Puis apprenez les trois réglages qui peuvent faire passer un modèle en parfaite santé pour mort aux yeux de vos agents.</p>
+
+{{diagram:gateway}}
+
+<h2>1. Une adresse</h2>
+<p>Agents, apps, téléphone, Home Assistant : chaque client parle à la passerelle, jamais directement à un serveur de modèle. Gardez la passerelle sur votre réseau privé (Homelab 6). Quand un modèle passe d'une carte à l'autre, aucun client ne change quoi que ce soit.</p>
+
+<h2>2. Des noms qui ne mentent jamais</h2>
+<p>Nous avions commencé avec des noms de rôle sympathiques (« rédacteur », « lecteur ») et des chaînes de repli : si le modèle préféré était arrêté, un autre répondait sous le même nom. Ça avait l'air robuste et rendait tout illisible : une comparaison de qualité entre deux « rédacteurs » comparait deux modèles différents. Désormais :</p>
+<ul>
+<li>le nom du modèle vient d'un seul endroit, son fichier de poids, et tous les autres noms en sont dérivés ;</li>
+<li>la configuration de la passerelle est <strong>générée</strong> depuis la liste des modèles que les cartes servent vraiment, jamais éditée à la main ;</li>
+<li>un nom dont le modèle n'est pas chargé <strong>échoue</strong> ; il n'en remplace jamais un autre en silence.</li>
+</ul>
+<p class="note">« L'eau change avec les fleurs, mais le vase s'appelle toujours 9B. » Un nom qui encode un rôle ment le jour où vous changez le modèle derrière.</p>
+
+<h2>3. Trois façons dont un modèle en bonne santé gèle vos agents</h2>
+<p>Une nuit, notre nœud était sain, le modèle chargé, le conteneur se déclarait en bonne santé, et une requête de dix octets expirait au bout d'une minute. Trois causes, empilées, toutes mesurées :</p>
+<ol>
+<li><strong>Un seul emplacement pour tout le monde.</strong> Avec <code>--parallel 1</code>, le serveur traite une requête à la fois. Un agent de code demandait 32 000 jetons par défaut ; à 12 jetons par seconde, ce sont 35 minutes pendant lesquelles personne d'autre n'obtient de réponse. Plafonnez <code>max_tokens</code> pour les agents, ou donnez plus d'emplacements au serveur.</li>
+<li><strong>La réflexion sur un budget minuscule.</strong> La même question avec la réflexion activée et un budget de 16 jetons rendait une réponse vide ; réflexion coupée, « Prêt » en 3 jetons. Coupez la réflexion pour les agents qui appellent des outils ; gardez-la là où vous lisez vous-même la réponse.</li>
+<li><strong>Un micro-batch trop petit.</strong> <code>-ub 128</code> faisait lire les prompts à 21,9 jetons par seconde. Le harnais d'un agent pèse environ 8 000 jetons : six minutes avant le premier mot. L'agent expirait, réessayait, et chaque nouvelle tentative relisait le prompt. Mesurez la vitesse de lecture du prompt, pas seulement celle de génération.</li>
+</ol>
+<p class="note">Lisez les compteurs du serveur lui-même avant d'accuser le réseau : <code>/slots</code> de llama.cpp montrait la requête qui tenait l'unique emplacement, et <code>/metrics</code> celles qui attendaient.</p>

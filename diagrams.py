@@ -829,7 +829,7 @@ def grid(lang):
     for j, c in enumerate(L["cols"]):
         body += t(x0 + j * cw + cw / 2, y0 - 12, c, 12, "middle", MUTED, 600)
     on = {(0, 0), (2, 1)}
-    absent = {(3, 0), (3, 1)}
+    absent = {(3, 1)}
     for i, r in enumerate(L["rows"]):
         y = y0 + i * rh
         body += t(x0 - 14, y + 26, r, 13, "end", weight=600)
@@ -845,7 +845,7 @@ def grid(lang):
                 body += t(x + cw / 2, y + 27, L["declared"], 11, "middle", GOOD, 600)
     body += t(x0, y0 + 4 * rh + 24, L["game"], 11, "start", ACCENT)
     body += t(x0, y0 + 4 * rh + 42, L["cost"], 11, "start", MUTED)
-    return figure("grid", 640, 250, L["cap"], body)
+    return figure("grid", 640, 275, L["cap"], body)
 
 
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
