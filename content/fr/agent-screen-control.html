@@ -1,0 +1,42 @@
+<!-- {"title": "Laisser un agent voir et piloter votre bureau, sous vos yeux", "summary": "Certaines tâches n'ont pas de ligne de commande : une page de réglages, une case à cocher, un formulaire. Un agent qui prend des captures et bouge la souris peut les faire pendant que vous regardez. Deux serveurs d'outils libres, quatre constantes qui le font marcher, et un arbitre qui dit si un clic a vraiment fait quelque chose.", "order": 59, "series": "agents", "level": "advanced", "time": "1 h", "requires": ["agent-claude-code"]} -->
+<p class="lead">Les agents sont à l'aise avec les commandes et les fichiers. Mais changer un mot de passe dans une interface web sans API, cocher une case dans une page d'administration, remplir un formulaire : ça exigeait votre présence au clavier. Avec un serveur d'outils qui capture l'écran et pilote souris et clavier, l'agent le fait, et vous ne faites que regarder.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Les dernières corvées manuelles déléguées : changements de mots de passe et réglages dans des applis web sans ligne de commande, l'agent qui clique, vous qui supervisez. Plus les quatre constantes sans lesquelles tout échoue en silence.</p>
+
+<h2>1. Un serveur d'outils par bureau</h2>
+<table>
+<tr><th></th><th>Bureau wlroots (Hyprland, Sway)</th><th>GNOME</th></tr>
+<tr><td>Serveur d'outils</td><td>wayland-mcp</td><td>screen-mcp</td></tr>
+<tr><td>Capture</td><td><code>grim</code></td><td>PipeWire</td></tr>
+<tr><td>Clavier et souris</td><td><code>wtype</code> + <code>ydotool</code></td><td>le portail RemoteDesktop</td></tr>
+</table>
+<p>Ce n'est pas une affaire de goût : <code>grim</code> ne capture rien sous GNOME. Déclarez les deux sous le même nom, chacun sur sa machine, pour que les consignes de l'agent restent identiques.</p>
+<pre><code>uvx --from wayland-mcp-kurojs wayland-mcp     # sur le portable Hyprland</code></pre>
+
+<h2>2. Deux conditions pour l'allumer</h2>
+<ul>
+<li><strong><code>/dev/uinput</code></strong> appartient à root. Ajoutez une règle udev qui le donne au groupe <code>input</code>, mettez votre compte dans ce groupe, et <strong>déconnectez-vous puis reconnectez-vous</strong> : le groupe ne s'applique qu'à une nouvelle session. Avant ça, <code>ydotoold</code> reste « activating » pour toujours.</li>
+<li><strong>GNOME demande le consentement</strong> par son portail au premier usage, sur l'écran de la machine elle-même. Acceptez une fois ; le jeton est conservé.</li>
+</ul>
+<p class="note">Lancez <code>ydotoold</code> en service utilisateur, pas système. Il peut taper dans n'importe quelle fenêtre ouverte, terminal root compris : cantonnez-le au moins à votre session.</p>
+
+<h2>3. Les quatre constantes</h2>
+<p>Sans elles, rien ne marche et rien ne le dit. Les clics tombent dans un coin, un champ se vide, un bouton reste muet.</p>
+<ol>
+<li><strong>La grille de la souris n'est pas l'écran.</strong> Sur notre portable, <code>ydotool mousemove --absolute</code> travaille sur une grille de 768×432 pour un écran 1920×1080 mis à l'échelle à 125 % : envoyez le pixel lu sur la capture × 0,4. Vérifiez avec la position du curseur donnée par le compositeur après un déplacement (<code>hyprctl cursorpos</code>) : c'est la seule preuve.</li>
+<li><strong>Le texte tapé perd des caractères.</strong> <code>outlook.com</code> est devenu <code>outloocom</code>, et le <code>=</code> d'un lien a disparu. Faites tout passer par le presse-papier (<code>wl-copy</code>, puis Ctrl+V), liens comme mots de passe.</li>
+<li><strong>Échap fait sortir du plein écran.</strong> Pour fermer une boîte de dialogue, cliquez son bouton.</li>
+<li><strong>Le focus se perd quand vous tapez ailleurs.</strong> Vérifiez quelle fenêtre a le focus avant chaque rafale de touches, et calculez les positions depuis la liste des fenêtres, jamais en dur.</li>
+</ol>
+
+<h2>4. Un arbitre pour chaque geste</h2>
+<p>Un modèle qui regarde une capture dira volontiers « c'est fait ». Nous avons ajouté un petit outil qui compare la capture avant et après un geste et rend un fait :</p>
+<ul>
+<li><strong>NO_OP</strong> : rien n'a bougé, le geste n'a pas porté ;</li>
+<li><strong>CONFIRMED</strong> : un petit changement localisé, la signature d'une interface qui a réagi ;</li>
+<li><strong>DIVERGED</strong> : presque tout a changé, une autre fenêtre a pris le dessus.</li>
+</ul>
+<p class="note">Lisez le titre de la fenêtre avant de prendre une image. C'est du texte, ça ne coûte rien, et un titre comme « Mes commandes » prouve une connexion aussi bien qu'une image de 200 Ko.</p>
+
+<h2>Pièges</h2>
+<p class="note">Restez dans la pièce. Un agent qui a votre clavier peut taper dans n'importe quelle fenêtre : supervisez chaque session, et ne le laissez jamais tourner seul sur un bureau où un terminal root est ouvert.</p>

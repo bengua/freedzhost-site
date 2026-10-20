@@ -1368,6 +1368,29 @@ def floor(lang):
     return figure("floor", 720, 115, L["cap"], body)
 
 
+# ── one fingerprint: sudo on the server approved on the laptop ──────────────
+def finger(lang):
+    L = {
+        "en": labels(cap="A sudo on the server asks the laptop, over the private network, with a fresh random number. The laptop shows the command; your finger on its reader signs the answer with a key that never leaves it. The server checks the signature with the public key only. No laptop, no finger, any failure: the password, as before.",
+                     srv="Server", srvs="sudo → PAM, first line", lap="Laptop", laps="notification + reader",
+                     ask="request + fresh nonce", ans="signed answer", key="private key stays here", pub="public key only",
+                     fb="fallback: password"),
+        "fr": labels(cap="Un sudo sur le serveur interroge le portable, par le réseau privé, avec un nombre aléatoire neuf. Le portable affiche la commande ; votre doigt sur son lecteur signe la réponse avec une clé qui ne le quitte jamais. Le serveur vérifie la signature avec la seule clé publique. Pas de portable, pas de doigt, la moindre panne : le mot de passe, comme avant.",
+                     srv="Serveur", srvs="sudo → PAM, première ligne", lap="Portable", laps="notification + lecteur",
+                     ask="demande + nonce neuf", ans="réponse signée", key="la clé privée reste ici", pub="clé publique seulement",
+                     fb="secours : mot de passe"),
+    }[lang]
+    body = box(30, 40, 220, 60, L["srv"], L["srvs"], stroke=ACCENT)
+    body += box(490, 40, 220, 60, L["lap"], L["laps"], stroke=GOOD)
+    body += arrow(250, 58, 488, 58, L["ask"])
+    body += arrow(488, 86, 252, 86, L["ans"], GOOD, marker="good", ly=106)
+    body += t(140, 125, L["pub"], 11, "middle", MUTED)
+    body += t(600, 125, L["key"], 11, "middle", GOOD)
+    body += arrow(140, 132, 140, 168, None, MUTED, dash=True)
+    body += box(40, 170, 200, 36, L["fb"], stroke=LINE)
+    return figure("finger", 740, 220, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -1384,7 +1407,7 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "mtp": mtp, "judge": judge, "rag": rag,
             "f2b": f2b, "errors": errors, "drift": drift, "secrets": secrets,
             "mutation": mutation, "browsers": browsers, "placement": placement, "escalation": escalation,
-            "apk": apk, "agents": agents, "wiring": wiring, "bmad": bmad, "kvtrap": kvtrap, "floor": floor}
+            "apk": apk, "agents": agents, "wiring": wiring, "bmad": bmad, "kvtrap": kvtrap, "floor": floor, "finger": finger}
 
 
 def render(name, lang):
