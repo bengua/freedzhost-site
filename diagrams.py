@@ -1297,6 +1297,37 @@ def wiring(lang):
     return figure("wiring", 780, 290, L["cap"], body)
 
 
+# ── BMAD with small models: where the model stops and code decides ──────────
+def bmad(lang):
+    L = {
+        "en": labels(cap="The model proposes, code judges, you decide. A model splits the work into stories; a linter checks each one against the schema; you approve the split. Then one story at a time goes to an agent, and its scenarios run as plain tests. No model ever delivers a verdict.",
+                     sp="1. Split", sps="model proposes stories", li="2. Story lint", lis="code: schema, files, deps",
+                     ok="3. You approve", oks="the split and its file list", ag="4. One story alive", ags="agent writes the code",
+                     bdd="5. Scenarios", bdds="data, run by pytest", mg="6. Merge", mgs="CI green, human reads",
+                     model="model", code="code", you="you"),
+        "fr": labels(cap="Le modèle propose, le code juge, vous décidez. Un modèle découpe le travail en stories ; un vérificateur contrôle chacune contre le schéma ; vous approuvez le découpage. Puis une seule story à la fois part chez un agent, et ses scénarios tournent comme de simples tests. Aucun modèle ne rend jamais un verdict.",
+                     sp="1. Découpage", sps="le modèle propose des stories", li="2. Vérif. des stories", lis="code : schéma, fichiers, dépendances",
+                     ok="3. Vous approuvez", oks="le découpage et ses fichiers", ag="4. Une story vivante", ags="un agent écrit le code",
+                     bdd="5. Scénarios", bdds="des données, lancées par pytest", mg="6. Fusion", mgs="CI verte, un humain lit",
+                     model="modèle", code="code", you="vous"),
+    }[lang]
+    body = box(20, 30, 220, 54, L["sp"], L["sps"], stroke=ACCENT)
+    body += box(270, 30, 220, 54, L["li"], L["lis"], stroke=GOOD)
+    body += box(520, 30, 220, 54, L["ok"], L["oks"])
+    body += box(20, 160, 220, 54, L["ag"], L["ags"], stroke=ACCENT)
+    body += box(270, 160, 220, 54, L["bdd"], L["bdds"], stroke=GOOD)
+    body += box(520, 160, 220, 54, L["mg"], L["mgs"])
+    body += arrow(240, 57, 268, 57)
+    body += arrow(490, 57, 518, 57)
+    body += arrow(630, 84, 130, 158, None)
+    body += arrow(240, 187, 268, 187)
+    body += arrow(490, 187, 518, 187)
+    body += t(130, 240, L["model"], anchor="middle", color=ACCENT)
+    body += t(380, 240, L["code"], anchor="middle", color=GOOD)
+    body += t(630, 240, L["you"], anchor="middle")
+    return figure("bmad", 760, 255, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -1313,7 +1344,7 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "mtp": mtp, "judge": judge, "rag": rag,
             "f2b": f2b, "errors": errors, "drift": drift, "secrets": secrets,
             "mutation": mutation, "browsers": browsers, "placement": placement, "escalation": escalation,
-            "apk": apk, "agents": agents, "wiring": wiring}
+            "apk": apk, "agents": agents, "wiring": wiring, "bmad": bmad}
 
 
 def render(name, lang):

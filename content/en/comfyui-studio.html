@@ -1,0 +1,32 @@
+<!-- {"title": "ComfyUI: images, video and 3D on your own cards", "summary": "The node editor for generative models, run as a service that only listens on the machine itself, one instance per card. Which model for what, how long a five-second video shot really takes, and how to drive it from scripts and agents.", "order": 53, "series": "ai", "level": "intermediate", "time": "1 h", "requires": ["docker-gpu", "gpu-grid"]} -->
+<p class="lead">ComfyUI is an open-source editor where you wire generative models as nodes: text encoder, diffusion model, decoder, output. It draws images, makes video clips, turns a picture into a 3D object. Ours makes the mascot's renders and the shots of an automatic video pipeline, on the same cards that serve language models at night.</p>
+
+<h2>1. Install it as a service, listening on the machine only</h2>
+<pre><code>git clone https://github.com/comfyanonymous/ComfyUI.git ~/comfyui
+cd ~/comfyui &amp;&amp; python -m venv .venv &amp;&amp; .venv/bin/pip install -r requirements.txt
+.venv/bin/python main.py --listen 127.0.0.1 --port 8188</code></pre>
+<p>Then make it a user service, so it restarts by itself. Keep <code>--listen 127.0.0.1</code>: ComfyUI has no login, and its custom nodes run arbitrary code. Reach it from your laptop through an SSH tunnel, never by opening the port.</p>
+<pre><code>ssh -L 8188:127.0.0.1:8188 server    # then open http://localhost:8188</code></pre>
+
+<h2>2. One instance per card</h2>
+<p>With two cards, run two instances, each pinned to its card and writing to its own folder:</p>
+<pre><code>CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=1 \
+  .venv/bin/python main.py --listen 127.0.0.1 --port 8189 --output-directory ~/comfyui-b/output</code></pre>
+<p class="note">Without <code>CUDA_DEVICE_ORDER=PCI_BUS_ID</code>, "card 1" for CUDA may not be "card 1" for <code>nvidia-smi</code>. Set it everywhere, or you will load a model on the card you meant to keep free.</p>
+
+<h2>3. Which model for what</h2>
+<table>
+<tr><th>Need</th><th>Model family</th><th>Note</th></tr>
+<tr><td>Photo-like images, fast</td><td>SDXL (Juggernaut, RealVis), Turbo variants</td><td>fits in 8 GB</td></tr>
+<tr><td>Images that follow the prompt closely</td><td>Flux dev, quantized (GGUF Q8)</td><td>16 GB with an fp8 text encoder</td></tr>
+<tr><td>Video from text or an image</td><td>Wan 2.2 14B (two experts), LTX-Video 2B</td><td>a 4-step LoRA divides the time</td></tr>
+<tr><td>An object in 3D from a picture</td><td>Trellis 2</td><td>shape and texture decoders</td></tr>
+</table>
+<p>Measured on one of our cards: a 5-second Wan 2.2 shot (81 frames at 16 fps) takes about 2 minutes in fast mode and about 13 minutes at 20 steps. Plan a video in shots, not in minutes of film.</p>
+
+<h2>4. Drive it from scripts and agents</h2>
+<p>Save a workflow in API format; a script posts it to <code>/prompt</code> with the prompt and seed changed, then polls the history for the output files. That is how an agent orders a render: it fills in a few fields, the workflow stays fixed and tested.</p>
+
+<h2>Traps</h2>
+<p class="note">ComfyUI and a language model cannot share a card comfortably. Decide who owns which card when (see <a href="/gpu-grid.html">the GPU grid</a>), and stop ComfyUI's instance rather than let both fight for memory.</p>
+<p class="note">Install custom nodes as you would install any program from the internet: few, from known authors, read before running. They execute with your rights.</p>

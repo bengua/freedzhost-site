@@ -4,7 +4,7 @@
 {{diagram:agents}}
 
 <h2>1. Où il se place</h2>
-<p>OpenFox parle à un point d'accès compatible OpenAI. Ne le pointez pas sur un serveur de modèle : pointez-le sur votre <a href="/model-gateway.html">passerelle de modèles</a>. La passerelle sait quel modèle est chargé sur quelle carte ; OpenFox ne connaît qu'une adresse stable et un nom de modèle.</p>
+<p>OpenFox parle à un point d'accès compatible OpenAI. Ne le pointez pas sur un serveur de modèle : pointez-le sur votre <a href="/fr/model-gateway.html">passerelle de modèles</a>. La passerelle sait quel modèle est chargé sur quelle carte ; OpenFox ne connaît qu'une adresse stable et un nom de modèle.</p>
 <pre><code>npm install -g openfox      # Node 20 ou plus récent
 openfox                     # premier lancement : choisir le fournisseur, saisir l'adresse de la passerelle</code></pre>
 <p class="note">Faites-le tourner sur la machine qui porte les cartes, et atteignez-le d'ailleurs (portable, téléphone) par votre réseau privé. L'agent lit et écrit alors les fichiers là où se trouve le travail, pas à travers un partage réseau.</p>

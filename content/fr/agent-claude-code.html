@@ -10,7 +10,7 @@ claude          # premier lancement : connexion avec votre compte</code></pre>
 <p>Une règle écrite dans un fichier est un conseil. Un crochet (hook) est un programme que Claude Code lance avant chaque commande, et qui peut la refuser. Nous avons transformé trois règles en crochets après qu'elles ont été enfreintes une fois chacune :</p>
 <ul>
 <li>pas de kill par motif de nom (<code>pkill -f</code>) : le motif attrape aussi le propre shell de l'agent ;</li>
-<li>pas de mot de passe de connexion écrit dans une commande ou un fichier : les secrets passent par un tuyau depuis le coffre (voir <a href="/secrets-pipe.html">les secrets par tuyau</a>) ;</li>
+<li>pas de mot de passe de connexion écrit dans une commande ou un fichier : les secrets passent par un tuyau depuis le coffre (voir <a href="/fr/secrets-pipe.html">les secrets par tuyau</a>) ;</li>
 <li>pas de modification des fichiers de la distribution, seulement de vos extensions.</li>
 </ul>
 <p class="note">Un crochet est un petit script qui lit la commande prévue en JSON sur son entrée et sort en erreur pour la refuser, avec un message que l'agent lit. Vingt lignes de Python suffisent.</p>

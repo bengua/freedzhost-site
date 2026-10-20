@@ -1,0 +1,23 @@
+<!-- {"title": "Rétro-ingénierie avec preuves : que l'agent prouve au lieu de deviner", "summary": "Avant de brancher votre pile sur le programme de quelqu'un d'autre, comprenez-le preuves à l'appui. Une boîte à outils libre de rétro-ingénierie que les agents peuvent appeler : analyser une fois, garder un instantané, poser des questions de suivi, et obtenir des réponses avec leurs preuves et leurs limites.", "order": 52, "series": "agents", "level": "advanced", "time": "1 h", "requires": ["agent-claude-code"]} -->
+<p class="lead">Un agent à qui l'on demande « comment ce programme fait-il X » répondra, avec aisance, après avoir survolé quelques fichiers. Souvent à tort. Quand nous avons branché nos agents sur un cœur d'agents libre, il nous fallait savoir exactement ce qu'il envoie et attend. REA, une boîte à outils libre (MIT) de rétro-ingénierie avec une ligne de commande et un serveur d'outils pour agents, a fait répondre l'agent avec des preuves.</p>
+
+<h2>1. Ce qu'il lit</h2>
+<p>Des binaires natifs (via Ghidra), des applis JavaScript et Electron, des APK Android, des assemblies .NET, des sites web. Installation par npm, plus Ghidra et un environnement Java qui lui est dédié :</p>
+<pre><code>npm install -g rea-agents
+rea --help</code></pre>
+
+<h2>2. La méthode : analyser, prouver, questionner, coder testé</h2>
+<ol>
+<li><strong>Analyser</strong> la cible une fois, et garder l'instantané. La première passe Ghidra sur un gros binaire dure plus de dix minutes : lancez-la en ligne de commande, pas par un appel d'outil au délai court.</li>
+<li><strong>Preuves</strong> : chaque réponse vient avec ce qui la prouve (une fonction, une chaîne, un appel) et ce qu'elle ne couvre pas.</li>
+<li><strong>Questions de suivi</strong> : elles réutilisent l'instantané et répondent en quelques secondes.</li>
+<li><strong>Implémentation</strong> : alors seulement, écrire l'adaptateur, avec un test qui exerce le comportement prouvé.</li>
+</ol>
+<p class="note">Notre règle pour les agents : ne jamais prétendre savoir comment marche un programme tiers d'après un survol de ses sources quand un outil peut en produire la preuve.</p>
+
+<h2>3. Le droit de regarder</h2>
+<p>Analysez ce que vous avez le droit d'analyser : vos propres logiciels, des projets libres, des programmes dont la licence ou la loi locale permet l'analyse à fin d'interopérabilité. La rétro-ingénierie pour contourner une protection ou copier un produit est une autre affaire, et ce n'est pas l'objet ici.</p>
+
+<h2>Pièges</h2>
+<p class="note">Le serveur d'outils expose beaucoup d'outils. Branché tel quel sur un agent dont le fournisseur limite la taille de la liste d'outils, il faisait échouer chaque requête avec une erreur qui ressemblait à une panne (voir <a href="/fr/agent-kimi-code.html">Kimi Code</a>). Donnez plutôt aux agents un petit adaptateur à quelques commandes.</p>
+<p class="note">Gardez les instantanés hors de vos dépôts : ils sont gros, et ils contiennent le code de quelqu'un d'autre.</p>
