@@ -1,0 +1,36 @@
+<!-- {"title": "Skills: teach your agent a procedure once", "summary": "A skill is a folder with one Markdown file: when to use it, and how. The agent loads it only when the task calls for it, so a hundred skills cost nothing until needed. The ones we use every day, from shaping answers for an ADHD reader to a full security review, and how to write your own.", "order": 67, "series": "agents", "level": "beginner", "time": "30 min", "requires": ["agent-claude-code"]} -->
+<p class="lead">You explain the same procedure to your agent for the fifth time: how to diagnose a crash, how to review a change for security, how to format answers for you. A skill writes it down once. The agent reads its one-line description at start, and loads the full procedure only when a task matches.</p>
+
+<p class="proof"><strong>What you get.</strong> Procedures that apply themselves, at no standing cost: removing a skill and three sub-agents did not move our measured context floor by a single token. About thirty skills installed here, in daily use.</p>
+
+<h2>1. What a skill is</h2>
+<pre><code>~/.claude/skills/diagnose-crash/
+├── SKILL.md          # name, description (the trigger), then the procedure
+├── reporting.md      # extra pages, read only if needed
+└── scripts/          # optional helpers the procedure calls</code></pre>
+<pre><code>---
+name: diagnose-crash
+description: >
+  Diagnose why a program crashed on this machine, from a systemd-coredump
+  core dump. Use when a process segfaulted or aborted, or when asked why
+  an application crashed. Triggers: crash, segfault, core dump.
+---
+# Diagnosing a crash
+Work from evidence. Start with `coredumpctl info &lt;pid&gt;` ...</code></pre>
+<p>The <strong>description</strong> is what decides when the skill fires: say what it does and the words a request will contain. The body is the procedure, written for a colleague.</p>
+
+<h2>2. The ones we use</h2>
+<ul>
+<li><strong>Answers shaped for an ADHD reader</strong>: the next action first, numbered steps, the state restated each turn, one concrete thing to do at the end. Active in every session.</li>
+<li><strong>Crash diagnosis</strong> from a core dump: facts first, resource exhaustion ruled out before blaming the program.</li>
+<li><strong>Reverse engineering with evidence</strong> (see <a href="/agent-rea.html">REA</a>): analyze, prove, ask, then code.</li>
+<li><strong>A security review harness</strong>: a router skill, a review pipeline, and one knowledge base per class of flaw (injection, XSS, SSRF, path traversal, secrets, race conditions…), loaded only for the class being hunted.</li>
+<li><strong>Video and diagrams</strong>: skills that turn a brief into an animated composition or a clean architecture diagram, with the house style written once.</li>
+</ul>
+
+<h2>3. Skill or tool?</h2>
+<p>A procedure with several right answers (how to split a project, how to word a reply) is a skill: the model applies judgement. A check with one right answer (does this file validate, does this test pass) is a tool: a program that answers the same way every time. Do not ask a skill to deliver a verdict (see <a href="/agent-bmad.html">BMAD with small models</a>).</p>
+
+<h2>Traps</h2>
+<p class="note">A vague description never fires, and a greedy one fires everywhere. Write the triggers the way you actually phrase requests, and test with three real ones.</p>
+<p class="note">Read a community skill before installing it, like any program: it can tell the agent to run commands.</p>
