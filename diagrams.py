@@ -1009,6 +1009,31 @@ def judge(lang):
     return figure("judge", 870, 180, L["cap"], body)
 
 
+# ── a RAG on your own journal ───────────────────────────────────────────────
+def rag(lang):
+    L = {
+        "en": labels(cap="Write what you solved, one Markdown file a day. A watcher re-indexes when the folder changes: small chunks, turned into vectors, saved to disk, then the service is restarted so it really serves the new index. Agents and you query it with a token.",
+                     j="Your journal", js="one Markdown file a day", w="Watcher", ws="folder changed", idx="Re-index",
+                     is_="chunks ≤ 1,200 characters", srv="Search service", ss="restarted after each index", q="You, your agents",
+                     qs="query with a token", e="small embedding model"),
+        "fr": labels(cap="Écrivez ce que vous avez résolu, un fichier Markdown par jour. Un veilleur réindexe quand le dossier change : petits morceaux, transformés en vecteurs, enregistrés sur disque, puis le service est redémarré pour qu'il serve vraiment le nouvel index. Vos agents et vous l'interrogez avec un jeton.",
+                     j="Votre journal", js="un fichier Markdown par jour", w="Veilleur", ws="le dossier a changé", idx="Réindexer",
+                     is_="morceaux ≤ 1 200 caractères", srv="Service de recherche", ss="redémarré après chaque index", q="Vous, vos agents",
+                     qs="interrogent avec un jeton", e="petit modèle d'embedding"),
+    }[lang]
+    body = box(10, 40, 160, 54, L["j"], L["js"])
+    body += box(200, 40, 130, 54, L["w"], L["ws"])
+    body += box(360, 40, 170, 54, L["idx"], L["is_"], stroke=ACCENT)
+    body += box(560, 40, 190, 54, L["srv"], L["ss"])
+    body += box(560, 150, 190, 54, L["q"], L["qs"], stroke=GOOD)
+    body += arrow(170, 67, 198, 67)
+    body += arrow(330, 67, 358, 67)
+    body += arrow(530, 67, 558, 67)
+    body += arrow(655, 148, 655, 96, None, GOOD, marker="good")
+    body += t(445, 116, L["e"], 11, "middle", MUTED)
+    return figure("rag", 760, 215, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -1022,7 +1047,7 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "saas": saas, "clock": clock, "route": route,
             "gateway": gateway, "grid": grid, "snapshots": snapshots, "keep": keep,
             "rotation": rotation, "ram": ram, "egpu": egpu,
-            "mtp": mtp, "judge": judge}
+            "mtp": mtp, "judge": judge, "rag": rag}
 
 
 def render(name, lang):

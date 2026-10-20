@@ -1,0 +1,19 @@
+<!-- {"title": "A RAG on your own journal: never solve the same problem twice", "summary": "Write down what you solved, let a search service index it, and let your agents ask it before they guess. The chunk size that matters, and the three ways it silently serves stale answers.", "order": 19, "series": "ai", "level": "intermediate", "time": "2 h", "requires": ["homelab-proxmox"]} -->
+<p class="lead">The most expensive problems in a homelab are the ones you solve twice: you fixed it in September, forgot how, and spend October rediscovering it. A journal fixes that only if you can find things in it. A RAG (retrieval-augmented generation) does: it finds the passages of your notes closest to a question, and hands them to you, or to an agent, before anyone guesses.</p>
+
+{{diagram:rag}}
+
+<h2>1. Write it down</h2>
+<p>One Markdown file per day, one section per problem: the symptom, the cause, the fix, and the trap. Write it the moment it is solved; tomorrow you will have forgotten the detail that mattered. Our rule: a diagnosis that is not written down will be paid for twice.</p>
+
+<h2>2. Index it automatically</h2>
+<p>A small service splits the notes into chunks, turns each chunk into a vector with a small embedding model (ours: e5-small, which runs on a processor), and answers questions with the closest chunks. A systemd <code>.path</code> unit watches the journal folder and re-indexes when a file changes, about 70 seconds per pass on our small VM.</p>
+
+<h2>3. Ask it first</h2>
+<p>Give your agents a tool that queries it, and make it a rule: before diagnosing anything about the homelab, ask the journal. Close the query endpoint with a token (a header, not in the URL); keep the health check public, a probe should not need a secret.</p>
+
+<h2>Traps we paid for</h2>
+<p class="note"><strong>Chunk size.</strong> Our embedding model reads 512 tokens, about 1,400 characters of French. Our first chunks were whole sections, some 7,000 characters long: only their beginning was indexed, and an incident written at character 2,719 could never be found. Cap chunks at about 1,200 characters.</p>
+<p class="note"><strong>The index lives in memory.</strong> Our service loaded each index once and kept it for its whole life: re-indexing updated the disk, not the answers. Restart the service after every index, as part of the same job.</p>
+<p class="note"><strong>The orphan.</strong> An old copy of the service kept the port. The new one failed to start, in a loop, and the orphan went on answering with a 40-hour-old index: restart "succeeded", health was green. The tell: every result had the same score, 1.0, so the ranking was just file order. Check who really holds the port (<code>ss -lntp</code>), and stop the orphan by its PID, never by a name pattern.</p>
+<p class="note"><strong>Memory.</strong> Re-indexing peaked at 1 GB on a 2 GB VM with no swap, and the system killed it, every time, silently. 2 GB of swap fixed it without touching the VM's RAM.</p>
