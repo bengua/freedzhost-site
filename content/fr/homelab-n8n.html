@@ -32,3 +32,6 @@ WEBHOOK_URL=https://n8n.votredomaine.tld/</code></pre>
 <p class="note">Les workflows ne peuvent pas lire les variables d'environnement par défaut (<code>N8N_BLOCK_ENV_ACCESS_IN_NODE</code>). Gardez-le ainsi : le débloquer donnerait à chaque nœud le mot de passe de la base et la clé de chiffrement. Mettez les secrets dans les identifiants de n8n.</p>
 <p class="note">Signez les webhooks qui déclenchent des actions (un en-tête HMAC vérifié dans le workflow) : une URL de webhook seule est une porte que quiconque la trouve peut pousser.</p>
 <p class="note">Redémarrer n8n peut faire lever de fausses alarmes aux workflows de surveillance (un job vu « muet » pendant le redémarrage). Prévenez qui lit les alertes avant de redémarrer.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://n8n.io/" rel="noopener">n8n, official site</a></li><li><a href="https://github.com/n8n-io/n8n" rel="noopener">n8n, official repository and licence</a></li></ul>

@@ -30,3 +30,6 @@ sudo systemctl restart docker</code></pre>
 
 <h2>The trap after a driver update</h2>
 <p class="note">If you use CDI (the <code>/etc/cdi/nvidia.yaml</code> file), it describes the driver libraries as they were when it was generated. After a driver update it can point to files that no longer exist, and no GPU container starts. See <a href="/gpu-container-on-cpu.html">the GPU container on the CPU</a> for the boot-time fix. Regenerate it: <code>sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml</code>. We now regenerate it at every boot.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.docker.com/" rel="noopener">Docker documentation</a></li><li><a href="https://github.com/NVIDIA/nvidia-container-toolkit" rel="noopener">NVIDIA Container Toolkit</a></li><li><a href="https://github.com/cncf-tags/container-device-interface" rel="noopener">Container Device Interface (CDI) specification</a></li></ul>

@@ -24,3 +24,6 @@
 <p class="note">In shell tests, <code>OUT=$(my_function)</code> runs the function in a subshell: an exit code it stores there is lost, and every refusal scenario passes green. Send the output through a file and keep the exit code in the current shell.</p>
 <p class="note">A surviving mutant is not always a defect: some changes cannot be detected by any test (an "equivalent mutant"). Read a low score as coverage, not as a grade, and look at each survivor before concluding.</p>
 <p class="note">Fixtures written from memory prove nothing about the real system: our tests were green on invented data while the code read fields that did not exist in the real API answer. Build fixtures from measured responses.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://doi.org/10.1109/C-M.1978.218136" rel="noopener">DeMillo, Lipton, Sayward (1978), Hints on Test Data Selection</a></li></ul>

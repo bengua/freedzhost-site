@@ -49,3 +49,6 @@ proxy_cache_use_stale error timeout updating;</code></pre>
 <p class="note">Whitelist your own networks in every ban and limit (<code>ignoreip</code>, a <code>geo</code> block for limits): a monitoring probe or a CI runner hammering an API looks exactly like an attacker.</p>
 <p class="note">Rate limits that are too low punish real visitors on a shared address (an office, a mobile operator). Start generous, watch the 429s in the logs, then tighten.</p>
 <p class="note">A wildcard DNS record publishes your home address under every invented name. Remove it before anything else.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://nginx.org/en/docs/http/ngx_http_limit_req_module.html" rel="noopener">nginx, limit_req module</a></li><li><a href="https://nginx.org/en/docs/http/ngx_http_limit_conn_module.html" rel="noopener">nginx, limit_conn module</a></li><li><a href="https://www.wireguard.com/" rel="noopener">WireGuard</a></li></ul>

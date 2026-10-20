@@ -28,3 +28,6 @@ snapper -c home undochange 42..0 $HOME/.ssh/config</code></pre>
 <p class="note">Si la minuterie de nettoyage ne tourne pas, les instantanés s'empilent pour toujours. Les nôtres dépassaient 800 ; les fichiers supprimés gardaient leur place parce que de vieux instantanés les retenaient encore. Activer le nettoyage a rendu plus de 200 Go d'un coup.</p>
 <p class="note">Ne laissez pas les données de Docker dans un volume photographié. Chaque instantané garde les images que vous supprimez : effacer 160 Go de modèles a libéré 5 Go. Donnez à <code>/var/lib/docker</code> son propre sous-volume btrfs, que les instantanés ignorent.</p>
 <p class="note">Les gros fichiers de modèles vont dans un dossier non photographié, pour la même raison : un téléchargement de 40 Go que vous supprimez doit revenir en espace libre, pas rester deux semaines dans un instantané.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://btrfs.readthedocs.io/" rel="noopener">Btrfs documentation</a></li><li><a href="http://snapper.io/" rel="noopener">snapper</a></li></ul>

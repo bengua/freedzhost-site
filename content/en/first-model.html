@@ -36,3 +36,6 @@ curl -L -o ~/models/Qwen3-8B-Q4_K_M.gguf \
 <h2>A trap we measured</h2>
 {{diagram:kv}}
 <p class="note">To save memory you can compress the context cache with <code>-ctk q8_0 -ctv q8_0</code>. Do not go further on the V side: with <code>-ctv q4_0</code>, flash attention silently switches off and reading a long prompt became <strong>21 times slower</strong> on our card (62.7 instead of 1,330 tokens per second), while generation speed did not change. A test that only measures generation would never see it.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/ggml-org/llama.cpp" rel="noopener">llama.cpp, official repository</a></li><li><a href="https://github.com/ggml-org/ggml/blob/master/docs/gguf.md" rel="noopener">GGUF format specification</a></li></ul>

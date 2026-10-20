@@ -33,3 +33,6 @@ journalctl -k -b | grep -i "available PCIe bandwidth"</code></pre>
 <h2>Traps</h2>
 <p class="note">A slow link does not fail, it slows everything down quietly. Do not credit the gain to the wrong cause either: our big model went from 26.1 to 55.6 tokens per second that week, and an intermediate measurement showed the x16 was only part of it (see <a href="/big-moe-two-cards.html">the 177B on two cards</a>).</p>
 <p class="note">An external card must be powered before the PC starts: the system only lists the devices present at power-on.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.kernel.org/PCI/sysfs-pci.html" rel="noopener">Linux kernel, PCI sysfs documentation</a></li></ul>

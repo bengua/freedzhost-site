@@ -25,3 +25,6 @@
 <h2>Pièges</h2>
 <p class="note">L'autre cause de relecture, c'est un cache de prompt coupé. Avec <code>--cache-ram 0</code>, le serveur oublie le début de la conversation et le relit à chaque tour (voir <a href="/fr/big-moe-two-cards.html">le 177B sur deux cartes</a>).</p>
 <p class="note">Claude Code sur un modèle local ? Pour un nom de modèle qu'il ne connaît pas, il suppose une fenêtre de 200 000 jetons et compacte trop tard ; et la compaction automatique ne s'arme qu'au-delà de 100 000. Donnez-lui <code>CLAUDE_CODE_MAX_CONTEXT_TOKENS</code> égal à la vraie fenêtre de votre serveur (voir <a href="/fr/agent-claude-code.html">Claude Code, deux façons</a>).</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://arxiv.org/abs/1706.03762" rel="noopener">Vaswani et al. (2017), Attention Is All You Need</a></li><li><a href="https://github.com/ggml-org/llama.cpp/tree/master/tools/server" rel="noopener">llama.cpp server documentation</a></li></ul>

@@ -42,3 +42,6 @@ OPENFOX_MAX_CONTEXT=65536 openfox --no-browser</code></pre>
 <p class="note">Keep the tool list short. Our first turn weighed 8,455 tokens before a single word, mostly tool descriptions: one permanent tool server instead of five, tools loaded on demand.</p>
 <p class="note">Never let two processes write its configuration file at once: two parallel registrations left us a corrupted <code>config.json</code>. Keep a copy before changing it.</p>
 <p class="note">Test it where it is used. A model that answers a <code>curl</code> is not a working agent; the proof is a session where it calls a tool and uses the result.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/co-l/openfox" rel="noopener">OpenFox, official repository</a></li></ul>

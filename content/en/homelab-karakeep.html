@@ -28,3 +28,6 @@
 <p class="note">Turn semantic search off if your gateway serves no embedding model: left on, indexing fails without a single visible error.</p>
 <p class="note"><code>NEXTAUTH_URL</code> is not only a redirect: the login checks requests against it. Set it to the address you really use, and behind a proxy add <code>AUTH_TRUST_HOST=true</code>. A login page that loads is not a login that works.</p>
 <p class="note">Importing 500 bookmarks fires 500 webhooks. Do not re-index on each one: let the receiver set a flag, and run the export once after 30 seconds of calm. Ours had a small VM killed by the out-of-memory killer before that change.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/karakeep-app/karakeep" rel="noopener">Karakeep, official repository</a></li></ul>

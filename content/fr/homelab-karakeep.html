@@ -28,3 +28,6 @@
 <p class="note">Désactivez la recherche sémantique si votre passerelle ne sert aucun modèle d'embedding : laissée active, l'indexation échoue sans la moindre erreur visible.</p>
 <p class="note"><code>NEXTAUTH_URL</code> n'est pas qu'une redirection : la connexion vérifie les requêtes par rapport à elle. Réglez-la sur l'adresse que vous utilisez vraiment, et derrière un proxy ajoutez <code>AUTH_TRUST_HOST=true</code>. Une page de connexion qui s'affiche n'est pas une connexion qui marche.</p>
 <p class="note">Importer 500 favoris déclenche 500 webhooks. Ne réindexez pas à chacun : laissez le récepteur poser un drapeau, et lancez l'export une fois après 30 secondes de calme. Une petite VM à nous a été tuée par manque de mémoire avant ce changement.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/karakeep-app/karakeep" rel="noopener">Karakeep, official repository</a></li></ul>

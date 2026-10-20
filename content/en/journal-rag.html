@@ -20,3 +20,6 @@
 <p class="note"><strong>The index lives in memory.</strong> Our service loaded each index once and kept it for its whole life: re-indexing updated the disk, not the answers. Restart the service after every index, as part of the same job.</p>
 <p class="note"><strong>The orphan.</strong> An old copy of the service kept the port. The new one failed to start, in a loop, and the orphan went on answering with a 40-hour-old index: restart "succeeded", health was green. The tell: every result had the same score, 1.0, so the ranking was just file order. Check who really holds the port (<code>ss -lntp</code>), and stop the orphan by its PID, never by a name pattern.</p>
 <p class="note"><strong>Memory.</strong> Re-indexing peaked at 1 GB on a 2 GB VM with no swap, and the system killed it, every time, silently. 2 GB of swap fixed it without touching the VM's RAM.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://arxiv.org/abs/2005.11401" rel="noopener">Lewis et al. (2020), Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks</a></li></ul>

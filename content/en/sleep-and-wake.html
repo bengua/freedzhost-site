@@ -30,3 +30,6 @@ nmcli connection modify &lt;connection&gt; 802-3-ethernet.wake-on-lan magic</cod
 
 <h2>The trap that kept surprising us</h2>
 <p class="note">Our tower kept falling asleep in the middle of remote work, exactly fifteen minutes after each wake-up. The cause was not our session but the <strong>login screen</strong>: its default settings suspend after 900 seconds without <em>local</em> keyboard or mouse activity, and SSH, remote desktops or model requests never reset that timer. The more we worked remotely, the more it slept. The fix: give the login screen its own setting (on GNOME, a dconf profile for <code>gdm</code> with <code>sleep-inactive-ac-type='nothing'</code>) and keep the decision to sleep in your own hands. Its signature is arithmetic: if the tower always sleeps exactly 15 minutes after waking, look nowhere else.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://en.wikipedia.org/wiki/Wake-on-LAN" rel="noopener">Wake-on-LAN (overview and history)</a></li></ul>

@@ -30,3 +30,6 @@ sudo systemctl restart docker</code></pre>
 
 <h2>Le piège après une mise à jour du pilote</h2>
 <p class="note">Si vous utilisez CDI (le fichier <code>/etc/cdi/nvidia.yaml</code>), il décrit les bibliothèques du pilote telles qu'elles étaient au moment où il a été généré. Après une mise à jour du pilote, il peut pointer vers des fichiers qui n'existent plus, et plus aucun conteneur GPU ne démarre. Voir <a href="/fr/gpu-container-on-cpu.html">le conteneur GPU sur le processeur</a> pour le correctif au démarrage. Régénérez-le : <code>sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml</code>. Chez nous, il est désormais régénéré à chaque démarrage.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.docker.com/" rel="noopener">Docker documentation</a></li><li><a href="https://github.com/NVIDIA/nvidia-container-toolkit" rel="noopener">NVIDIA Container Toolkit</a></li><li><a href="https://github.com/cncf-tags/container-device-interface" rel="noopener">Container Device Interface (CDI) specification</a></li></ul>

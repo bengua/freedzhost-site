@@ -25,3 +25,6 @@ wyoming-piper:    --voice fr_FR-siwis-medium</code></pre>
 <p class="note">A Docker published port accepts connections before the program behind it is ready. Our relay saw the GPU backend "up" during its 30-second warm-up and sent requests into the void. The fix: run the backend on the host network, on the loopback address, so the port refuses until the server really listens, and the relay falls back.</p>
 <p class="note">After a reboot, a GPU container created earlier may no longer reach the card (a device number changes at each boot). The relay then quietly serves the CPU pair: degraded, not broken. Recreate the container, or regenerate the GPU description at boot.</p>
 <p class="note">The model compiles parts of itself at start and needs a C compiler in the image. Without it, the GPU backend never starts.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://www.home-assistant.io/" rel="noopener">Home Assistant</a></li><li><a href="https://github.com/rhasspy/piper" rel="noopener">Piper (local text-to-speech)</a></li><li><a href="https://github.com/rhasspy/wyoming" rel="noopener">Wyoming protocol</a></li></ul>

@@ -25,3 +25,6 @@ wyoming-piper:    --voice fr_FR-siwis-medium</code></pre>
 <p class="note">Un port publié par Docker accepte les connexions avant que le programme derrière soit prêt. Notre relais voyait le moteur GPU « en ligne » pendant ses 30 secondes de chauffe et envoyait des requêtes dans le vide. La solution : faire tourner le moteur sur le réseau de l'hôte, sur l'adresse de bouclage, pour que le port refuse tant que le serveur n'écoute pas vraiment, et que le relais se replie.</p>
 <p class="note">Après un redémarrage, un conteneur GPU créé avant peut ne plus atteindre la carte (un numéro de périphérique change à chaque démarrage). Le relais sert alors le duo CPU sans rien dire : dégradé, pas cassé. Recréez le conteneur, ou régénérez la description du GPU au démarrage.</p>
 <p class="note">Le modèle compile une partie de lui-même au démarrage et a besoin d'un compilateur C dans l'image. Sans lui, le moteur GPU ne démarre jamais.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://www.home-assistant.io/" rel="noopener">Home Assistant</a></li><li><a href="https://github.com/rhasspy/piper" rel="noopener">Piper (local text-to-speech)</a></li><li><a href="https://github.com/rhasspy/wyoming" rel="noopener">Wyoming protocol</a></li></ul>

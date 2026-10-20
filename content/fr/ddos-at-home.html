@@ -49,3 +49,6 @@ proxy_cache_use_stale error timeout updating;</code></pre>
 <p class="note">Mettez vos propres réseaux en liste blanche dans chaque bannissement et chaque limite (<code>ignoreip</code>, un bloc <code>geo</code> pour les limites) : une sonde de supervision ou un exécutant de CI qui martèle une API ressemble exactement à un attaquant.</p>
 <p class="note">Des limites trop basses punissent les vrais visiteurs derrière une adresse partagée (un bureau, un opérateur mobile). Commencez large, surveillez les 429 dans les journaux, puis resserrez.</p>
 <p class="note">Un enregistrement DNS joker publie l'adresse de votre maison sous chaque nom inventé. Retirez-le avant tout le reste.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://nginx.org/en/docs/http/ngx_http_limit_req_module.html" rel="noopener">nginx, limit_req module</a></li><li><a href="https://nginx.org/en/docs/http/ngx_http_limit_conn_module.html" rel="noopener">nginx, limit_conn module</a></li><li><a href="https://www.wireguard.com/" rel="noopener">WireGuard</a></li></ul>

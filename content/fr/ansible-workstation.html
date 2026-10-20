@@ -44,3 +44,6 @@ server ansible_host=192.0.2.30</code></pre>
 <p class="note">Certaines distributions annoncent le nom de leur parente : CachyOS apparaît comme <code>Archlinux</code> dans <code>ansible_facts.distribution</code>. Affichez les faits une fois (<code>ansible laptop -m setup</code>) avant d'écrire des conditions.</p>
 <p class="note">Ansible configure des machines qui existent ; les créer (VM, réseaux) est le travail d'OpenTofu, le fork open source de Terraform. N'étirez pas un outil pour faire le travail de l'autre.</p>
 <p class="note">Si vous installez Ansible par un gestionnaire de versions, vérifiez après chaque mise à jour de ce gestionnaire que les commandes tournent encore : un changement de format de configuration nous a laissé des versions installées et aucune commande qui marche, derrière un avertissement qui était en fait une panne.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.ansible.com/" rel="noopener">Ansible documentation</a></li></ul>
