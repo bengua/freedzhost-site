@@ -1,0 +1,63 @@
+<!-- {"title": "The workshop: every tool behind this site, one line each", "summary": "About forty repositories built and run here, grouped by job, each in one sentence, with the tutorial that explains it. Open-source licences; the method in each one is yours to copy.", "order": 74, "series": "start", "level": "read", "time": "10 min", "requires": []} -->
+<p class="lead">Everything described on this site runs on tools we wrote, small and single-purpose, one repository each. Here they are by job, one sentence each, with the tutorial that shows them at work. Most are licensed MIT, a few GPL or AGPL; the ideas are free to take in any case.</p>
+
+<p class="proof"><strong>What you get.</strong> The map of a complete, sovereign agent stack, from the GPU allocator to the phone console. Find the brick you need, then follow its tutorial.</p>
+
+<h2>Consoles and agents</h2>
+<ul>
+<li><strong>SwarmFox</strong>: the phone console of the whole stack, native Android, plus its small API (<a href="/agent-swarmfox.html">tutorial</a>).</li>
+<li><strong>CloudFoxRoom</strong>: durable, replayable conversations across several agent instances (<a href="/agent-rooms-foxdesk.html">tutorial</a>).</li>
+<li><strong>foxroom</strong> and <strong>FoxDesk</strong>: an open-source agent core, unpatched, with our adapters, and its desktop client (<a href="/agent-rooms-foxdesk.html">tutorial</a>).</li>
+<li><strong>fh-dev</strong>: hand a development task to a local coding agent; it comes back as a pull request (<a href="/agent-claude-code.html">tutorial</a>).</li>
+<li><strong>fh-assistant</strong>: a workstation assistant that points at a function and never types (<a href="/workstation-assistant.html">tutorial</a>).</li>
+<li><strong>fh-coder-mode</strong>: how Claude Code is wired and tuned here, with the measured settings and the failures already paid for.</li>
+</ul>
+
+<h2>Models and cards</h2>
+<ul>
+<li><strong>turnstile</strong>: a deterministic GPU allocator for local models (<a href="/gpu-grid.html">tutorial</a>).</li>
+<li><strong>kvmem-llama-cpp</strong>: our build of KVMem for long contexts, two card generations, experts in host memory (<a href="/kvmem-long-context.html">tutorial</a>).</li>
+<li><strong>fh-bench</strong>: a measured map of what each local model can be asked (<a href="/model-bench.html">tutorial</a>).</li>
+<li><strong>fh-judge</strong>: a local decision judge in two passes, Tev1 then Nimble (<a href="/judge-two-passes.html">tutorial</a>).</li>
+<li><strong>fh-egpu</strong>: reports the PCIe link the firmware really gave each card (<a href="/second-gpu-oculink.html">tutorial</a>).</li>
+</ul>
+
+<h2>Watch, diagnose, prove</h2>
+<ul>
+<li><strong>fh-why</strong> and <strong>fh-probes</strong>: facts for a diagnosis, and a machine that remembers what it lived through (<a href="/facts-before-diagnosis.html">tutorial</a>).</li>
+<li><strong>fh-detective</strong> and <strong>fh-mutant</strong>: a judge that designates where to look, and mutations that prove a test is useful (<a href="/mutation-testing.html">tutorial</a>).</li>
+<li><strong>fh-rag-service</strong>: a local, deterministic search over your own journal (<a href="/journal-rag.html">tutorial</a>).</li>
+<li><strong>knowledge-packs</strong>: facts with a source, a test and an expiry date (<a href="/knowledge-packs.html">tutorial</a>).</li>
+<li><strong>parc</strong>: inventory your machines by scanning, and see what moved (<a href="/workstation-small-tools.html">tutorial</a>).</li>
+</ul>
+
+<h2>Forge and deployment</h2>
+<ul>
+<li><strong>fh-deploy</strong>: a root daemon that deploys one component from a closed list, without a password (<a href="/agent-authority.html">tutorial</a>).</li>
+<li><strong>forgejo-bootstrap</strong>: from a new repository to its first release in one call, never without its guard (<a href="/agent-authority.html">tutorial</a>).</li>
+<li><strong>fh-push</strong> and <strong>fh-forge-tools</strong>: publish a branch as a pull request through the forge helper.</li>
+<li><strong>fh-backups</strong>: keeps an off-machine copy of the hypervisor's nightly backups (<a href="/homelab-backups.html">tutorial</a>).</li>
+<li><strong>fh-compute</strong>: rebuild the workstations from a declaration (<a href="/ansible-workstation.html">tutorial</a>).</li>
+</ul>
+
+<h2>Desk, sound and fun</h2>
+<ul>
+<li><strong>purrd</strong>: music while the agent works, silence when it is done (<a href="/purrd.html">tutorial</a>).</li>
+<li><strong>inframagotchi</strong>: a manga cat whose health is your homelab's (<a href="/inframagotchi.html">tutorial</a>).</li>
+<li><strong>openfox-omarchy</strong> and <strong>claude-archive</strong>: a context meter in the status bar, your AI history as files (<a href="/workstation-small-tools.html">tutorial</a>).</li>
+<li><strong>fh-kill</strong>: stop processes by pattern without killing your own shell (<a href="/ssh-for-agents.html">tutorial</a>).</li>
+</ul>
+
+<h2>Studio and voice</h2>
+<ul>
+<li><strong>fh-seq</strong>: a local music studio that keeps the project (<a href="/fh-seq-music.html">tutorial</a>).</li>
+<li><strong>studio-media</strong>: from one sentence to images and video shots (<a href="/comfyui-studio.html">tutorial</a>).</li>
+<li><strong>house-voice</strong>: the house's speech for Home Assistant, local (<a href="/homelab-voice.html">tutorial</a>).</li>
+<li><strong>fh_voice_coder_console</strong>: talk to your local coding agent from your phone; alpha.</li>
+</ul>
+
+<h2>Learning</h2>
+<ul>
+<li><strong>tutorat</strong>: a learning method and a local Socratic tutor that never gives the answer: it names the error and guides the fix.</li>
+<li><strong>freedzhost-site</strong>: this site, bilingual, generated by one script, drawings in code.</li>
+</ul>

@@ -1,0 +1,31 @@
+<!-- {"title": "Why is it failing? Give the model facts, and a machine that remembers", "summary": "Asked why something fails, a local model explores blindly and invents files. Handed the facts, the same model answers right: 5/5 in 72 seconds instead of 2.75/5 in 9 minutes. Two small tools: one that gathers the facts, one that records what the machine was living through.", "order": 68, "series": "agents", "level": "intermediate", "time": "45 min", "requires": ["agent-openfox"]} -->
+<p class="lead">"Why does this service fail?" A model with a shell will run commands at random, quote log lines that do not exist and blame files it made up. The problem is not its intelligence: it lacks the facts, and gathering them is not its strength. So we gather them with code, and hand them over.</p>
+
+<p class="proof"><strong>What you get.</strong> On four faults planted on purpose, our 27B model found 5 out of 5 in 72 seconds with the facts tool, against 2.75 out of 5 in 9 minutes without it. Same model, same faults: only the facts changed.</p>
+
+<h2>1. A facts tool: fh-why</h2>
+<pre><code>fh-why unit nginx.service            # its last words, since when, what changed just before
+fh-why unit --failed                 # every failed unit, system and user
+fh-why container my-model            # health checks, restarts, out-of-memory kills, last errors
+fh-why run 4182                      # an agent run: end state and the lines that failed
+fh-why unit --failed --json          # one object per line, for a model or a script</code></pre>
+<p>One file, Python standard library only, no model inside. Its rule: what cannot be read is said, never skipped. "Could not read the journal: permission denied" is a fact; silence is not.</p>
+
+<h2>2. A machine that remembers: fh-probes</h2>
+<p>An agent run fails at 3 a.m. Was it the code, or was the machine drowning? Without a record, you cannot know. A small sampler writes, once per second, one line about the cards, memory, memory pressure and the model servers. A second command joins that series to each run's time window:</p>
+<pre><code>fh-history 4182
+# "this run failed while memory pressure climbed to 91 and prompt reading dropped to 20 tokens/s"</code></pre>
+<p>It keeps extremes, not averages, and says when two runs overlapped and therefore share the same numbers.</p>
+
+<h2>3. Rules learned from a freeze</h2>
+<p>The day our server froze, the old collector had slowed from 3 to 20 seconds per pass, and ten copies ran side by side, each launching its own subprocesses: the monitoring helped cause the freeze it should have seen. The sampler was rewritten with three rules:</p>
+<ol>
+<li><strong>No subprocess</strong>: the card's library called directly, <code>/proc</code>, two local HTTP requests.</li>
+<li><strong>One instance</strong>: an exclusive lock; a second copy exits.</li>
+<li><strong>Skip, never catch up</strong>: a late round is recorded as skipped, never repaid in a burst.</li>
+</ol>
+<p class="note">Watch memory <em>pressure</em> (<code>/proc/pressure/memory</code>), not "available memory". Three minutes before the freeze, available memory said all was well; pressure was at 99. Model weights held resident in shared memory were what filled the machine.</p>
+
+<h2>Traps</h2>
+<p class="note">A failure seen often enough deserves a written page, not a new diagnosis each time. Keep a list of recurring failure signatures and their fix.</p>
+<p class="note">A search index that still answers but is forty hours behind is worse than one that is down. Check its freshness, not just its status code.</p>

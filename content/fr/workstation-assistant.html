@@ -1,0 +1,22 @@
+<!-- {"title": "Un assistant de poste qui désigne, et ne tape jamais", "summary": "Dites une phrase, un petit modèle local choisit une fonction dans une table fermée, et le script l'exécute. Les questions trouvent d'abord leur réponse dans vos propres notes, puis dans une cascade de modèles qui doivent dire « insuffisant » quand ils ne savent pas. Ce que les mesures ont imposé, règle par règle.", "order": 72, "series": "agents", "level": "intermediate", "time": "1 h", "requires": ["model-bench", "journal-rag"]} -->
+<p class="lead">« Baisse le son. » « Dans quel état est le serveur ? » « Qu'avions-nous décidé pour la carte graphique pendant les jeux ? » Un petit assistant local sait traiter ça, à condition de ne jamais l'autoriser à taper une commande. Le nôtre reçoit une table fermée de fonctions, en désigne une, et le script fait le reste.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Un assistant sur votre poste qui agit en moins d'une seconde quand le serveur est allumé, répond encore (plus lentement, jamais muet) quand il dort, et dit « je ne sais pas » au lieu d'inventer.</p>
+
+<h2>1. Le modèle désigne, le code agit</h2>
+<p>Mesuré : le modèle se trompait encore sur une question de logique sur sept. Il ne génère donc jamais de commande. Il renvoie un appel tiré d'une table fermée ; les arguments sont lus comme des littéraux Python, jamais évalués ; tout ce qui sort de la table devient <code>NONE</code> plutôt qu'un quasi-succès.</p>
+<pre><code>set_volume(percent: int)
+machine_state(host: str)
+search_memory(query: str)
+escalate(question: str)</code></pre>
+<p class="note">Déclarez la table en signatures Python avec des exemples. Déclarée en JSON Schema, le modèle choisissait la bonne fonction mais n'en remplissait pas les valeurs ; en Python, il a rendu 6 appels exacts sur 7.</p>
+
+<h2>2. Les sources avant la conversation</h2>
+<p>Interrogé sur « le mode GPU », un modèle a fait un exposé assuré sur les modes réseau de Docker : plausible, entièrement faux. Une question trouve donc d'abord sa réponse dans vos notes et votre journal d'infrastructure, le modèle n'ayant le droit d'utiliser que ces extraits. Chaque modèle de la cascade doit répondre exactement <code>INSUFFICIENT</code> quand il ne sait pas, et le code vérifie ce mot, lettre à lettre, avant de passer la main.</p>
+<p class="note">Gardez ce marqueur dans le code, pas dans le fichier de personnage modifiable : une retouche du personnage, et la sécurité disparaît.</p>
+
+<h2>3. Rapide quand c'est possible, jamais muet</h2>
+<p>Le modèle généraliste du serveur désigne d'abord, à environ 140 jetons par seconde ; un petit spécialiste de l'appel de fonctions, sur le processeur du portable, prend le relais à 5,5 quand le serveur dort. Le spécialiste est bon sur les ordres explicites ; sur une question indirecte, il a renoncé là où le généraliste a trouvé la bonne recherche.</p>
+
+<h2>4. Escalader avec le dossier</h2>
+<p>La dernière marche est un modèle de pointe. Notre première escalade a répondu à partir des seules sources, incapable de regarder la machine ; elle reçoit désormais un instantané de l'état de la machine et les extraits du journal, et l'écran l'annonce, parce que ça coûte un appel distant.</p>
