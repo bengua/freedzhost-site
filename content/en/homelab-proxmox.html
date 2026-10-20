@@ -1,0 +1,55 @@
+<!-- {"title": "Homelab 1: Proxmox, the base under every service", "summary": "One machine, many isolated servers, snapshots and backups. The foundation of the series that replaces Google and subscriptions.", "order": 6} -->
+<p class="lead">This series replaces, one by one, the services you rent: storage, photos, office, search, passwords. They all need somewhere to live. That place is Proxmox VE: a free, open-source hypervisor that turns one machine into many isolated servers, each one easy to snapshot, back up and throw away.</p>
+
+<h2>What ours runs</h2>
+<p>Measured on our node (Proxmox VE 9.2, 16 threads, 30 GB of RAM, a 2 TB NVMe SSD for the guests, an 8 TB disk for backups):</p>
+<div class="table"><table>
+<tr><th>Guest</th><th>Role</th><th>RAM</th></tr>
+<tr><td>VM</td><td>reverse proxy with HTTPS, DNS filtering</td><td>4 GB</td></tr>
+<tr><td>VM</td><td>office suite, search engine, task manager</td><td>9 GB</td></tr>
+<tr><td>VM</td><td>code forge and its CI</td><td>6 GB</td></tr>
+<tr><td>VM</td><td>automation and home assistant</td><td>4 GB</td></tr>
+<tr><td>VM</td><td>knowledge base (search over our notes)</td><td>2 GB</td></tr>
+<tr><td>VM</td><td>private vault, kept apart</td><td>3 GB</td></tr>
+<tr><td>container</td><td>a small judge model on the CPU</td><td>—</td></tr>
+</table></div>
+<p>An old desktop or a mini PC is enough to start. What matters: RAM (16 GB minimum, 32 GB comfortable), an SSD for the guests, and a second disk for backups.</p>
+
+<h2>1. Install</h2>
+<ol>
+<li>Download the Proxmox VE ISO from <a href="https://www.proxmox.com/en/downloads">proxmox.com/downloads</a>.</li>
+<li>Write it to a USB stick. On Linux: <code>sudo dd if=proxmox-ve.iso of=/dev/sdX bs=4M status=progress</code>, where <code>/dev/sdX</code> is the stick (check twice with <code>lsblk</code>: <code>dd</code> erases what you point it at).</li>
+<li>Boot the machine on the stick and follow the installer: target disk, country, a root password, an email, and a <strong>fixed IP address</strong> on your network.</li>
+<li>From another computer, open <code>https://&lt;that-address&gt;:8006</code> and log in as <code>root</code>. The browser warns about the certificate: it is self-signed, that is expected on your own network.</li>
+</ol>
+
+<h2>2. The free update channel</h2>
+<p>Out of the box, Proxmox points to its enterprise repository, which needs a paid subscription: updates fail with an error. For a homelab, switch to the free <code>pve-no-subscription</code> channel, as documented by Proxmox.</p>
+<p>Disable the enterprise repository: in <code>/etc/apt/sources.list.d/pve-enterprise.sources</code>, add the line</p>
+<pre><code>Enabled: no</code></pre>
+<p>Then create <code>/etc/apt/sources.list.d/proxmox.sources</code>:</p>
+<pre><code>Types: deb
+URIs: http://download.proxmox.com/debian/pve
+Suites: trixie
+Components: pve-no-subscription
+Signed-By: /usr/share/keyrings/proxmox-archive-keyring.gpg</code></pre>
+<p>And update:</p>
+<pre><code>apt update && apt full-upgrade</code></pre>
+<p class="note">Proxmox does not recommend this channel for production servers: its packages are tested less than the enterprise ones. For a home, it is the right choice; if Proxmox runs your business, buy the subscription, it also funds the project.</p>
+
+<h2>3. Your first container</h2>
+<p>Containers (LXC) are lighter than virtual machines: perfect for one service each. Download a template, then create the container:</p>
+<pre><code>pveam update
+pveam available --section system | grep debian
+pveam download local &lt;the template name shown above&gt;</code></pre>
+<p>Then in the web interface: <strong>Create CT</strong>, pick the template, give it 1 CPU, 512 MB of RAM and 8 GB of disk to start. You can grow all three later.</p>
+
+<h2>4. Your first virtual machine</h2>
+<p>For a service that needs its own kernel (Docker with many containers, another operating system): upload an ISO in <strong>local → ISO Images</strong>, then <strong>Create VM</strong>. Same rule: start small, grow later.</p>
+
+<h2>5. Backups, before anything else</h2>
+<p>In <strong>Datacenter → Backup</strong>, schedule a nightly backup of every guest to a <strong>second disk</strong>. Then restore one, once, to check it works.</p>
+<p class="note">A backup on the same disk as the guests is not a backup: it dies with that disk. A backup you have never restored is a hope, not a backup.</p>
+
+<h2>A trap we avoid</h2>
+<p class="note">Never open port 8006 to the internet. To manage Proxmox from outside, use a private network such as Tailscale or WireGuard: the administration page stays invisible from the internet.</p>
