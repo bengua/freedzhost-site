@@ -1,0 +1,25 @@
+<!-- {"title": "Une seconde carte graphique en OCuLink : plus de VRAM sans changer de carte mère", "summary": "Quand la carte mère n'a qu'un gros emplacement, un emplacement M.2 peut prêter ses quatre lignes à une carte externe. Ce qui a marché, ce qui n'a pas marché, et comment lire le lien.", "order": 16, "series": "ai", "level": "intermediate", "time": "2 h", "requires": ["hardware", "nvidia-driver"]} -->
+<p class="lead">Plus de VRAM, c'est ce qui permet de faire tourner de plus gros modèles, et une seconde carte est le moyen le moins cher d'en avoir. Mais la plupart des cartes mères grand public n'ont qu'un emplacement à pleine vitesse. Notre seconde carte vit dans un boîtier externe, reliée par un câble OCuLink à un emplacement M.2 : quatre lignes PCIe, largement assez pour faire tourner des modèles.</p>
+
+{{diagram:egpu}}
+
+<h2>1. Connaître ses lignes avant d'acheter</h2>
+<p>Lisez le manuel de votre carte mère : quels emplacements sont reliés au processeur, lesquels au chipset, et lesquels en désactivent un autre quand on les utilise. Un emplacement M.2 relié au processeur donne à la carte externe ses quatre lignes à elle. Un emplacement du chipset partage quatre lignes avec chaque disque et port USB derrière lui.</p>
+<p>Quatre lignes suffisent pour l'inférence : le modèle est chargé une fois, puis l'essentiel du travail se fait dans la carte. Elles comptent davantage pour la vitesse de chargement et pour répartir un même modèle sur deux cartes.</p>
+
+<h2>2. Les pièces</h2>
+<ul>
+<li>un <strong>adaptateur M.2 vers OCuLink avec ReDriver</strong> (un amplificateur de signal) ;</li>
+<li>un câble OCuLink court ;</li>
+<li>un boîtier avec sa propre alimentation.</li>
+</ul>
+<p class="note">Un adaptateur passif, sans ReDriver, ne suffisait pas à la vitesse du PCIe Gen4 : le lien était instable. La version avec ReDriver a réglé le problème.</p>
+
+<h2>3. L'ordre des opérations</h2>
+<p>L'OCuLink ne se branche pas à chaud : <strong>allumez le boîtier avant l'ordinateur</strong>, et ne le débranchez jamais pendant que le système tourne. Un seul pilote sert les deux cartes ; vérifiez que le système les voit toutes les deux :</p>
+<pre><code>nvidia-smi --query-gpu=name,pcie.link.gen.current,pcie.link.width.current --format=csv</code></pre>
+<p>Une carte au repos peut annoncer une génération plus basse pour économiser l'énergie : vérifiez la largeur sous charge, ou avec <code>sudo lspci -vv</code> (<code>LnkSta</code>).</p>
+
+<h2>Pièges que nous avons payés</h2>
+<p class="note">Notre grosse carte est un jour montée en x4 au lieu de x16. Le firmware avait découpé son emplacement pendant un démarrage. Rien n'avait changé dans le BIOS, et un <strong>cycle d'alimentation complet</strong> (tout éteint, le boîtier allumé d'abord, puis le PC) a ramené le x16. Ne « réparez » pas en choisissant un mode de bifurcation 8x/8x : sur notre carte mère, <em>Auto</em> est le x16, et 8x/8x est prévu pour les cartes riser.</p>
+<p class="note">Vérifiez le lien après tout changement matériel, avec un script qui dit x16 ou pas. Un lien lent n'échoue pas, il rend juste tout plus lent sans un mot.</p>
