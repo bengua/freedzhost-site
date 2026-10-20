@@ -1,0 +1,67 @@
+<!-- {"title": "Besoin d'aide ? Je le monte avec vous", "summary": "Paramétrer, monter, mettre en place, ou reconcevoir sur mesure : tout ce qui est sur ce site, réalisé sur votre propre matériel.", "order": 0, "nav": true} -->
+<article>
+<h1>Besoin d'aide ? Je le monte avec vous</h1>
+<p class="lead">Tout ce qui est sur ce site, je l'ai monté et je le fais tourner chaque jour. Je peux le faire avec vous, sur <strong>votre</strong> matériel, pour que vos données restent à vous et que vous gardiez la main.</p>
+<ul class="offers">
+<li><strong>Paramétrer</strong><span>Régler ce que vous avez déjà : proxy, DNS, sauvegardes, sécurité, un service qui se comporte mal.</span></li>
+<li><strong>Monter</strong><span>Un homelab complet ou un nœud d'IA locale, du choix du matériel aux premiers services.</span></li>
+<li><strong>Mettre en place</strong><span>Quitter Google ou Microsoft pour vos propres services ; automatisations avec n8n ; agents locaux.</span></li>
+<li><strong>Reconcevoir sur mesure</strong><span>Auditer une installation existante, la durcir, écrire le plan de reprise, reconstruire ce qui doit l'être.</span></li>
+</ul>
+<h2>Comment ça se passe</h2>
+<ol>
+<li>Vous décrivez votre besoin dans le formulaire ci-dessous.</li>
+<li>Je réponds avec des questions et un premier avis.</li>
+<li>Un devis, si l'on continue.</li>
+<li>Le travail se fait sur votre matériel, à distance par un réseau privé, ou sur place selon votre localisation.</li>
+<li>Vous recevez la documentation. Je ne garde aucun accès une fois le travail terminé.</li>
+</ol>
+<p class="note">Vos données restent chez vous · outils open source · vous restez autonome · tarif sur devis.</p>
+<h2>Décrivez votre besoin</h2>
+<form id="contact" class="contact" novalidate data-text="{&quot;sending&quot;: &quot;Envoi…&quot;, &quot;thanks&quot;: &quot;Merci, votre demande est bien reçue. Je vous réponds par e-mail.&quot;, &quot;fix&quot;: &quot;Merci de vérifier les champs signalés.&quot;, &quot;slow&quot;: &quot;Trop de tentatives : merci d&#x27;attendre une minute.&quot;, &quot;down&quot;: &quot;Le formulaire est indisponible pour le moment. Merci de réessayer plus tard.&quot;}">
+<label>Votre nom<input name="name" autocomplete="name" maxlength="120" required></label>
+<label>E-mail (pour vous répondre)<input name="email" type="email" autocomplete="email" maxlength="200" required></label>
+<label>Votre besoin<select name="need" required>
+<option value="configure">Paramétrer</option>
+<option value="build">Monter</option>
+<option value="setup">Mettre en place</option>
+<option value="redesign">Reconcevoir sur mesure</option>
+<option value="other">Autre chose</option>
+</select></label>
+<label>Votre projet, en quelques lignes<textarea name="message" rows="6" maxlength="4000" required></textarea></label>
+<label class="trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+<label class="check"><input type="checkbox" name="consent"> J'accepte que ces informations servent uniquement à me répondre.</label>
+<button type="submit">Envoyer</button>
+<p class="form-status" role="status" aria-live="polite"></p>
+</form>
+<p class="caption">Vos informations servent uniquement à vous répondre. Elles sont stockées sur mes propres serveurs, jamais chez un tiers, et supprimées 12 mois après notre dernier échange, ou sur simple demande.</p>
+</article>
+<script>
+(() => {
+  const f = document.getElementById("contact");
+  if (!f) return;
+  const out = f.querySelector(".form-status");
+  const T = JSON.parse(f.dataset.text);
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    f.querySelectorAll(".invalid").forEach((el) => el.classList.remove("invalid"));
+    const d = Object.fromEntries(new FormData(f));
+    const body = { name: d.name || "", email: d.email || "", need: d.need || "", message: d.message || "",
+                   consent: f.consent.checked, website: d.website || "", lang: document.documentElement.lang };
+    const btn = f.querySelector("button");
+    btn.disabled = true; out.textContent = T.sending; out.className = "form-status";
+    try {
+      const r = await fetch("/api/contact", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      if (r.status === 429) throw new Error(T.slow);
+      const j = await r.json();
+      if (j.ok) { f.reset(); out.textContent = T.thanks; out.className = "form-status ok"; }
+      else {
+        (j.errors || []).forEach((n) => { const el = f.elements[n]; if (el) el.classList.add("invalid"); });
+        out.textContent = T.fix; out.className = "form-status bad";
+      }
+    } catch (err) {
+      out.textContent = err.message === T.slow ? T.slow : T.down; out.className = "form-status bad";
+    } finally { btn.disabled = false; }
+  });
+})();
+</script>
