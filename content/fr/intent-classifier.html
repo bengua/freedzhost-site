@@ -1,0 +1,32 @@
+<!-- {"title": "Aiguiller les demandes avec un petit classifieur entraîné, pas avec des mots-clés", "summary": "Quel modèle doit prendre cette demande : le petit, celui par défaut, le gros ? Les mots-clés tombaient juste 63,7 % du temps, moins que répondre toujours « par défaut » (72,6 %). Un petit classifieur entraîné sur 237 vraies demandes a atteint 84,0 %, en 20 millisecondes, sans carte graphique. Et la leçon plus large qu'il a révélée : le catalogue d'outils.", "order": 82, "series": "agents", "level": "advanced", "time": "une soirée", "requires": ["agent-intents", "model-bench"]} -->
+<p class="lead">Envoyer chaque demande au plus gros modèle est lent ; l'envoyer au plus petit est faux. Un aiguilleur décide, et le premier aiguilleur habituel est une liste de mots-clés. Nous avons mesuré le nôtre face à plus simple que lui et face à un petit classifieur entraîné. Les chiffres ont changé la conception.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Un aiguilleur juste 84 fois sur 100 au lieu de 64, qui répond en 20 ms environ sur le processeur, et une méthode pour savoir si le vôtre bat la règle la plus simple possible.</p>
+
+<h2>1. Mesurer d'abord face à la référence bête</h2>
+<p>Sur 237 vraies demandes, chacune étiquetée facile, standard ou difficile, en validation croisée :</p>
+<table>
+<tr><th>Aiguilleur</th><th>Justes</th></tr>
+<tr><td>hasard, en respectant la fréquence des classes</td><td>59,5 %</td></tr>
+<tr><td>recherche par mots-clés</td><td>63,7 %</td></tr>
+<tr><td><strong>toujours « standard »</strong></td><td><strong>72,6 %</strong></td></tr>
+<tr><td>classifieur entraîné</td><td>84,0 %</td></tr>
+</table>
+<p>La vraie barre n'était pas le hasard : c'était « répondre toujours la classe la plus fréquente ». Notre aiguilleur par mots-clés était en dessous. Mesurez cette référence avant de célébrer quoi que ce soit.</p>
+
+<h2>2. D'où est venu le gain</h2>
+<p>Des demandes « faciles » : les mots-clés en trouvaient 2 sur 35, le classifieur 34 sur 35, sans aucun faux positif. C'est là que les petits modèles peuvent prendre le relais, et c'est de là que vient la vitesse. Latence : 18 à 27 ms pour une demande, 3,8 ms chacune en lot.</p>
+
+<h2>3. Trois décisions imposées par les chiffres</h2>
+<ul>
+<li><strong>Pas de repli sur la confiance.</strong> Le classifieur battait les mots-clés à tous les niveaux de confiance : se replier sur les mots-clés en cas de doute dégradait le résultat. Le repli ne sert que si le classifieur est en panne.</li>
+<li><strong>Une calibration a été écartée alors qu'elle donnait 86,9 %</strong> : elle ne prédisait plus jamais « difficile ». Trois points achetés en abandonnant la classe dont les erreurs coûtent de la qualité.</li>
+<li><strong>« Difficile » reste faible</strong> (13 sur 30) : trente exemples ne suffisent pas. Récoltez-en davantage avant de vous y fier.</li>
+</ul>
+
+<h2>4. La leçon plus large : le catalogue d'outils</h2>
+<p>Mesurer les demandes a révélé autre chose : notre catalogue d'outils pesait 19 157 jetons pour 58 outils, payés à chaque tour. Charger les outils selon l'intention en économise environ 73 %. Et nos agents de code livrent des demandes de fusion acceptées avec six outils (lire, écrire, modifier, chercher, lister, shell) : 2 182 jetons. La question n'était plus « comment réduire », mais « pourquoi 58 ».</p>
+
+<h2>Pièges</h2>
+<p class="note">llama-server ignore <code>enable_thinking</code> à la racine de la requête : le modèle a réfléchi sur 844 caractères et n'a rien répondu. Seul <code>chat_template_kwargs: {"enable_thinking": false}</code> le coupe (1,7 s au lieu de 9,6). À travers certaines passerelles la forme racine marche, en direct non.</p>
+<p class="note">Un aiguilleur sans journal ne progresse jamais : enregistrez chaque demande et le modèle qui a répondu, sinon votre jeu d'entraînement ne grandit pas.</p>

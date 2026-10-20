@@ -1,0 +1,34 @@
+<!-- {"title": "Failures that call you: every service reports, every deploy can roll back", "summary": "A service that fails in silence is found days later. Three small systemd habits make every failure call you, without a monitoring suite: a failure template, a daily health ping that tolerates a sleeping laptop, and a delivery script that puts the old version back by itself.", "order": 81, "series": "homelab", "level": "intermediate", "time": "1 h", "requires": ["homelab-ntfy", "homelab-n8n"]} -->
+<p class="lead">Monitoring suites are heavy and mostly look at what is up. What you need first is simpler: when a service fails, you hear about it, once, with its name. systemd already knows when a unit fails; you only have to give it somewhere to say so.</p>
+
+<p class="proof"><strong>What you get.</strong> Every failed service sends a signed event with its name; every machine says once a day that it is alive; a delivery that breaks a service puts the previous version back and tells you. The rollback and the skip were proven here by forcing them on purpose.</p>
+
+<h2>1. One template for every failure</h2>
+<pre><code># ~/.config/systemd/user/notify-failure@.service
+[Unit]
+Description=Report the failure of %i
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/notify-failure %i</code></pre>
+<p>Then attach it to any unit with a drop-in, without editing the unit itself:</p>
+<pre><code># ~/.config/systemd/user/my-tunnel.service.d/notify.conf
+[Unit]
+OnFailure=notify-failure@%n.service</code></pre>
+<p><code>notify-failure</code> is a few lines that call a sender with a source, a type, a severity and a small JSON detail. The sender signs the body with HMAC and posts it to an automation, which writes the event and pushes a <a href="/homelab-ntfy.html">notification</a> to the phone. Its exit codes say what happened: accepted, refused (bad signature), or collector unreachable.</p>
+
+<h2>2. A daily "I am alive", with patience</h2>
+<p>Each machine sends a health event once a day. The watcher alerts when one goes silent too long, with a tolerance that fits the machine: a laptop may stay closed for three days, a server much less. An "info" event never rings.</p>
+
+<h2>3. Skip, don't fail, when the target is away</h2>
+<p>A service that reads the server every ten minutes failed 86 times per boot of the laptop, 65 of them because the server was asleep, and each failure triggered a failure report that failed in turn. A condition skips the run instead:</p>
+<pre><code>[Service]
+ExecCondition=bash -c 'ssh -o BatchMode=yes -o ConnectTimeout=3 server true || exit 1'</code></pre>
+<p class="note">The <code>|| exit 1</code> is not decoration. For <code>ExecCondition</code>, exit codes 1 to 254 mean "skip", but 255 means "fail", and 255 is exactly what ssh returns when it cannot connect.</p>
+
+<h2>4. Deliveries that roll back</h2>
+<p>Our delivery script does, for each component: back up, install, restart, check health, and if the check fails, <strong>put the previous version back</strong> and restart again. It remembers the commit it delivered and sends <code>deploy.delivered</code> or <code>deploy.rolled_back</code>. We proved the rollback by forcing a failure with a <code>--simulate-failure</code> flag.</p>
+
+<h2>Traps</h2>
+<p class="note">A user service does not have <code>~/.local/bin</code> in its PATH: write full paths, or the failure report itself fails.</p>
+<p class="note">A notification storm teaches you to ignore notifications. Report a failure once, and the recovery once.</p>

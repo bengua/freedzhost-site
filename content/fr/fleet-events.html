@@ -1,0 +1,28 @@
+<!-- {"title": "Une seule table pour tout ce qui se passe : les événements du parc", "summary": "Les envois sur la forge, les services en échec, les scans de sécurité de la nuit, les livraisons, les runs d'agents : tout écrit une ligne dans la même table de base de données, avec des rôles qui ne peuvent qu'insérer ou que lire. Ensuite un tableau de bord, les alertes et les agents lisent tous les mêmes faits.", "order": 83, "series": "homelab", "level": "advanced", "time": "une soirée", "requires": ["homelab-n8n", "failures-that-call"]} -->
+<p class="lead">Chaque outil a son journal, et aucun ne répond à « que s'est-il passé cette nuit ? ». Nous avons donné à tout le labo une seule table d'événements : une heure, une source, un type, une gravité, un court contenu. Chaque outil y écrit ; le tableau de bord, le téléphone et les agents y lisent. Une question, un endroit.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Une seule chronologie de votre labo, lisible par les humains et par les agents, alimentée par des webhooks signés et de petits scripts, protégée par des rôles de base de données qui ne peuvent pas faire plus que leur travail.</p>
+
+<h2>1. Trois rôles, trois pouvoirs</h2>
+<ul>
+<li>un <strong>propriétaire</strong> qui crée la table ;</li>
+<li>un <strong>écrivain</strong> qui ne peut que faire <code>INSERT</code> : un script compromis ne peut pas effacer l'historique ;</li>
+<li>un <strong>lecteur</strong> qui ne peut que faire <code>SELECT</code> : le tableau de bord et les agents.</li>
+</ul>
+<p>Mettez la table dans sa propre base, et retirez à tous les autres le droit de se connecter à la base de l'outil d'automatisation. Les mots de passe sont générés sur l'hôte, dans un fichier que seul root peut lire.</p>
+
+<h2>2. Ce qui y écrit</h2>
+<ul>
+<li><strong>La forge</strong> : un seul webhook pour tous les dépôts, signé HMAC ; l'automatisation vérifie la signature sur le corps brut et répond 401 sinon.</li>
+<li><strong>Les services en échec et les signes de vie</strong> (voir <a href="/fr/failures-that-call.html">des pannes qui vous appellent</a>).</li>
+<li><strong>Un scan de vulnérabilités chaque nuit</strong> de toutes les images de conteneurs avec Trivy, dans un conteneur jetable, avec un rapport signé. Le premier passage sur 15 images a trouvé 124 failles critiques et 2 718 élevées : une liste à traiter, pas une raison de paniquer.</li>
+<li><strong>Les livraisons et les runs d'agents</strong> : livré, revenu en arrière, échoué.</li>
+</ul>
+
+<h2>3. La lire</h2>
+<p>Un tableau de bord Grafana lit la table avec le rôle lecteur, à l'écoute du réseau local seulement. La console du téléphone montre les dernières 24 heures par gravité, et les agents l'interrogent pour répondre à « qu'est-ce qui a changé avant que ça casse ? ».</p>
+
+<h2>Pièges</h2>
+<p class="note">Au premier démarrage, Grafana a téléchargé 18 greffons sur internet par défaut. Posez <code>GF_PLUGINS_PREINSTALL_DISABLED=true</code> avant le premier démarrage si vous ne voulez rien rapatrier.</p>
+<p class="note">n8n répond à son contrôle de santé <em>avant</em> d'avoir enregistré ses webhooks. Attendez le webhook lui-même, pas le contrôle de santé, avant d'envoyer le premier événement.</p>
+<p class="note">La forge refuse d'envoyer des webhooks vers une adresse privée tant que vous ne l'autorisez pas dans son fichier de configuration (<code>[webhook] ALLOWED_HOST_LIST</code>).</p>

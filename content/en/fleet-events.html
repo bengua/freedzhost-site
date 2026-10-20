@@ -1,0 +1,28 @@
+<!-- {"title": "One table for everything that happens: fleet events", "summary": "Pushes on the forge, failed services, nightly security scans, deliveries, agent runs: everything writes one line to the same database table, with roles that can only insert or only read. Then a dashboard, alerts and agents all read the same facts.", "order": 83, "series": "homelab", "level": "advanced", "time": "an evening", "requires": ["homelab-n8n", "failures-that-call"]} -->
+<p class="lead">Each tool has its own log, and none of them answers "what happened last night?". We gave the whole lab one table of events: a time, a source, a kind, a severity, a short payload. Every tool writes there; the dashboard, the phone and the agents read there. One question, one place.</p>
+
+<p class="proof"><strong>What you get.</strong> A single timeline of your lab, readable by people and by agents, fed by signed webhooks and small scripts, protected by database roles that cannot do more than their job.</p>
+
+<h2>1. Three roles, three powers</h2>
+<ul>
+<li>an <strong>owner</strong> that creates the table;</li>
+<li>a <strong>writer</strong> that can only <code>INSERT</code>: a compromised script cannot erase history;</li>
+<li>a <strong>reader</strong> that can only <code>SELECT</code>: the dashboard and the agents.</li>
+</ul>
+<p>Put the table in its own database, and remove the right to connect from everyone else on the automation tool's database. Passwords are generated on the host, in a file only root can read.</p>
+
+<h2>2. What writes to it</h2>
+<ul>
+<li><strong>The forge</strong>: one webhook for all repositories, signed with HMAC; the automation checks the signature on the raw body and answers 401 otherwise.</li>
+<li><strong>Failed services and health pings</strong> (see <a href="/failures-that-call.html">failures that call you</a>).</li>
+<li><strong>A nightly vulnerability scan</strong> of every container image with Trivy, in a throwaway container, with a signed report. The first run on 15 images found 124 critical and 2,718 high-severity findings: a list to work through, not a reason to panic.</li>
+<li><strong>Deliveries and agent runs</strong>: delivered, rolled back, failed.</li>
+</ul>
+
+<h2>3. Read it</h2>
+<p>A Grafana dashboard reads the table with the reader role, listening on the local network only. The phone console shows the last 24 hours by severity, and agents query it to answer "what changed before this broke?".</p>
+
+<h2>Traps</h2>
+<p class="note">On first start, Grafana downloaded 18 plugins from the internet by default. Set <code>GF_PLUGINS_PREINSTALL_DISABLED=true</code> before the first start if you want nothing fetched.</p>
+<p class="note">n8n answers its health check <em>before</em> it has registered its webhooks. Wait for the webhook itself, not the health check, before sending the first event.</p>
+<p class="note">The forge refuses to send webhooks to a private address until you allow it in its configuration file (<code>[webhook] ALLOWED_HOST_LIST</code>).</p>

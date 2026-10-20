@@ -1,0 +1,34 @@
+<!-- {"title": "Des pannes qui vous appellent : chaque service se signale, chaque livraison sait revenir en arrière", "summary": "Un service qui tombe en silence se découvre des jours plus tard. Trois petites habitudes systemd font que chaque panne vous appelle, sans suite de supervision : un modèle d'unité pour les échecs, un signe de vie quotidien qui tolère un portable fermé, et un script de livraison qui remet seul l'ancienne version.", "order": 81, "series": "homelab", "level": "intermediate", "time": "1 h", "requires": ["homelab-ntfy", "homelab-n8n"]} -->
+<p class="lead">Les suites de supervision sont lourdes et regardent surtout ce qui marche. Ce qu'il faut d'abord est plus simple : quand un service tombe, vous l'apprenez, une fois, avec son nom. systemd sait déjà quand une unité échoue ; il suffit de lui donner un endroit où le dire.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Chaque service en échec envoie un événement signé avec son nom ; chaque machine dit une fois par jour qu'elle est vivante ; une livraison qui casse un service remet la version précédente et vous prévient. Le retour arrière et le saut ont été prouvés ici en les provoquant exprès.</p>
+
+<h2>1. Un seul modèle pour chaque échec</h2>
+<pre><code># ~/.config/systemd/user/notify-failure@.service
+[Unit]
+Description=Report the failure of %i
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/notify-failure %i</code></pre>
+<p>Puis rattachez-le à n'importe quelle unité par un fichier complémentaire, sans modifier l'unité elle-même :</p>
+<pre><code># ~/.config/systemd/user/mon-tunnel.service.d/notify.conf
+[Unit]
+OnFailure=notify-failure@%n.service</code></pre>
+<p><code>notify-failure</code> tient en quelques lignes qui appellent un envoyeur avec une source, un type, une gravité et un petit détail JSON. L'envoyeur signe le corps en HMAC et le poste vers une automatisation, qui écrit l'événement et pousse une <a href="/fr/homelab-ntfy.html">notification</a> sur le téléphone. Ses codes de sortie disent ce qui s'est passé : accepté, refusé (mauvaise signature), ou collecteur injoignable.</p>
+
+<h2>2. Un « je suis vivant » quotidien, avec patience</h2>
+<p>Chaque machine envoie un événement de santé une fois par jour. Le veilleur alerte quand l'une se tait trop longtemps, avec une tolérance adaptée à la machine : un portable peut rester fermé trois jours, un serveur bien moins. Un événement « info » ne sonne jamais.</p>
+
+<h2>3. Sauter, pas échouer, quand la cible est absente</h2>
+<p>Un service qui lisait le serveur toutes les dix minutes échouait 86 fois par démarrage du portable, dont 65 parce que le serveur dormait, et chaque échec déclenchait un signalement qui échouait à son tour. Une condition fait sauter le passage à la place :</p>
+<pre><code>[Service]
+ExecCondition=bash -c 'ssh -o BatchMode=yes -o ConnectTimeout=3 serveur true || exit 1'</code></pre>
+<p class="note">Le <code>|| exit 1</code> n'est pas décoratif. Pour <code>ExecCondition</code>, les codes 1 à 254 veulent dire « sauter », mais 255 veut dire « échec », et 255 est justement ce que renvoie ssh quand il ne peut pas se connecter.</p>
+
+<h2>4. Des livraisons qui reviennent en arrière</h2>
+<p>Notre script de livraison fait, pour chaque composant : sauvegarder, installer, redémarrer, vérifier la santé, et si la vérification échoue, <strong>remettre la version précédente</strong> et redémarrer à nouveau. Il retient le commit livré et envoie <code>deploy.delivered</code> ou <code>deploy.rolled_back</code>. Nous avons prouvé le retour arrière en forçant un échec avec une option <code>--simulate-failure</code>.</p>
+
+<h2>Pièges</h2>
+<p class="note">Un service utilisateur n'a pas <code>~/.local/bin</code> dans son PATH : écrivez des chemins complets, sinon c'est le signalement d'échec lui-même qui échoue.</p>
+<p class="note">Une avalanche de notifications apprend à les ignorer. Signalez une panne une fois, et le retour à la normale une fois.</p>
