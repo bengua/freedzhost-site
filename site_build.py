@@ -178,7 +178,7 @@ def build(out):
             raise ValueError(f"{lang}: pages without a known series: {orphans}")
         cards = "\n".join(groups)
         for slug, (meta, body) in pages.items():
-            body = re.sub(r"\{\{diagram:([a-z]+)\}\}", lambda m, lang=lang: diagrams.render(m.group(1), lang), body)
+            body = re.sub(r"\{\{diagram:([a-z0-9]+)\}\}", lambda m, lang=lang: diagrams.render(m.group(1), lang), body)
             if slug == "index":
                 body = body.replace("{{articles}}", cards)
             elif not meta.get("nav"):  # a nav page brings its own layout
