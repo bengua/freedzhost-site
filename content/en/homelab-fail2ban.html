@@ -1,0 +1,36 @@
+<!-- {"title": "Homelab 18: ban the scanners with fail2ban, and the Docker trap that makes bans useless", "summary": "Read the proxy's logs, ban an address after a few errors, and make sure the ban sits where the traffic really passes.", "order": 26, "series": "homelab", "level": "intermediate", "time": "45 min", "requires": ["homelab-proxy"]} -->
+<p class="lead">As soon as ports 80 and 443 are open, scanners arrive: thousands of requests for admin pages, old exploits, passwords guessed in a loop. fail2ban reads your proxy's logs and bans an address for a while after a few errors. It is simple and effective, with one condition that a Docker setup quietly breaks.</p>
+
+{{diagram:f2b}}
+
+<h2>1. A filter for the proxy's logs</h2>
+<p>For Nginx Proxy Manager, a filter that catches errors and refused requests:</p>
+<pre><code># filter.d/npm-docker.conf
+[Definition]
+failregex = ^.* \[error\] \d+#\d+: \*\d+ .*client: &lt;HOST&gt;,.*$
+            ^&lt;HOST&gt; .* "(GET|POST|HEAD).*" (401|403|404|429) .*$</code></pre>
+<p>Test it against a real log before trusting it: <code>fail2ban-regex /path/to/proxy-host-1_access.log filter.d/npm-docker.conf</code> shows how many lines it would catch.</p>
+
+<h2>2. A jail, in the right chain</h2>
+<pre><code># jail.d/npm.conf
+[npm-docker]
+enabled  = true
+filter   = npm-docker
+logpath  = /var/log/npm/proxy-host-*_access.log
+           /var/log/npm/proxy-host-*_error.log
+maxretry = 5
+findtime = 300
+bantime  = 3600
+chain    = DOCKER-USER
+action   = iptables-multiport[name=npm, port="80,443", protocol=tcp, chain="DOCKER-USER"]</code></pre>
+<p>Five errors in five minutes, one hour of ban.</p>
+
+<h2>The Docker trap</h2>
+<p class="note">By default, fail2ban writes its bans in the <code>INPUT</code> chain of the firewall. Traffic to a port published by Docker is forwarded to the container and never crosses <code>INPUT</code>: the ban exists, the counters rise, and the attacker keeps going. Docker provides a chain for your own rules on that path, <code>DOCKER-USER</code>: put the ban there.</p>
+<p>Check where the traffic really goes, not only that a rule exists: the packet counters tell you.</p>
+<pre><code>sudo nft list ruleset | grep -A3 f2b      # or: sudo iptables -L DOCKER-USER -v -n</code></pre>
+<p>Then ban an address you control, from your phone on mobile data, and check that the site stops answering it.</p>
+
+<h2>Traps</h2>
+<p class="note">Do not ban your own network. Add your local range and your private network to <code>ignoreip</code>, or a misbehaving script at home locks you out of your own services.</p>
+<p class="note">A 404 alone is not an attack: a broken link on your site produces them too. Five in five minutes from the same address is a reasonable threshold; ban on your own logs for a week in "count only" mode first, and look at what would have been banned.</p>

@@ -1034,6 +1034,54 @@ def rag(lang):
     return figure("rag", 760, 215, L["cap"], body)
 
 
+# ── fail2ban and Docker: which chain the traffic really crosses ─────────────
+def f2b(lang):
+    L = {
+        "en": labels(cap="fail2ban reads the proxy's logs and bans an address after too many errors. If the proxy runs in Docker, its traffic is forwarded to the container and never crosses INPUT: a ban written there blocks nothing. Write it in DOCKER-USER.",
+                     att="Attacker", host="The host's firewall", inp="INPUT", inps="default ban lands here: not crossed",
+                     fwd="FORWARD → DOCKER-USER", fwds="the proxy's traffic goes here", npm="Proxy container", logs="its logs",
+                     f2b="fail2ban", fs="5 errors in 5 min → ban 1 h", ban="ban here"),
+        "fr": labels(cap="fail2ban lit les journaux du proxy et bannit une adresse après trop d'erreurs. Si le proxy tourne dans Docker, son trafic est relayé vers le conteneur et ne traverse jamais INPUT : un bannissement écrit là ne bloque rien. Écrivez-le dans DOCKER-USER.",
+                     att="Attaquant", host="Pare-feu de l'hôte", inp="INPUT", inps="le ban par défaut va ici : jamais traversé",
+                     fwd="FORWARD → DOCKER-USER", fwds="le trafic du proxy passe ici", npm="Conteneur du proxy", logs="ses journaux",
+                     f2b="fail2ban", fs="5 erreurs en 5 min → ban 1 h", ban="bannir ici"),
+    }[lang]
+    body = box(10, 90, 120, 54, L["att"], None, stroke=BAD)
+    body += f'<rect x="170" y="20" width="330" height="200" rx="12" fill="none" stroke="{LINE}" stroke-dasharray="6 5"/>' + t(185, 40, L["host"], 11, "start", MUTED)
+    body += box(190, 55, 290, 50, L["inp"], L["inps"])
+    body += box(190, 135, 290, 50, L["fwd"], L["fwds"], stroke=GOOD)
+    body += box(560, 135, 180, 50, L["npm"], None)
+    body += box(560, 30, 180, 54, L["f2b"], L["fs"], stroke=ACCENT)
+    body += arrow(130, 125, 188, 160)
+    body += arrow(480, 160, 558, 160)
+    body += arrow(650, 133, 650, 86, L["logs"], lx=690, ly=112)
+    body += arrow(558, 70, 430, 133, None, GOOD, marker="good")
+    body += t(360, 124, L["ban"], 11, "middle", GOOD, 600)
+    return figure("f2b", 760, 235, L["cap"], body)
+
+
+# ── homelab 17: errors find you ─────────────────────────────────────────────
+def errors(lang):
+    L = {
+        "en": labels(cap="Each service reports its own errors to the tracker with the same SDK as Sentry; a script can post one with a single curl. Errors are grouped into issues, so a thousand identical crashes are one line, with the first and last time they happened.",
+                     svc=["Web app (SDK)", "API (SDK)", "Script (curl)"], gt="GlitchTip", gsub="3 containers", iss="Issues",
+                     isub="grouped, counted, dated", dsn="one DSN per service"),
+        "fr": labels(cap="Chaque service signale ses propres erreurs au traqueur avec le même SDK que Sentry ; un script peut en envoyer une d'un seul curl. Les erreurs sont regroupées en tickets : mille plantages identiques font une ligne, avec la première et la dernière fois qu'ils sont arrivés.",
+                     svc=["App web (SDK)", "API (SDK)", "Script (curl)"], gt="GlitchTip", gsub="3 conteneurs", iss="Tickets",
+                     isub="regroupés, comptés, datés", dsn="un DSN par service"),
+    }[lang]
+    body = ""
+    for i, sv in enumerate(L["svc"]):
+        y = 20 + i * 60
+        body += box(10, y, 150, 44, sv, None)
+        body += arrow(160, y + 22, 298, 102)
+    body += box(300, 75, 150, 54, L["gt"], L["gsub"], stroke=ACCENT)
+    body += box(520, 75, 200, 54, L["iss"], L["isub"], stroke=GOOD)
+    body += arrow(450, 102, 518, 102)
+    body += t(230, 205, L["dsn"], 11, "middle", MUTED)
+    return figure("errors", 740, 215, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -1047,7 +1095,8 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "saas": saas, "clock": clock, "route": route,
             "gateway": gateway, "grid": grid, "snapshots": snapshots, "keep": keep,
             "rotation": rotation, "ram": ram, "egpu": egpu,
-            "mtp": mtp, "judge": judge, "rag": rag}
+            "mtp": mtp, "judge": judge, "rag": rag,
+            "f2b": f2b, "errors": errors}
 
 
 def render(name, lang):
