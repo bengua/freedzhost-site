@@ -1,8 +1,24 @@
 <!-- {"title": "Run your own sovereign AI agent node", "summary": "Home", "order": 0} -->
 <h1>Run your own AI agent swarm, at home</h1>
 <p class="lead">A series that starts from zero and ends with a swarm of AI agents running on your own machine: models, GPU scheduling, a sandbox so the AI can write code without breaking anything, memory, and a voice. Every episode ships one real, tested, open-source building block.</p>
-<video controls preload="none" poster="/media/teaser-poster.jpg" src="/media/teaser-fr.mp4"></video>
-<p class="caption">Teaser, in French. Voice and character are AI-generated.</p>
+<section class="player" aria-label="Teaser">
+  <div class="term">
+    <div class="term-bar"><i></i><i></i><i></i><code>foxbot@node:~ $ play teaser.mp4</code><span class="live">local</span></div>
+    <div class="screen">
+      <video id="teaser" preload="metadata" playsinline poster="/media/teaser-poster.jpg">
+        <source src="/media/teaser-fr.mp4" type="video/mp4">
+        <track kind="subtitles" srclang="en" label="English" src="/media/teaser-en.vtt" default>
+      </video>
+      <button class="play" type="button" aria-label="Play the teaser"><span class="tri"></span><span>Play the teaser <small>47 s · French voice, English subtitles</small></span></button>
+    </div>
+    <dl class="made">
+      <div><dt>voice</dt><dd>Piper TTS, on the CPU</dd></div>
+      <div><dt>lips</dt><dd>driven by the voice's loudness</dd></div>
+      <div><dt>character</dt><dd>ComfyUI, on our own GPU</dd></div>
+      <div><dt>cloud APIs</dt><dd>none</dd></div>
+    </dl>
+  </div>
+</section>
 
 <h2>The app: FoxBot</h2>
 <p>The swarm has a face. FoxBot lives in the web console and in the Android app: it rests when nothing runs, types away when an agent works, and tells you when something is waiting for you.</p>
@@ -21,3 +37,12 @@
 
 <h2>What we do not promise</h2>
 <p>A local model on a consumer card is not a frontier cloud model. It is slower, it makes more mistakes, and we show those mistakes instead of hiding them. What you get is control: your data stays on your machine and nothing locks you in.</p>
+<script>
+(() => {
+  const v = document.getElementById("teaser");
+  const b = document.querySelector(".player .play");
+  if (!v || !b) return;
+  b.addEventListener("click", () => { v.controls = true; b.hidden = true; v.play(); });
+  v.addEventListener("ended", () => { v.controls = false; b.hidden = false; v.load(); });
+})();
+</script>
