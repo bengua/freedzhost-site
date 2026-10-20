@@ -1,0 +1,25 @@
+<!-- {"title": "Homelab 10: notifications from your servers and agents, on your phone", "summary": "ntfy turns one curl line into a phone notification: backups, agents waiting for you, a failed job. Self-hosted, with accounts.", "order": 18, "series": "homelab"} -->
+<p class="lead">A homelab that works in silence is a homelab whose failures you discover weeks later. ntfy is a tiny open-source notification server: any script publishes a line with <code>curl</code>, and your phone shows it. Ours tells us when an agent run ends or fails, and when an agent waits for a human decision.</p>
+
+{{diagram:notify}}
+
+<h2>1. Run it, closed by default</h2>
+<p>Run the official image, publish it through your HTTPS proxy, and close anonymous access in its configuration:</p>
+<pre><code>auth-file: "/var/lib/ntfy/user.db"
+auth-default-access: "deny-all"</code></pre>
+<p>Then create accounts and give each one only the topics it needs:</p>
+<pre><code>ntfy user add --role=admin you
+ntfy user add backups
+ntfy access backups nightly rw</code></pre>
+
+<h2>2. Publish from anywhere</h2>
+<pre><code>curl -u backups:… -d "Nightly copy: OK, 33 GB" https://ntfy.yourdomain.tld/nightly</code></pre>
+<p>Add a priority for failures (<code>-H "Priority: urgent"</code>) so they ring even in silent mode, and keep the successes quiet.</p>
+
+<h2>3. Subscribe on the phone</h2>
+<p>Install the ntfy app, add your server and your account, subscribe to the topics. On iPhone, instant delivery needs the server to relay through the public ntfy service: set <code>upstream-base-url: "https://ntfy.sh"</code>, otherwise notifications arrive late.</p>
+
+<h2>Traps</h2>
+<p class="note">Without accounts, the topic name is the only password: anyone who guesses it can read your alerts and send you fake ones. Deny anonymous access, or at the very least use long random topic names.</p>
+<p class="note">Notify on failures and on decisions waiting for you; summarise the rest. A phone that buzzes for every success is a phone you stop reading.</p>
+<p class="note">Encode non-ASCII titles properly (the <code>Title</code> header is an HTTP header): accents in a raw header can arrive garbled.</p>
