@@ -1,0 +1,31 @@
+<!-- {"title": "Claude Code, deux façons : sur l'abonnement et sur vos propres modèles", "summary": "Le même agent dans deux rôles : l'agent d'exploitation sur l'abonnement, avec des règles et des crochets qui refusent les commandes dangereuses, et un junior isolé sur les modèles locaux grâce à trois variables d'environnement.", "order": 47, "series": "agents", "level": "intermediate", "time": "45 min", "requires": ["model-gateway", "agent-openfox"]} -->
+<p class="lead">Claude Code est l'agent de code d'Anthropic, dans le terminal. La plupart des gens s'en servent d'une seule façon : avec un abonnement, sur les modèles d'Anthropic. Il peut aussi tourner sur vos propres modèles, pourvu que quelque chose de votre côté parle son protocole. Nous faisons les deux : l'abonnement pour l'exploitation, les modèles locaux pour un junior isolé qui écrit de petits correctifs toute la journée.</p>
+
+<h2>1. Sur l'abonnement : l'agent d'exploitation</h2>
+<pre><code>npm install -g @anthropic-ai/claude-code
+claude          # premier lancement : connexion avec votre compte</code></pre>
+<p>Donnez-lui un fichier de règles à la racine du dossier de travail, <code>CLAUDE.md</code>. Il est lu à chaque démarrage. Écrivez-y ce qu'un nouveau doit savoir : quelle machine est laquelle, ce qu'il ne faut jamais faire, comment confier du travail aux agents locaux. Gardez-le court et à jour : une règle dépassée mais laissée en place sera appliquée avec une parfaite assurance.</p>
+
+<h2>2. Des règles appliquées, pas lues</h2>
+<p>Une règle écrite dans un fichier est un conseil. Un crochet (hook) est un programme que Claude Code lance avant chaque commande, et qui peut la refuser. Nous avons transformé trois règles en crochets après qu'elles ont été enfreintes une fois chacune :</p>
+<ul>
+<li>pas de kill par motif de nom (<code>pkill -f</code>) : le motif attrape aussi le propre shell de l'agent ;</li>
+<li>pas de mot de passe de connexion écrit dans une commande ou un fichier : les secrets passent par un tuyau depuis le coffre (voir <a href="/secrets-pipe.html">les secrets par tuyau</a>) ;</li>
+<li>pas de modification des fichiers de la distribution, seulement de vos extensions.</li>
+</ul>
+<p class="note">Un crochet est un petit script qui lit la commande prévue en JSON sur son entrée et sort en erreur pour la refuser, avec un message que l'agent lit. Vingt lignes de Python suffisent.</p>
+
+<h2>3. Sur vos propres modèles : le junior</h2>
+<p>Claude Code parle l'API Messages d'Anthropic. Une passerelle comme LiteLLM la traduit vers vos modèles locaux. Trois variables suffisent :</p>
+<pre><code>export ANTHROPIC_BASE_URL=http://votre-passerelle:4000
+export ANTHROPIC_MODEL=coder-local            # le nom du modèle dans la passerelle
+export ANTHROPIC_SMALL_FAST_MODEL=coder-local # sinon il réclame un modèle cloud pour les petites tâches
+claude -p "Répare le test qui échoue dans tests/test_parse.py. Ne modifie que src/parse.py."</code></pre>
+<p>Avant de lancer, vérifiez que le modèle répond sur <code>$ANTHROPIC_BASE_URL/v1/messages</code> : un agent lancé sur une carte qui ne porte rien échoue au bout de plusieurs minutes, pas de quelques secondes.</p>
+
+<h2>4. Isoler le junior</h2>
+<p>Un agent local travaille sans que vous regardiez. Donnez-lui une copie jetable du dépôt, une liste fermée de fichiers, le message de commit et un test à lancer. Il ouvre une demande de fusion ; la CI tourne ; un humain, ou l'agent d'exploitation, lit avant de fusionner. Les tâches courtes reviennent propres ; les longues cassent par fatigue, pas par difficulté.</p>
+
+<h2>Pièges</h2>
+<p class="note">Oubliez <code>ANTHROPIC_SMALL_FAST_MODEL</code> et l'agent envoie ses petites tâches de fond à un nom de modèle cloud que la passerelle ne connaît pas : des erreurs qui ressemblent à une panne.</p>
+<p class="note">Ne collez jamais les identifiants de votre abonnement dans l'environnement du junior. Les deux rôles partagent un programme, pas une identité.</p>

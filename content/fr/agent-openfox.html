@@ -1,0 +1,28 @@
+<!-- {"title": "OpenFox : un agent de code fait pour les modèles locaux", "summary": "L'agent du quotidien : un assistant de code libre pensé pour des modèles qui tournent sur votre propre carte. L'installer, le brancher sur la passerelle, garder sa liste d'outils courte, et le tester de la seule façon qui compte : dans une vraie session.", "order": 46, "series": "agents", "level": "beginner", "time": "30 min", "requires": ["model-gateway"]} -->
+<p class="lead">La plupart des agents de code sont construits pour un modèle de pointe dans le cloud et tolèrent tout juste un modèle local. OpenFox fait l'inverse : un assistant libre (MIT) pensé d'abord pour des modèles servis sur votre machine. C'est l'agent qu'on ouvre pour le travail de tous les jours, sans coût au jeton.</p>
+
+{{diagram:agents}}
+
+<h2>1. Où il se place</h2>
+<p>OpenFox parle à un point d'accès compatible OpenAI. Ne le pointez pas sur un serveur de modèle : pointez-le sur votre <a href="/model-gateway.html">passerelle de modèles</a>. La passerelle sait quel modèle est chargé sur quelle carte ; OpenFox ne connaît qu'une adresse stable et un nom de modèle.</p>
+<pre><code>npm install -g openfox      # Node 20 ou plus récent
+openfox                     # premier lancement : choisir le fournisseur, saisir l'adresse de la passerelle</code></pre>
+<p class="note">Faites-le tourner sur la machine qui porte les cartes, et atteignez-le d'ailleurs (portable, téléphone) par votre réseau privé. L'agent lit et écrit alors les fichiers là où se trouve le travail, pas à travers un partage réseau.</p>
+
+<h2>2. Suivre le modèle réellement chargé</h2>
+<p>Sur un seul serveur maison, le modèle change : un gros pour le code le soir, un petit pendant qu'un jeu ou une génération d'images occupe la carte. Si OpenFox réclame un modèle qui n'est plus chargé, chaque requête échoue. Nous faisons tourner un petit suiveur qui lit le modèle déclaré par chaque carte et réécrit le modèle par défaut d'OpenFox en conséquence. La règle : la configuration de l'agent suit le matériel, jamais l'inverse.</p>
+
+<h2>3. Garder la liste d'outils courte</h2>
+<p>Chaque outil qu'un agent peut appeler est décrit dans chaque requête. Notre premier tour pesait 8 455 jetons avant que l'utilisateur ait tapé un mot, surtout des descriptions d'outils. Avec une fenêtre de 32k sur un petit modèle, c'est un quart de perdu. Ce qui a marché :</p>
+<ul>
+<li>un seul serveur d'outils (MCP) permanent au lieu de cinq ;</li>
+<li>des outils chargés à la demande, quand la tâche en a besoin ;</li>
+<li>un prompt système court : l'attention du modèle est la ressource rare.</li>
+</ul>
+
+<h2>4. Le tester là où il sert</h2>
+<p>Un modèle qui répond à un <code>curl</code> n'est pas un agent qui marche. La seule preuve, c'est une session dans OpenFox où le modèle appelle un outil (lit un fichier, lance un test) et se sert du résultat. Nous avons compté plusieurs « ça marche » qui ont échoué au premier vrai appel d'outil : le modèle répondait du texte mais ne produisait jamais d'appel d'outil valide au format de l'agent.</p>
+
+<h2>Pièges</h2>
+<p class="note">Ne laissez jamais deux processus écrire le fichier de configuration de l'agent en même temps. Deux enregistrements de serveurs d'outils en parallèle nous ont laissé un <code>config.json</code> corrompu et un agent qui ne démarrait plus. Enregistrez les outils un par un, et gardez une copie du fichier avant de le modifier.</p>
+<p class="note">Un petit modèle qui boucle sur la même commande n'est pas têtu, il a perdu son contexte. Raccourcissez la tâche, pas la patience : un fichier, un changement, un test.</p>
