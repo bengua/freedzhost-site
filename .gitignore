@@ -12,3 +12,4 @@ htmlcov/
 
 # uv sync writes it; a repository born from this template commits its own.
 uv.lock
+public/

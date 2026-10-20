@@ -1,0 +1,20 @@
+<!-- {"title": "Install the NVIDIA driver and check your card", "summary": "The one dependency everything else stands on, and how to know it really works.", "order": 3} -->
+<p class="lead">Nothing in this series is ours here: the driver comes from NVIDIA and your distribution. Install it the way your distribution recommends, then check it properly.</p>
+
+<h2>Install</h2>
+<ul>
+<li><strong>Ubuntu</strong>: <code>sudo ubuntu-drivers install</code>, then reboot.</li>
+<li><strong>Arch and derivatives</strong>: the <code>nvidia-open</code> package (recent cards), then reboot.</li>
+<li><strong>Fedora</strong>: the <code>akmod-nvidia</code> package from RPM Fusion.</li>
+<li><strong>Debian</strong>: the <code>nvidia-driver</code> package from the <code>non-free</code> component.</li>
+</ul>
+<p>Your distribution's documentation is the reference: drivers move faster than any tutorial.</p>
+
+<h2>Check</h2>
+<pre><code>nvidia-smi</code></pre>
+<p>You should see your card, its memory, and a CUDA version in the top right corner. If the command is missing or says it cannot talk to the driver, stop here: nothing later will work.</p>
+<pre><code>nvidia-smi --query-gpu=name,memory.total,memory.used --format=csv</code></pre>
+<p>Write down <code>memory.total</code>: it is the number that decides which models you can run.</p>
+
+<h2>A trap we paid for</h2>
+<p class="note">A desktop session already uses some VRAM (a few hundred MB). On a 16 GB card, plan for about 15 GB usable, not 16.</p>

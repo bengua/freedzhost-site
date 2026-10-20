@@ -1,0 +1,32 @@
+<!-- {"title": "Your first local model with llama.cpp", "summary": "Download an open model, serve it on your GPU, talk to it with the same API as the big clouds.", "order": 5} -->
+<p class="lead">llama.cpp is the open-source engine that runs most local models. Its server speaks the same API as the large cloud providers, so most tools can use it without changes.</p>
+
+<h2>1. Download a model</h2>
+<p>Qwen3 8B, compressed to 4 bits (Q4_K_M), 5.0 GB: it fits on an 8 GB card.</p>
+<pre><code>mkdir -p ~/models
+curl -L -o ~/models/Qwen3-8B-Q4_K_M.gguf \
+  https://huggingface.co/unsloth/Qwen3-8B-GGUF/resolve/main/Qwen3-8B-Q4_K_M.gguf</code></pre>
+
+<h2>2. Serve it</h2>
+<pre><code>docker run --rm --gpus all \
+  -p 127.0.0.1:8080:8080 \
+  -v ~/models:/models \
+  ghcr.io/ggml-org/llama.cpp:server-cuda \
+  -m /models/Qwen3-8B-Q4_K_M.gguf \
+  -ngl 99 -c 8192 -fa on \
+  --host 0.0.0.0 --port 8080</code></pre>
+<ul>
+<li><code>-ngl 99</code>: put every layer on the GPU.</li>
+<li><code>-c 8192</code>: the context, how much text the model can keep in mind at once. More context, more VRAM.</li>
+<li><code>-fa on</code>: flash attention, faster and lighter on memory.</li>
+<li><code>-p 127.0.0.1:8080:8080</code>: reachable from this machine only. Do not open it to your network before you have put something in front of it.</li>
+</ul>
+
+<h2>3. Talk to it</h2>
+<pre><code>curl http://127.0.0.1:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"messages": [{"role": "user", "content": "Say hello in one sentence."}]}'</code></pre>
+<p>Or open <code>http://127.0.0.1:8080</code> in a browser: the server ships a small chat page.</p>
+
+<h2>A trap we measured</h2>
+<p class="note">To save memory you can compress the context cache with <code>-ctk q8_0 -ctv q8_0</code>. Do not go further on the V side: with <code>-ctv q4_0</code>, flash attention silently switches off and reading a long prompt became <strong>21 times slower</strong> on our card (62.7 instead of 1,330 tokens per second), while generation speed did not change. A test that only measures generation would never see it.</p>
