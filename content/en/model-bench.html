@@ -1,0 +1,39 @@
+<!-- {"title": "Which local model for which job: a bench that measures real work", "summary": "Benchmarks favour the fast model; real work favoured the reliable one. A bench where code judges every answer, then each model works for real on a small repository. What it showed: small and well-framed beats big and vague, and four settings matter more than the model.", "order": 65, "series": "ai", "level": "intermediate", "time": "1 h", "requires": ["model-gateway", "agent-openfox"]} -->
+<p class="lead">Every week a new model tops a leaderboard. On your card, with your agent, it may write nothing usable. We stopped trusting scores we did not produce, and built a bench of our own: short tests judged by code, then real work judged by the tests that run afterwards. The second half changed our choices.</p>
+
+<p class="proof"><strong>What you get.</strong> A way to pick the model for each job from facts, on your own hardware, and four settings that turned "useless" models into reliable ones. Our bench restores the machine as it found it and never interrupts a game.</p>
+
+<h2>1. Two halves: tests, then real work</h2>
+<ul>
+<li><strong>Capabilities judged by code</strong>: a tool really called, a JSON that validates, an answer that matches, a program whose tests pass, a needle found from 4k to 128k tokens, a colour read from an image. No model judges another.</li>
+<li><strong>Real work</strong>: the model gets a small repository and a task in an agent session, and the tests that run afterwards decide.</li>
+</ul>
+<p class="note">Generated code runs in a throwaway interpreter, with no environment and capped processor and memory. A bench must not be the thing that breaks your machine.</p>
+
+<h2>2. What it showed</h2>
+<table>
+<tr><th>Model</th><th>Tests</th><th>Speed</th><th>Real work</th></tr>
+<tr><td>27B, Q6</td><td>8/8</td><td>28.6 tokens/s</td><td>3 timeouts, zero lines</td></tr>
+<tr><td>9B, Q8</td><td>7/8</td><td>61.7 tokens/s</td><td>2 clean pull requests</td></tr>
+<tr><td>4B, Q8</td><td>8/8</td><td>139.8 tokens/s</td><td>1 pull request, 342 lines, 2 bugs</td></tr>
+</table>
+<p>The tests favoured the 4B; real work favoured the 9B. On long files the 4B lost track of its own function names. The 27B produced nothing usable. <strong>Small and well-framed beats big and vague.</strong></p>
+
+<h2>3. Four settings that matter more than the model</h2>
+<ol>
+<li><strong>Turn thinking off</strong> on distilled models (<code>enable_thinking: false</code>). Left on, they burned 2,500 tokens without writing a line; off, the same correct code came out in 2.5 s. Their template ignores "low" or "medium": it is on or off.</li>
+<li><strong>An f16 attention cache and a 128k window</strong>: the 9B then found a needle in 101,050 tokens, as well as the 27B, in 13.1 GB.</li>
+<li><strong>Declare tools in the model's own style.</strong> Some models pick the right function from a JSON schema but never fill the values; declared as Python functions, the same model scores 5/5.</li>
+<li><strong>Measure with the exact settings</strong> the agent will use, not the demo's.</li>
+</ol>
+
+<h2>4. Who was set aside, and why</h2>
+<ul>
+<li>A code model that never emitted a tool call in the agent's format, writing it as prose in a code block.</li>
+<li>A faster variant that lost a reasoning test: 40 % faster is not worth a wrong answer.</li>
+<li>Quantizations that never loaded: deleted, 26 GB recovered.</li>
+</ul>
+
+<h2>Traps</h2>
+<p class="note">Test each model in its own language. Tested with JSON tools, a small model looked unable to call anything; with Python tools, it was perfect. A verdict in the wrong language is a verdict on your harness.</p>
+<p class="note">Never evict a game to run a bench: our bench skips the card a game is using, and puts every model back where it was.</p>

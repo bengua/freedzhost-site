@@ -1,0 +1,39 @@
+<!-- {"title": "Quel modèle local pour quel travail : un banc qui mesure le vrai travail", "summary": "Les bancs favorisent le modèle rapide ; le vrai travail a favorisé le fiable. Un banc où le code juge chaque réponse, puis où chaque modèle travaille pour de vrai sur un petit dépôt. Ce qu'il a montré : petit et cadré bat gros et vague, et quatre réglages comptent plus que le modèle.", "order": 65, "series": "ai", "level": "intermediate", "time": "1 h", "requires": ["model-gateway", "agent-openfox"]} -->
+<p class="lead">Chaque semaine, un nouveau modèle domine un classement. Sur votre carte, avec votre agent, il peut n'écrire rien d'utilisable. Nous avons cessé de croire des scores que nous n'avions pas produits, et construit notre propre banc : des tests courts jugés par du code, puis du vrai travail jugé par les tests qui tournent ensuite. C'est la seconde moitié qui a changé nos choix.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Une façon de choisir le modèle de chaque tâche à partir de faits, sur votre matériel, et quatre réglages qui ont rendu fiables des modèles jugés « inutiles ». Notre banc remet la machine dans l'état où il l'a trouvée et n'interrompt jamais un jeu.</p>
+
+<h2>1. Deux moitiés : des tests, puis du vrai travail</h2>
+<ul>
+<li><strong>Des capacités jugées par du code</strong> : un outil vraiment appelé, un JSON qui valide, une réponse qui correspond, un programme dont les tests passent, une aiguille retrouvée de 4k à 128k jetons, une couleur lue sur une image. Aucun modèle n'en juge un autre.</li>
+<li><strong>Du vrai travail</strong> : le modèle reçoit un petit dépôt et une tâche dans une session d'agent, et les tests qui tournent ensuite tranchent.</li>
+</ul>
+<p class="note">Le code généré tourne dans un interpréteur jetable, sans environnement, processeur et mémoire plafonnés. Un banc ne doit pas être ce qui casse votre machine.</p>
+
+<h2>2. Ce qu'il a montré</h2>
+<table>
+<tr><th>Modèle</th><th>Tests</th><th>Vitesse</th><th>Vrai travail</th></tr>
+<tr><td>27B, Q6</td><td>8/8</td><td>28,6 jetons/s</td><td>3 délais dépassés, zéro ligne</td></tr>
+<tr><td>9B, Q8</td><td>7/8</td><td>61,7 jetons/s</td><td>2 demandes de fusion propres</td></tr>
+<tr><td>4B, Q8</td><td>8/8</td><td>139,8 jetons/s</td><td>1 demande de fusion, 342 lignes, 2 bugs</td></tr>
+</table>
+<p>Les tests favorisaient le 4B ; le vrai travail a favorisé le 9B. Sur les fichiers longs, le 4B perdait la trace de ses propres noms de fonctions. Le 27B n'a rien produit d'utilisable. <strong>Petit et cadré bat gros et vague.</strong></p>
+
+<h2>3. Quatre réglages qui comptent plus que le modèle</h2>
+<ol>
+<li><strong>Coupez la réflexion</strong> sur les modèles distillés (<code>enable_thinking: false</code>). Laissée active, elle a brûlé 2 500 jetons sans écrire une ligne ; coupée, le même code juste sortait en 2,5 s. Leur gabarit ignore « low » ou « medium » : c'est allumé ou éteint.</li>
+<li><strong>Un cache d'attention en f16 et une fenêtre de 128k</strong> : le 9B retrouvait alors une aiguille dans 101 050 jetons, aussi bien que le 27B, en 13,1 Go.</li>
+<li><strong>Déclarez les outils dans le style du modèle.</strong> Certains modèles choisissent la bonne fonction depuis un schéma JSON mais n'en remplissent jamais les valeurs ; déclarées comme des fonctions Python, le même modèle fait 5/5.</li>
+<li><strong>Mesurez avec les réglages exacts</strong> que l'agent utilisera, pas ceux de la démo.</li>
+</ol>
+
+<h2>4. Qui a été écarté, et pourquoi</h2>
+<ul>
+<li>Un modèle de code qui n'émettait jamais d'appel d'outil au format de l'agent, et l'écrivait en prose dans un bloc de code.</li>
+<li>Une variante plus rapide qui ratait un test de raisonnement : 40 % plus vite ne vaut pas une mauvaise réponse.</li>
+<li>Des quantifications qui ne se chargeaient jamais : supprimées, 26 Go récupérés.</li>
+</ul>
+
+<h2>Pièges</h2>
+<p class="note">Testez chaque modèle dans sa langue. Testé avec des outils en JSON, un petit modèle semblait incapable d'appeler quoi que ce soit ; avec des outils en Python, il était parfait. Un verdict dans la mauvaise langue est un verdict sur votre harnais.</p>
+<p class="note">N'expulsez jamais un jeu pour lancer un banc : le nôtre saute la carte qu'un jeu utilise, et remet chaque modèle à sa place.</p>

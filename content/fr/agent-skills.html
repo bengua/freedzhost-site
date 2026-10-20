@@ -1,0 +1,36 @@
+<!-- {"title": "Les skills : apprendre une procédure à votre agent, une fois pour toutes", "summary": "Une skill, c'est un dossier avec un fichier Markdown : quand s'en servir, et comment. L'agent ne la charge que quand la tâche l'appelle, donc cent skills ne coûtent rien tant qu'on n'en a pas besoin. Celles que nous utilisons chaque jour, de la mise en forme des réponses pour un lecteur TDAH à une revue de sécurité complète, et comment écrire la vôtre.", "order": 67, "series": "agents", "level": "beginner", "time": "30 min", "requires": ["agent-claude-code"]} -->
+<p class="lead">Vous expliquez la même procédure à votre agent pour la cinquième fois : comment diagnostiquer un plantage, comment relire une modification sous l'angle sécurité, comment présenter ses réponses pour vous. Une skill l'écrit une fois. L'agent lit sa description d'une ligne au démarrage, et ne charge la procédure complète que quand une tâche correspond.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Des procédures qui s'appliquent toutes seules, sans coût permanent : retirer une skill et trois sous-agents n'a pas fait bouger notre plancher de contexte mesuré d'un seul jeton. Une trentaine de skills installées ici, utilisées tous les jours.</p>
+
+<h2>1. Ce qu'est une skill</h2>
+<pre><code>~/.claude/skills/diagnose-crash/
+├── SKILL.md          # nom, description (le déclencheur), puis la procédure
+├── reporting.md      # pages en plus, lues seulement si besoin
+└── scripts/          # aides facultatives que la procédure appelle</code></pre>
+<pre><code>---
+name: diagnose-crash
+description: >
+  Diagnose why a program crashed on this machine, from a systemd-coredump
+  core dump. Use when a process segfaulted or aborted, or when asked why
+  an application crashed. Triggers: crash, segfault, core dump.
+---
+# Diagnosing a crash
+Work from evidence. Start with `coredumpctl info &lt;pid&gt;` ...</code></pre>
+<p>C'est la <strong>description</strong> qui décide quand la skill se déclenche : dites ce qu'elle fait et les mots que contiendra une demande. Le corps est la procédure, écrite pour un collègue.</p>
+
+<h2>2. Celles que nous utilisons</h2>
+<ul>
+<li><strong>Des réponses taillées pour un lecteur TDAH</strong> : l'action suivante d'abord, des étapes numérotées, l'état rappelé à chaque tour, une chose concrète à faire à la fin. Active dans chaque session.</li>
+<li><strong>Le diagnostic de plantage</strong> à partir d'un core dump : les faits d'abord, l'épuisement des ressources écarté avant d'accuser le programme.</li>
+<li><strong>La rétro-ingénierie avec preuves</strong> (voir <a href="/fr/agent-rea.html">REA</a>) : analyser, prouver, questionner, puis coder.</li>
+<li><strong>Un harnais de revue de sécurité</strong> : une skill d'aiguillage, une chaîne de revue, et une base de connaissances par classe de faille (injection, XSS, SSRF, traversée de chemin, secrets, situations de concurrence…), chargée seulement pour la classe recherchée.</li>
+<li><strong>Vidéo et schémas</strong> : des skills qui transforment un brief en composition animée ou en schéma d'architecture propre, avec le style maison écrit une fois.</li>
+</ul>
+
+<h2>3. Skill ou outil ?</h2>
+<p>Une procédure à plusieurs bonnes réponses (comment découper un projet, comment formuler une réponse) est une skill : le modèle exerce son jugement. Une vérification à une seule bonne réponse (ce fichier valide-t-il, ce test passe-t-il) est un outil : un programme qui répond pareil à chaque fois. Ne demandez pas un verdict à une skill (voir <a href="/fr/agent-bmad.html">BMAD avec de petits modèles</a>).</p>
+
+<h2>Pièges</h2>
+<p class="note">Une description vague ne se déclenche jamais, une description gourmande se déclenche partout. Écrivez les déclencheurs comme vous formulez vraiment vos demandes, et testez avec trois vraies.</p>
+<p class="note">Lisez une skill communautaire avant de l'installer, comme n'importe quel programme : elle peut dire à l'agent de lancer des commandes.</p>
