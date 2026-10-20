@@ -373,10 +373,35 @@ def wake(lang):
     return figure("wake", 760, 175, L["cap"], body)
 
 
+# ── homelab 4: three answers from one DNS ───────────────────────────────────
+def dns(lang):
+    L = {
+        "en": labels(cap="Every device asks the same DNS. An ad or tracker gets nothing; your own domain gets the proxy's address on the local network, so internal traffic stays home and stays filtered; everything else goes out encrypted.",
+                     dev="Every device", dsub="via the box's DHCP", ag="AdGuard Home", asub="filters, rewrites, caches",
+                     ad="ads.tracker.example", adr="blocked: no answer", own="cloud.yourdomain", ownr="→ proxy, local address",
+                     rest="anything else", restr="→ upstream, encrypted (DoH)", up="Upstream resolver"),
+        "fr": labels(cap="Chaque appareil interroge le même DNS. Une pub ou un traceur n'obtient rien ; votre propre domaine obtient l'adresse locale du proxy, donc le trafic interne reste à la maison et reste filtré ; tout le reste sort chiffré.",
+                     dev="Chaque appareil", dsub="via le DHCP de la box", ag="AdGuard Home", asub="filtre, réécrit, met en cache",
+                     ad="pub.traceur.example", adr="bloqué : pas de réponse", own="cloud.votredomaine", ownr="→ proxy, adresse locale",
+                     rest="tout le reste", restr="→ résolveur amont, chiffré (DoH)", up="Résolveur amont"),
+    }[lang]
+    body = box(20, 110, 150, 54, L["dev"], L["dsub"])
+    body += box(250, 110, 170, 54, L["ag"], L["asub"], stroke=ACCENT)
+    body += arrow(170, 137, 248, 137)
+    rows = [(L["ad"], L["adr"], BAD, "bad"), (L["own"], L["ownr"], GOOD, "good"), (L["rest"], L["restr"], MUTED, "a")]
+    for i, (q, a, c, m) in enumerate(rows):
+        y = 30 + i * 90
+        body += arrow(420, 137, 500, y + 20, None, c, marker=m)
+        body += t(510, y + 16, q, 12, "start", weight=600)
+        body += t(510, y + 34, a, 11, "start", c)
+    return figure("dns", 760, 290, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
-            "gpu": gpu_split, "stream": stream, "wake": wake}
+            "gpu": gpu_split, "stream": stream, "wake": wake,
+            "dns": dns}
 
 
 def render(name, lang):
