@@ -1,0 +1,28 @@
+<!-- {"title": "Homelab 5 : des sauvegardes qui survivent à une attaque de votre serveur", "summary": "Deux copies, deux machines, et le détail qui compte le plus : la seconde copie est tirée avec une clé en lecture seule, jamais poussée.", "order": 13} -->
+<p class="lead">Une sauvegarde vous protège d'un disque mort. Une bonne sauvegarde vous protège aussi de votre propre serveur qui se retourne contre vous : une erreur lancée en root, un rançongiciel, un attaquant. Le conseil habituel, c'est « garder une copie ailleurs ». Le détail qui le rend efficace, c'est le <strong>sens</strong> : la seconde copie doit être tirée par une autre machine, pas poussée par le serveur.</p>
+
+{{diagram:backups}}
+
+<h2>1. Copie 1 : chaque nuit, sur un autre disque</h2>
+<p>Dans Proxmox (Homelab 1), <strong>Datacenter → Backup → Add</strong> : chaque invité, chaque nuit, vers un stockage sur un disque séparé. Notre rétention garde 7 points quotidiens et 4 hebdomadaires :</p>
+<pre><code>keep-daily=7, keep-weekly=4</code></pre>
+<p>Nous gardions trois points en tout : un problème remarqué trois jours trop tard, et chaque point l'aurait contenu. Comptez combien de jours il vous faudrait pour remarquer un problème, puis doublez.</p>
+<p class="note">Un disque externe survit à une carte mère morte. Mais il reste monté et écrit par le serveur : tout ce qui détruit à travers le serveur l'atteint aussi. C'est à ça que sert la copie 2.</p>
+
+<h2>2. Copie 2 : tirée avec une clé qui ne sait que lire</h2>
+<p>Sur le serveur, créez un utilisateur non privilégié dont la clé SSH ne sait faire qu'une chose : lire le dossier des sauvegardes. Dans son <code>~/.ssh/authorized_keys</code>, une ligne :</p>
+<pre><code>command="/usr/bin/rrsync -ro /chemin/des/sauvegardes",restrict ssh-ed25519 AAAA… copie2</code></pre>
+<p><code>rrsync</code> est fourni avec rsync ; <code>-ro</code> le met en lecture seule et enferme la clé dans ce dossier ; <code>restrict</code> retire tout le reste (shell, redirections). Puis, sur l'<strong>autre</strong> machine, chaque nuit après la copie 1 :</p>
+<pre><code>rsync -a --delete \
+  --backup --backup-dir=../quarantaine/$(date +%F) \
+  sauvegarde@votre-serveur:./ /chemin/de/la/copie2/</code></pre>
+<p><code>--delete</code> garde un miroir exact ; <code>--backup-dir</code> déplace tout ce qui est supprimé ou remplacé dans une quarantaine datée au lieu de le perdre. Gardez une semaine de quarantaine.</p>
+<p>Vérifiez la clé comme le ferait un attaquant, quatre tests : ouvrir un shell doit être refusé, lire doit marcher, écrire doit être refusé, s'échapper avec <code>..</code> doit être refusé.</p>
+
+<h2>3. Restaurer, pour de vrai</h2>
+<p>Une fois par mois, restaurez un invité depuis la copie 2 sous un nouvel identifiant inutilisé, sur une machine de test, et démarrez-le. Une sauvegarde jamais restaurée est un espoir, pas une sauvegarde.</p>
+
+<h2>Pièges</h2>
+<p class="note">L'utilisateur de sauvegarde doit pouvoir lire les archives : vérifiez leurs droits après la première nuit, sinon la copie 2 reste vide sans erreur.</p>
+<p class="note">Donnez un plancher à la machine qui tire : si l'espace libre passe sous un seuil, elle refuse de tourner et le dit. Un disque plein au milieu d'une copie laisse un miroir à moitié écrit.</p>
+<p class="note">Une copie ne vaut que l'alarme qui dit qu'elle a échoué. Faites remonter le résultat de la tâche nocturne là où vous regardez vraiment.</p>

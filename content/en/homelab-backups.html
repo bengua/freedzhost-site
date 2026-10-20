@@ -1,0 +1,28 @@
+<!-- {"title": "Homelab 5: backups that survive an attack on your server", "summary": "Two copies, two machines, and the detail that matters most: the second copy is pulled with a read-only key, never pushed.", "order": 13} -->
+<p class="lead">A backup protects you from a dead disk. A good backup also protects you from your own server turning against you: a mistake run as root, ransomware, an attacker. The usual advice is "keep a copy somewhere else". The detail that makes it work is the <strong>direction</strong>: the second copy must be pulled by another machine, not pushed by the server.</p>
+
+{{diagram:backups}}
+
+<h2>1. Copy 1: every night, on another disk</h2>
+<p>In Proxmox (Homelab 1), <strong>Datacenter → Backup → Add</strong>: every guest, every night, to a storage on a separate disk. Our retention keeps 7 daily and 4 weekly points:</p>
+<pre><code>keep-daily=7, keep-weekly=4</code></pre>
+<p>We used to keep three points in total: a problem noticed three days late and every point would have held it. Count how many days you would need to notice a problem, then double it.</p>
+<p class="note">An external disk survives a dead motherboard. But it stays mounted and written by the server: anything that destroys through the server reaches it too. That is what copy 2 is for.</p>
+
+<h2>2. Copy 2: pulled with a key that can only read</h2>
+<p>On the server, create an unprivileged user whose SSH key can do one thing only: read the backup folder. In its <code>~/.ssh/authorized_keys</code>, one line:</p>
+<pre><code>command="/usr/bin/rrsync -ro /path/to/backups",restrict ssh-ed25519 AAAA… copy2</code></pre>
+<p><code>rrsync</code> ships with rsync; <code>-ro</code> makes it read-only and confines the key to that folder; <code>restrict</code> removes everything else (shell, forwarding). Then, on the <strong>other</strong> machine, every night after copy 1:</p>
+<pre><code>rsync -a --delete \
+  --backup --backup-dir=../quarantine/$(date +%F) \
+  backup@your-server:./ /path/to/copy2/</code></pre>
+<p><code>--delete</code> keeps an exact mirror; <code>--backup-dir</code> moves anything deleted or replaced into a dated quarantine instead of losing it. Keep a week of quarantine.</p>
+<p>Check the key the way an attacker would, four tests: opening a shell must be refused, reading must work, writing must be refused, escaping with <code>..</code> must be refused.</p>
+
+<h2>3. Restore, for real</h2>
+<p>Once a month, restore one guest from copy 2 into a new, unused ID on a test machine, and start it. A backup that has never been restored is a hope, not a backup.</p>
+
+<h2>Traps</h2>
+<p class="note">The backup user must be able to read the archives: check their permissions after the first night, or copy 2 stays empty without an error.</p>
+<p class="note">Give the pulling machine a floor: if free space drops under a threshold, refuse to run and say so. A full disk in the middle of a copy leaves a half-written mirror.</p>
+<p class="note">A copy is only as good as the alarm that says it failed. Make the nightly job report its result somewhere you actually look.</p>
