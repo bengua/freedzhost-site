@@ -1,0 +1,34 @@
+<!-- {"title": "Your non-Steam PC games on Linux: Lutris and Ubisoft Connect", "summary": "Steam is not the only shop. Lutris installs the Ubisoft, EA, GOG and Epic launchers inside Proton, on the disk of your choice, and they run like on Windows. Ours holds Assassin's Creed Valhalla, Immortals Fenyx Rising and Star Wars Outlaws, ready to play from the sofa.", "order": 60, "series": "ai", "level": "beginner", "time": "1 h + downloads", "requires": ["headless-gaming-node"]} -->
+<p class="lead">Moving to Linux, the question always comes: "and my games bought elsewhere than Steam?" They come back from your accounts, not from your old disk. Lutris installs each publisher's launcher inside its own Windows environment, run by Proton, the same compatibility layer Steam uses. You sign in, you download, you play.</p>
+
+<p class="proof"><strong>What you get.</strong> Ubisoft Connect running on Linux in one installer, with three large games installed (Assassin's Creed Valhalla, Immortals Fenyx Rising, Star Wars Outlaws: 165 GB in all) and more than thirteen hours played.</p>
+
+<h2>1. Lutris, not Heroic, for Ubisoft and EA</h2>
+<p>Heroic is excellent for GOG, Epic and Amazon, but it does not handle Ubisoft or EA. Lutris covers all of them, with community installers that do the fiddly steps for you. Install it with the pieces Wine needs to run Windows installers and the game mode helper:</p>
+<pre><code># Arch-based (CachyOS, EndeavourOS); same names on most distributions
+sudo pacman -S lutris umu-launcher wine-mono wine-gecko gamemode lib32-gamemode</code></pre>
+<p><code>umu-launcher</code> runs Windows programs through Proton outside Steam, with the same fixes Steam applies.</p>
+
+<h2>2. Put the library where there is room</h2>
+<p>One game weighs 30 to 70 GB. Before installing anything, point Lutris at a disk with space, in <em>Preferences → System → Default installation folder</em>, which writes:</p>
+<pre><code># ~/.config/lutris/system.yml
+system:
+  game_path: /mnt/games</code></pre>
+
+<h2>3. Install the launcher</h2>
+<p>In Lutris, search "Ubisoft Connect", pick the installer marked <em>Latest</em>, and let it run. Here is what it does, so you know what to check if it fails:</p>
+<ol>
+<li>creates a 64-bit Windows prefix (its own <code>C:</code> drive) in your library folder;</li>
+<li>adds two Windows components games expect: <code>d3dcompiler_43</code> and the core fonts;</li>
+<li>downloads the official installer and runs it silently;</li>
+<li>writes a settings file that <strong>turns off the launcher's overlay</strong>, a frequent source of crashes and stutters under Proton.</li>
+</ol>
+<p>Sign in to your account in the launcher, then install your games from it, as on Windows. They land inside the prefix, on your big disk.</p>
+
+<h2>4. Play from the sofa</h2>
+<p>The tower has no screen here: games are streamed to an Android handheld with Moonlight (see <a href="/headless-gaming-node.html">the gaming PC that became an AI server</a>). Launch Lutris from the streamed desktop, or add the launcher to the stream's application list.</p>
+
+<h2>Traps</h2>
+<p class="note">Nothing to recover from an old Windows disk: launchers redownload from your account. We looked: 278 GB of old backups held emulators and tools, not a single PC game.</p>
+<p class="note">Opening Lutris remotely? Never through <code>systemd-run --user --collect</code>: closing Lutris then killed the launcher, the running game and an 84 GB download half-way. Start it detached with the session's environment (see <a href="/ssh-for-agents.html">SSH for an agent workstation</a>).</p>
+<p class="note">On a machine that also serves AI models, a game needs its card back. Let the game take a card only while you play (see <a href="/gpu-for-ai.html">free your cards for AI, and still play</a>).</p>
