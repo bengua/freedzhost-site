@@ -129,3 +129,10 @@ nav a.menu-btn { margin-left: 0; color: var(--text); }
 .pager small { display: block; color: var(--muted); }
 .pager .next { grid-column: 2; text-align: right; }
 @media (max-width: 560px) { .pager { grid-template-columns: 1fr; } .pager .next { grid-column: 1; } }
+
+/* FoxBot, one pose per series: next to series headings, in the drawer, and as the guide of an article. */
+h3.series { display: flex; align-items: center; gap: 12px; }
+h3.series .fox { flex: none; }
+.drawer summary .fox { vertical-align: middle; margin-right: 6px; }
+article > .guide { float: right; margin: -6px 0 8px 16px; shape-outside: circle(50%); }
+@media (max-width: 560px) { article > .guide { width: 64px; height: 64px; } }

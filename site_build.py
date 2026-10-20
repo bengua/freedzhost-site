@@ -73,6 +73,17 @@ def fiche(lang, meta, pages):
     return f'<div class="fiche level-{meta["level"]}">' + "".join(parts) + "</div>\n"
 
 
+FOXES = {"start", "ai", "n8n", "agents", "create", "desk", "homelab"}
+
+
+def fox(series, size, cls="fox"):
+    """FoxBot, the mascot, in the pose of a series: decorative, so an empty alt."""
+    if series not in FOXES:
+        return ""
+    return (f'<img class="{cls}" src="/media/fox/{series}.webp" alt="" width="{size}" height="{size}" '
+            f'loading="lazy" decoding="async">')
+
+
 QUICK = ("index", "findings", "workshop", "faq", "inspirations", "help")
 CURRENT = ' aria-current="page"'
 
@@ -93,7 +104,7 @@ def drawer(lang, slug, pages, series_members):
             f'<li><a href="{url(lang, a)}"{CURRENT if a == slug else ""}>'
             f'{html.escape(pages[a][0]["title"])}</a></li>' for a in members)
         is_open = " open" if slug in members else ""
-        groups.append(f'<details{is_open}><summary>{html.escape(heading)} <small>{len(members)}</small></summary>'
+        groups.append(f'<details{is_open}><summary>{fox(key, 22)}{html.escape(heading)} <small>{len(members)}</small></summary>'
                       f'<ul>{items}</ul></details>')
     return (f'<nav id="menu" class="drawer" aria-label="{html.escape(t["drawer"])}">'
             f'<a class="close" href="#">{t["close"]} ✕</a>'
@@ -220,7 +231,7 @@ def build(out):
                 f'<span>{html.escape(pages[a][0]["summary"])}</span></a></li>'
                 for a in members
             )
-            groups.append(f'<h3 class="series">{html.escape(heading)}</h3>\n<ul class="cards">\n{items}\n</ul>')
+            groups.append(f'<h3 class="series">{fox(key, 56)}{html.escape(heading)}</h3>\n<ul class="cards">\n{items}\n</ul>')
         orphans = [a for a in articles if pages[a][0].get("series") not in LANGS[lang]["series"]]
         if orphans:
             raise ValueError(f"{lang}: pages without a known series: {orphans}")
@@ -232,7 +243,7 @@ def build(out):
                 body = body.replace("{{articles}}", cards)
             elif not meta.get("nav"):  # a nav page brings its own layout
                 members = series_members.get(meta.get("series"), [])
-                body = (f'<article>\n<h1>{html.escape(meta["title"])}</h1>\n{fiche(lang, meta, pages)}{body}'
+                body = (f'<article>\n{fox(meta.get("series", ""), 88, "guide")}<h1>{html.escape(meta["title"])}</h1>\n{fiche(lang, meta, pages)}{body}'
                         f'{pager(lang, slug, pages, members)}</article>')
             target = out / LANGS[lang]["prefix"] / ("index.html" if slug == "index" else f"{slug}.html")
             target.parent.mkdir(parents=True, exist_ok=True)
