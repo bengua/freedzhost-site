@@ -19,9 +19,9 @@ ROOT = pathlib.Path(__file__).parent
 SITE = "https://freedzhost.cloud"
 LANGS = {
     "en": {"prefix": "", "name": "English", "home": "Home", "read": "Read",
-           "articles": "Articles", "switch": "Français", "help": "Need help?",
+           "articles": "Articles", "switch": "Français", "help": "Need help?", "support": "Support",
            "menu": "Menu", "close": "Close", "prev": "Previous", "next": "Next", "drawer": "All tutorials",
-           "quick": {"index": "Home", "findings": "Our findings", "workshop": "The workshop", "faq": "FAQ", "inspirations": "Inspirations", "help": "Need help?"},
+           "quick": {"index": "Home", "support": "Support the project", "findings": "Our findings", "workshop": "The workshop", "faq": "FAQ", "inspirations": "Inspirations", "help": "Need help?"},
            "levels": {"read": "Reading", "beginner": "Beginner", "intermediate": "Intermediate", "advanced": "Advanced"},
            "fiche": {"level": "Level", "time": "Estimated time", "before": "Read first", "words": "A word you don't know?",
                      "glossary": "Glossary"},
@@ -31,9 +31,9 @@ LANGS = {
            "footer":
            "Content under CC BY-SA 4.0. No trackers, no cookies, no third-party fonts."},
     "fr": {"prefix": "fr/", "name": "Français", "home": "Accueil", "read": "Lire",
-           "articles": "Articles", "switch": "English", "help": "Besoin d'aide ?",
+           "articles": "Articles", "switch": "English", "help": "Besoin d'aide ?", "support": "Soutenir",
            "menu": "Menu", "close": "Fermer", "prev": "Précédent", "next": "Suivant", "drawer": "Tous les tutos",
-           "quick": {"index": "Accueil", "findings": "Nos constats", "workshop": "L'atelier", "faq": "FAQ", "inspirations": "Inspirations", "help": "Besoin d'aide ?"},
+           "quick": {"index": "Accueil", "support": "Soutenir le projet", "findings": "Nos constats", "workshop": "L'atelier", "faq": "FAQ", "inspirations": "Inspirations", "help": "Besoin d'aide ?"},
            "levels": {"read": "Lecture", "beginner": "Débutant", "intermediate": "Intermédiaire", "advanced": "Avancé"},
            "fiche": {"level": "Niveau", "time": "Temps estimé", "before": "À lire avant", "words": "Un mot inconnu ?",
                      "glossary": "Lexique"},
@@ -84,7 +84,7 @@ def fox(series, size, cls="fox"):
             f'loading="lazy" decoding="async">')
 
 
-QUICK = ("index", "findings", "workshop", "faq", "inspirations", "help")
+QUICK = ("index", "support", "findings", "workshop", "faq", "inspirations", "help")
 CURRENT = ' aria-current="page"'
 
 
@@ -164,6 +164,7 @@ def layout(lang, slug, title, body, description, side=""):
 <header class="top">
   <a class="brand" href="{url(lang, 'index')}">freedzhost<span>.cloud</span></a>
   <nav><a class="menu-btn" href="#menu">☰ {t['menu']}</a><a href="{url(lang, 'index')}">{t['home']}</a>
+  <a class="support" href="{url(lang, 'support')}">{t['support']}</a>
   <a class="help" href="{url(lang, 'help')}">{t['help']}</a>
   <a class="lang" href="{url(other, slug)}" hreflang="{other}">{LANGS[other]['name']}</a></nav>
 </header>

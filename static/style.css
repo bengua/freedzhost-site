@@ -136,3 +136,6 @@ h3.series .fox { flex: none; }
 .drawer summary .fox { vertical-align: middle; margin-right: 6px; }
 article > .guide { float: right; margin: -6px 0 8px 16px; shape-outside: circle(50%); }
 @media (max-width: 560px) { article > .guide { width: 64px; height: 64px; } }
+nav a.support { color: #7ee2a8; }
+.give { display: inline-block; margin: 8px 0 4px; padding: 12px 22px; border-radius: 10px; background: var(--accent); color: #141318; font-weight: 700; text-decoration: none; }
+.give:hover { filter: brightness(1.08); }
