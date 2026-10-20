@@ -20,6 +20,9 @@ SITE = "https://freedzhost.cloud"
 LANGS = {
     "en": {"prefix": "", "name": "English", "home": "Home", "read": "Read",
            "articles": "Articles", "switch": "Français",
+           "levels": {"read": "Reading", "beginner": "Beginner", "intermediate": "Intermediate", "advanced": "Advanced"},
+           "fiche": {"level": "Level", "time": "Estimated time", "before": "Read first", "words": "A word you don't know?",
+                     "glossary": "Glossary"},
            "series": {"start": "Start here", "ai": "Local AI", "n8n": "Local agentic automation with n8n", "homelab": "Homelab: replace the subscriptions"},
            "description": "Free tutorials to run your own AI agent swarm and homelab at home: hardware, local models, and the services that replace your subscriptions.",
            "locale": "en_US", "feed": "New articles",
@@ -27,6 +30,9 @@ LANGS = {
            "Content under CC BY-SA 4.0. No trackers, no cookies, no third-party fonts."},
     "fr": {"prefix": "fr/", "name": "Français", "home": "Accueil", "read": "Lire",
            "articles": "Articles", "switch": "English",
+           "levels": {"read": "Lecture", "beginner": "Débutant", "intermediate": "Intermédiaire", "advanced": "Avancé"},
+           "fiche": {"level": "Niveau", "time": "Temps estimé", "before": "À lire avant", "words": "Un mot inconnu ?",
+                     "glossary": "Lexique"},
            "series": {"start": "Commencer ici", "ai": "IA locale", "n8n": "L'agentique locale avec n8n", "homelab": "Homelab : remplacer les abonnements"},
            "description": "Tutos gratuits pour monter votre essaim d'agents IA et votre homelab à la maison : matériel, modèles locaux, et les services qui remplacent vos abonnements.",
            "locale": "fr_FR", "feed": "Nouveaux articles",
@@ -45,6 +51,22 @@ def read_page(path):
         if key not in meta:
             raise ValueError(f"{path}: missing {key!r}")
     return meta, body
+
+
+def fiche(lang, meta, pages):
+    """The card at the top of an article: level, time, what to read first, the glossary."""
+    if "level" not in meta:
+        return ""
+    f = LANGS[lang]["fiche"]
+    parts = [f'<span><b>{f["level"]}</b> {LANGS[lang]["levels"][meta["level"]]}</span>']
+    if meta.get("time"):
+        parts.append(f'<span><b>{f["time"]}</b> {html.escape(meta["time"])}</span>')
+    before = [r for r in meta.get("requires", []) if r in pages]
+    if before:
+        links = ", ".join(f'<a href="{url(lang, r)}">{html.escape(pages[r][0]["title"])}</a>' for r in before)
+        parts.append(f'<span><b>{f["before"]}</b> {links}</span>')
+    parts.append(f'<span>{f["words"]} <a href="{url(lang, "glossary")}">{f["glossary"]}</a></span>')
+    return f'<div class="fiche level-{meta["level"]}">' + "".join(parts) + "</div>\n"
 
 
 def url(lang, slug):
@@ -159,7 +181,7 @@ def build(out):
             if slug == "index":
                 body = body.replace("{{articles}}", cards)
             else:
-                body = f'<article>\n<h1>{html.escape(meta["title"])}</h1>\n{body}</article>'
+                body = f'<article>\n<h1>{html.escape(meta["title"])}</h1>\n{fiche(lang, meta, pages)}{body}</article>'
             target = out / LANGS[lang]["prefix"] / ("index.html" if slug == "index" else f"{slug}.html")
             target.parent.mkdir(parents=True, exist_ok=True)
             description = LANGS[lang]["description"] if slug == "index" else meta["summary"]

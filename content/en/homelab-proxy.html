@@ -1,4 +1,4 @@
-<!-- {"title": "Homelab 2: one HTTPS entrance for all your services", "summary": "A reverse proxy with free certificates: how this very site went online, in fifteen minutes.", "order": 7, "series": "homelab"} -->
+<!-- {"title": "Homelab 2: one HTTPS entrance for all your services", "summary": "A reverse proxy with free certificates: how this very site went online, in fifteen minutes.", "order": 7, "series": "homelab", "level": "beginner", "time": "1 h", "requires": ["homelab-proxmox"]} -->
 <p class="lead">Every service you host needs an address and a padlock. Rather than opening one door per service, open one: a reverse proxy. It receives every visitor, holds the HTTPS certificates, and passes each request to the right service inside your network. Ours is Nginx Proxy Manager (NPM): open source, with a web interface, and it renews Let's Encrypt certificates by itself.</p>
 
 {{diagram:proxy}}

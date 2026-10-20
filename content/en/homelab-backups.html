@@ -1,4 +1,4 @@
-<!-- {"title": "Homelab 5: backups that survive an attack on your server", "summary": "Two copies, two machines, and the detail that matters most: the second copy is pulled with a read-only key, never pushed.", "order": 13, "series": "homelab"} -->
+<!-- {"title": "Homelab 5: backups that survive an attack on your server", "summary": "Two copies, two machines, and the detail that matters most: the second copy is pulled with a read-only key, never pushed.", "order": 13, "series": "homelab", "level": "intermediate", "time": "1 h", "requires": ["homelab-proxmox"]} -->
 <p class="lead">A backup protects you from a dead disk. A good backup also protects you from your own server turning against you: a mistake run as root, ransomware, an attacker. The usual advice is "keep a copy somewhere else". The detail that makes it work is the <strong>direction</strong>: the second copy must be pulled by another machine, not pushed by the server.</p>
 
 {{diagram:backups}}

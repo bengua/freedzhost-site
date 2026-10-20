@@ -1,0 +1,32 @@
+<!-- {"title": "Glossary: the words of this site, in plain language", "summary": "VRAM, container, proxy, DNS, port, token… every technical word used in the tutorials, explained in one or two sentences.", "order": 3, "series": "start", "level": "read", "time": "10 min", "requires": []} -->
+<p class="lead">Every technical word used on this site, in alphabetical order, explained without jargon. If a tutorial loses you on a word, it is probably here.</p>
+<dl class="glossary">
+<dt>Agent</dt><dd>A program driven by an AI model that does not only answer but acts: it reads files, runs commands, opens pull requests. See <a href="/agent-intents.html">Giving code work to a local agent</a>.</dd>
+<dt>API</dt><dd>A door through which one program asks another for something, with a fixed format. "OpenAI-compatible API" means the format most AI tools already speak.</dd>
+<dt>Backup</dt><dd>A copy you can restore. A copy you have never restored is not yet a backup. See <a href="/homelab-backups.html">Homelab 5</a>.</dd>
+<dt>Certificate (HTTPS)</dt><dd>The digital ID card that lets a browser show the padlock. Let's Encrypt gives them for free. See <a href="/homelab-proxy.html">Homelab 2</a>.</dd>
+<dt>CI (continuous integration)</dt><dd>A machine that runs the tests automatically on every proposed change, and says green or red. See <a href="/homelab-forgejo.html">Homelab 8</a>.</dd>
+<dt>Container</dt><dd>A program packed with everything it needs, isolated from the rest of the machine. You start it, stop it, delete it without leaving traces. Docker is the usual tool.</dd>
+<dt>Context</dt><dd>How much text a model can keep in mind at once, counted in tokens. More context needs more VRAM.</dd>
+<dt>Compose (Docker Compose)</dt><dd>A small text file that describes one or several containers and how to start them, so that one command brings everything up.</dd>
+<dt>DNS</dt><dd>The internet's phone book: it turns a name like <code>freedzhost.cloud</code> into an address. See <a href="/homelab-adguard.html">Homelab 4</a>.</dd>
+<dt>GGUF</dt><dd>The file format of models for llama.cpp. One file holds the whole model, already compressed.</dd>
+<dt>GPU / graphics card</dt><dd>The card that computes images, and AI models, very fast. Its own memory is the VRAM.</dd>
+<dt>Homelab</dt><dd>Your own small data centre at home: one or a few machines running the services you would otherwise rent.</dd>
+<dt>Hypervisor</dt><dd>Software that splits one physical machine into several virtual ones. Proxmox is one. See <a href="/homelab-proxmox.html">Homelab 1</a>.</dd>
+<dt>LLM (large language model)</dt><dd>An AI model that reads and writes text. "Local" means it runs on your machine, not on someone's cloud.</dd>
+<dt>Model (weights)</dt><dd>The trained AI itself, a big file of numbers. "8B" means eight billion parameters: bigger is usually smarter and always heavier.</dd>
+<dt>OCR</dt><dd>Reading text in an image: turning a scan into words you can search. See <a href="/homelab-paperless.html">Homelab 12</a>.</dd>
+<dt>Open source</dt><dd>Software whose code anyone can read, modify and share. "Fair-code" or "source available" is close, but with restrictions.</dd>
+<dt>Port</dt><dd>A numbered door on a machine. A web site usually answers on 443. Each open port is a door to keep closed unless it is needed.</dd>
+<dt>Private network (VPN)</dt><dd>An encrypted tunnel between your own devices, so your phone reaches home as if it were on the home Wi-Fi. See <a href="/homelab-remote.html">Homelab 6</a>.</dd>
+<dt>Proxy (reverse proxy)</dt><dd>The single entrance of your homelab: it receives every visitor, holds the certificates, and passes each request to the right service. See <a href="/homelab-proxy.html">Homelab 2</a>.</dd>
+<dt>Pull request (PR)</dt><dd>A proposed change to code, waiting to be reviewed and merged. Nobody, human or agent, should change the main branch without one.</dd>
+<dt>Quantisation (Q4, Q8…)</dt><dd>Compressing a model by storing its numbers with fewer bits. Q4 is smaller and a little less precise than Q8.</dd>
+<dt>RAG</dt><dd>Letting a model answer from your own documents: the relevant passages are found first, then given to the model with the question.</dd>
+<dt>Self-hosted</dt><dd>Run on your own machine instead of rented from a company.</dd>
+<dt>Token</dt><dd>The unit a model reads and writes: roughly a short word or a piece of a word. Speeds are counted in tokens per second.</dd>
+<dt>VM (virtual machine)</dt><dd>A complete computer simulated inside a real one, with its own system. Many VMs can share one physical machine.</dd>
+<dt>VRAM</dt><dd>The graphics card's own memory. A model runs fast only if it fits in it. See <a href="/hardware.html">Hardware, honestly</a>.</dd>
+<dt>Webhook</dt><dd>An address that triggers something when it is called. Sign it, or anyone who finds it can trigger it.</dd>
+</dl>
