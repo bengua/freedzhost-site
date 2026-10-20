@@ -20,6 +20,8 @@ SITE = "https://freedzhost.cloud"
 LANGS = {
     "en": {"prefix": "", "name": "English", "home": "Home", "read": "Read",
            "articles": "Articles", "switch": "Français", "help": "Need help?",
+           "menu": "Menu", "close": "Close", "prev": "Previous", "next": "Next", "drawer": "All tutorials",
+           "quick": {"index": "Home", "findings": "Our findings", "workshop": "The workshop", "faq": "FAQ", "inspirations": "Inspirations", "help": "Need help?"},
            "levels": {"read": "Reading", "beginner": "Beginner", "intermediate": "Intermediate", "advanced": "Advanced"},
            "fiche": {"level": "Level", "time": "Estimated time", "before": "Read first", "words": "A word you don't know?",
                      "glossary": "Glossary"},
@@ -30,6 +32,8 @@ LANGS = {
            "Content under CC BY-SA 4.0. No trackers, no cookies, no third-party fonts."},
     "fr": {"prefix": "fr/", "name": "Français", "home": "Accueil", "read": "Lire",
            "articles": "Articles", "switch": "English", "help": "Besoin d'aide ?",
+           "menu": "Menu", "close": "Fermer", "prev": "Précédent", "next": "Suivant", "drawer": "Tous les tutos",
+           "quick": {"index": "Accueil", "findings": "Nos constats", "workshop": "L'atelier", "faq": "FAQ", "inspirations": "Inspirations", "help": "Besoin d'aide ?"},
            "levels": {"read": "Lecture", "beginner": "Débutant", "intermediate": "Intermédiaire", "advanced": "Avancé"},
            "fiche": {"level": "Niveau", "time": "Temps estimé", "before": "À lire avant", "words": "Un mot inconnu ?",
                      "glossary": "Lexique"},
@@ -69,13 +73,56 @@ def fiche(lang, meta, pages):
     return f'<div class="fiche level-{meta["level"]}">' + "".join(parts) + "</div>\n"
 
 
+QUICK = ("index", "findings", "workshop", "faq", "inspirations", "help")
+CURRENT = ' aria-current="page"'
+
+
+def drawer(lang, slug, pages, series_members):
+    """The side drawer: quick links, then every series with its articles; the current page marked."""
+    t = LANGS[lang]
+    quick = "".join(
+        f'<a href="{url(lang, q)}"{CURRENT if q == slug else ""}>'
+        f'{html.escape(t["quick"][q])}</a>'
+        for q in QUICK if q == "index" or q in pages)
+    groups = []
+    for key, heading in t["series"].items():
+        members = series_members.get(key, [])
+        if not members:
+            continue
+        items = "".join(
+            f'<li><a href="{url(lang, a)}"{CURRENT if a == slug else ""}>'
+            f'{html.escape(pages[a][0]["title"])}</a></li>' for a in members)
+        is_open = " open" if slug in members else ""
+        groups.append(f'<details{is_open}><summary>{html.escape(heading)} <small>{len(members)}</small></summary>'
+                      f'<ul>{items}</ul></details>')
+    return (f'<nav id="menu" class="drawer" aria-label="{html.escape(t["drawer"])}">'
+            f'<a class="close" href="#">{t["close"]} ✕</a>'
+            f'<div class="quick">{quick}</div>{"".join(groups)}</nav>')
+
+
+def pager(lang, slug, pages, members):
+    """Previous and next article within the same series."""
+    if slug not in members:
+        return ""
+    i = members.index(slug)
+    t = LANGS[lang]
+    links = []
+    if i > 0:
+        links.append(f'<a class="prev" href="{url(lang, members[i - 1])}"><small>← {t["prev"]}</small>'
+                     f'{html.escape(pages[members[i - 1]][0]["title"])}</a>')
+    if i + 1 < len(members):
+        links.append(f'<a class="next" href="{url(lang, members[i + 1])}"><small>{t["next"]} →</small>'
+                     f'{html.escape(pages[members[i + 1]][0]["title"])}</a>')
+    return f'<nav class="pager">{"".join(links)}</nav>\n' if links else ""
+
+
 def url(lang, slug):
     """Site-absolute URL of a page."""
     page = "" if slug == "index" else f"{slug}.html"
     return "/" + LANGS[lang]["prefix"] + page
 
 
-def layout(lang, slug, title, body, description):
+def layout(lang, slug, title, body, description, side=""):
     t = LANGS[lang]
     other = OTHER[lang]
     here = SITE + url(lang, slug)
@@ -105,10 +152,11 @@ def layout(lang, slug, title, body, description):
 <body>
 <header class="top">
   <a class="brand" href="{url(lang, 'index')}">freedzhost<span>.cloud</span></a>
-  <nav><a href="{url(lang, 'index')}">{t['home']}</a>
+  <nav><a class="menu-btn" href="#menu">☰ {t['menu']}</a><a href="{url(lang, 'index')}">{t['home']}</a>
   <a class="help" href="{url(lang, 'help')}">{t['help']}</a>
   <a class="lang" href="{url(other, slug)}" hreflang="{other}">{LANGS[other]['name']}</a></nav>
 </header>
+{side}
 <main>
 {body}
 </main>
@@ -177,16 +225,20 @@ def build(out):
         if orphans:
             raise ValueError(f"{lang}: pages without a known series: {orphans}")
         cards = "\n".join(groups)
+        series_members = {key: [a for a in articles if pages[a][0].get("series") == key] for key in LANGS[lang]["series"]}
         for slug, (meta, body) in pages.items():
             body = re.sub(r"\{\{diagram:([a-z0-9]+)\}\}", lambda m, lang=lang: diagrams.render(m.group(1), lang), body)
             if slug == "index":
                 body = body.replace("{{articles}}", cards)
             elif not meta.get("nav"):  # a nav page brings its own layout
-                body = f'<article>\n<h1>{html.escape(meta["title"])}</h1>\n{fiche(lang, meta, pages)}{body}</article>'
+                members = series_members.get(meta.get("series"), [])
+                body = (f'<article>\n<h1>{html.escape(meta["title"])}</h1>\n{fiche(lang, meta, pages)}{body}'
+                        f'{pager(lang, slug, pages, members)}</article>')
             target = out / LANGS[lang]["prefix"] / ("index.html" if slug == "index" else f"{slug}.html")
             target.parent.mkdir(parents=True, exist_ok=True)
             description = LANGS[lang]["description"] if slug == "index" else meta["summary"]
-            target.write_text(layout(lang, slug, meta["title"], body, description), encoding="utf-8")
+            target.write_text(layout(lang, slug, meta["title"], body, description, drawer(lang, slug, pages, series_members)),
+                              encoding="utf-8")
     if slugs["en"] != slugs["fr"]:
         raise ValueError(f"pages without translation: {sorted(slugs['en'] ^ slugs['fr'])}")
     write_feeds_and_sitemap(out, catalogue)

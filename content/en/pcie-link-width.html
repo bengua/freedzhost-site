@@ -1,0 +1,35 @@
+<!-- {"title": "Your graphics card at x4 instead of x16: diagnose it, and get the x16 back", "summary": "A card can silently run on a quarter of its lanes after a reboot. How to read the link the firmware really gave it, why the BIOS has no 'x16' setting to pick, the one wrong fix to avoid, and what a power cycle did for us: from x4 back to x16, with nothing changed.", "order": 92, "series": "ai", "level": "intermediate", "time": "30 min", "requires": ["second-gpu-oculink"]} -->
+<p class="lead">One morning our main card ran on four PCIe lanes instead of sixteen. Nothing failed, nothing warned: models were just slower. The first explanation that came to mind (the second card "stealing" lanes) was wrong. The real cause was the firmware, and the fix was a power cycle, not a setting.</p>
+
+<p class="proof"><strong>What you get.</strong> A two-minute check of the real link of every card, the right reading of your BIOS options, and a small command that refuses to say "fine" when it is not. Measured here: x16 at 252 Gbit/s for the main card and x4 at 63 Gbit/s for the second one on OCuLink, both at once.</p>
+
+<h2>1. Read the link the firmware gave</h2>
+<pre><code>for d in $(lspci -D -d 10de: | awk '/VGA|3D/ {print $1}'); do
+  echo "$d  $(cat /sys/bus/pci/devices/$d/current_link_width)/$(cat /sys/bus/pci/devices/$d/max_link_width) lanes"
+done
+journalctl -k -b | grep -i "available PCIe bandwidth"</code></pre>
+<p>The second line is the precious one: the kernel writes the bandwidth available to each card <strong>and the port that limits it</strong>. <code>current_link_width</code> tells you the width; this line tells you why. With <code>journalctl -b -1</code> you compare with the previous boot without touching anything.</p>
+<p class="note">Find a card by its identity (<code>lspci -d vendor:device</code>), never by its bus address: ours moved from one address to another after a reboot, and an early script happily reported the integrated graphics as "x16".</p>
+
+<h2>2. Understand what really happened</h2>
+<p>On a recent AMD platform, the processor hands out 28 lanes: 16 to the main slot, 4 to each of two M.2 slots, 4 to the chipset. Our second card, on an M.2 to OCuLink adapter, has its own lanes. Nothing was shared. The firmware had, during one boot, split the main slot and put the card on a x4 sub-port.</p>
+
+<h2>3. The BIOS has no "x16" to pick</h2>
+<p>Our board's bifurcation menu offers three entries, and none is called x16:</p>
+<ul>
+<li><strong>Auto</strong>: detects what is plugged and splits only if needed. <strong>Auto is the x16.</strong></li>
+<li><strong>8x/8x</strong>: documented for riser cards only. Choosing it caps the card at x8 for good, even when nothing else is plugged.</li>
+<li><strong>A storage-card mode</strong> (x4/x4): for NVMe carrier cards. Never with a graphics card.</li>
+</ul>
+
+<h2>4. What brought the x16 back</h2>
+<ol>
+<li>Change nothing and measure twice: the split can be transient.</li>
+<li>A full power cycle, with the external enclosure powered <em>before</em> the PC. That alone did it for us: a pass through the BIOS where nothing was changed, then power off and on.</li>
+<li>Only if it persists: a firmware update. Ours would have been irreversible, with no changelog mentioning bifurcation: a bet, not a fix.</li>
+</ol>
+<p>Then check it after every boot, automatically: our <code>fh-egpu verify 16</code> exits with an error if the main card is not at x16.</p>
+
+<h2>Traps</h2>
+<p class="note">A slow link does not fail, it slows everything down quietly. Do not credit the gain to the wrong cause either: our big model went from 26.1 to 55.6 tokens per second that week, and an intermediate measurement showed the x16 was only part of it (see <a href="/big-moe-two-cards.html">the 177B on two cards</a>).</p>
+<p class="note">An external card must be powered before the PC starts: the system only lists the devices present at power-on.</p>

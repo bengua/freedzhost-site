@@ -103,3 +103,29 @@ nav a.help { color: var(--accent); }
 .form-status.bad { color: #ff6b6b; }
 .proof { border-left: 3px solid #7ee2a8; background: var(--panel); padding: 10px 16px; border-radius: 0 8px 8px 0; }
 .proof strong:first-child { color: #7ee2a8; }
+
+/* Side drawer: a fixed panel on wide screens, an overlay opened by #menu on narrow ones (no script). */
+.drawer { position: fixed; inset: 0 auto 0 0; width: 300px; z-index: 20; overflow-y: auto;
+  background: var(--panel); border-right: 1px solid var(--line); padding: calc(20px + env(safe-area-inset-top, 0px)) 14px 24px;
+  font-size: .9rem; transform: translateX(-100%); transition: transform .2s ease; }
+.drawer:target { transform: none; box-shadow: 0 0 0 100vmax rgba(0,0,0,.55); }
+.drawer .close { display: block; text-align: right; color: var(--muted); text-decoration: none; margin-bottom: 10px; }
+.drawer .quick { display: grid; gap: 2px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.drawer .quick a, .drawer li a { display: block; padding: 4px 8px; border-radius: 6px; color: var(--muted); text-decoration: none; line-height: 1.35; }
+.drawer .quick a:hover, .drawer li a:hover { color: var(--text); background: var(--bg); }
+.drawer a[aria-current] { color: var(--accent); background: var(--bg); font-weight: 600; }
+.drawer summary { cursor: pointer; color: var(--text); font-weight: 600; padding: 6px 4px; list-style-position: inside; }
+.drawer summary small { color: var(--muted); font-weight: 400; margin-left: 4px; }
+.drawer ul { list-style: none; margin: 2px 0 10px; padding-left: 8px; }
+nav a.menu-btn { margin-left: 0; color: var(--text); }
+@media (min-width: 1280px) {
+  .drawer { transform: none; }
+  .drawer .close, nav a.menu-btn { display: none; }
+  body { padding-left: calc(300px + 16px); }
+}
+.pager { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 48px; }
+.pager a { display: block; padding: 12px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; color: var(--text); text-decoration: none; font-size: .95rem; }
+.pager a:hover { border-color: var(--accent); }
+.pager small { display: block; color: var(--muted); }
+.pager .next { grid-column: 2; text-align: right; }
+@media (max-width: 560px) { .pager { grid-template-columns: 1fr; } .pager .next { grid-column: 1; } }
