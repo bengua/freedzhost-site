@@ -294,9 +294,37 @@ def vault(lang):
     return figure("vault", 760, 305, L["cap"], body)
 
 
+# ── free the cards for AI, still play ───────────────────────────────────────
+def gpu_split(lang):
+    L = {
+        "en": labels(cap="The desktop lives on the integrated GPU, so the NVIDIA cards display nothing and all their memory goes to AI. When a Steam game starts, a watcher moves the models off one card; the game renders there, and its frames reach the screen through the integrated GPU (option A) or a second cable (option B).",
+                     igpu="Integrated GPU", isub="desktop, always", screen="Screen", c0="RTX 5080", c0a="AI models", c0b="or: the game",
+                     c1="RTX 4070 Ti S", c1s="AI models, always", a="A: PRIME offload, frames copied", b="B: 2nd cable, switch input",
+                     watch="Watcher", wsub="Steam game seen?", free="models leave, then return"),
+        "fr": labels(cap="Le bureau vit sur le GPU intégré : les cartes NVIDIA n'affichent rien et toute leur mémoire va à l'IA. Quand un jeu Steam démarre, un veilleur retire les modèles d'une carte ; le jeu y est calculé, et ses images rejoignent l'écran par le GPU intégré (option A) ou par un second câble (option B).",
+                     igpu="GPU intégré", isub="le bureau, toujours", screen="Écran", c0="RTX 5080", c0a="modèles IA", c0b="ou : le jeu",
+                     c1="RTX 4070 Ti S", c1s="modèles IA, toujours", a="A : PRIME offload, images copiées", b="B : 2e câble, changer d'entrée",
+                     watch="Veilleur", wsub="un jeu Steam ?", free="les modèles partent, puis reviennent"),
+    }[lang]
+    body = box(30, 30, 170, 54, L["igpu"], L["isub"])
+    body += box(600, 30, 140, 54, L["screen"], None)
+    body += arrow(200, 57, 598, 57, None)
+    body += box(30, 150, 170, 64, L["c0"], L["c0a"] + " · " + L["c0b"], stroke=ACCENT)
+    body += box(30, 260, 170, 54, L["c1"], L["c1s"])
+    body += arrow(115, 150, 115, 86, None, ACCENT, dash=True, marker="acc")
+    body += t(127, 122, L["a"], 11, "start", ACCENT)
+    body += arrow(200, 190, 640, 86, None, GOOD, marker="good")
+    body += t(500, 160, L["b"], 11, "middle", GOOD)
+    body += box(320, 240, 160, 54, L["watch"], L["wsub"])
+    body += arrow(320, 255, 202, 195, None, MUTED)
+    body += t(400, 312, L["free"], 11, "middle", MUTED)
+    return figure("gpu", 760, 325, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
-            "proxy": proxy, "vault": vault}
+            "proxy": proxy, "vault": vault,
+            "gpu": gpu_split}
 
 
 def render(name, lang):
