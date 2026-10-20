@@ -1,0 +1,31 @@
+<!-- {"title": "Homelab 14 : automatiser sans abonnement Zapier, avec n8n et une cascade de décision", "summary": "Des workflows qui relient vos services, et le schéma qui les garde économes et privés : les règles d'abord, un petit juge local, un modèle hébergé seulement pour les données publiques, vous pour le reste.", "order": 22, "series": "homelab"} -->
+<p class="lead">n8n relie vos services par des workflows visuels : un webhook arrive, une planification se déclenche, quelques nœuds plus loin une tâche est créée, un modèle est chargé, une notification sonne. Il remplace Zapier ou IFTTT à la maison. Une note honnête : n8n est « fair-code », son code est disponible et libre pour votre propre usage, mais il n'est pas open source au sens strict. Nous l'utilisons parce que rien d'ouvert ne l'égale encore.</p>
+
+{{diagram:cascade}}
+
+<h2>1. Lui donner sa propre petite VM</h2>
+<p>n8n exécute du JavaScript arbitraire et détient les identifiants de chaque service auquel il parle. Ne le mettez pas à côté de vos données personnelles (photos, papiers) : une petite VM à lui (Homelab 1), avec n8n et sa base PostgreSQL, version épinglée. Le nôtre utilise quelques centaines de Mo de RAM.</p>
+<pre><code>N8N_ENCRYPTION_KEY=&lt;une longue valeur aléatoire&gt;
+N8N_DIAGNOSTICS_ENABLED=false
+EXECUTIONS_DATA_PRUNE=true
+EXECUTIONS_DATA_MAX_AGE=336        # heures : garder deux semaines d'exécutions
+WEBHOOK_URL=https://n8n.votredomaine.tld/</code></pre>
+<p class="note"><code>N8N_ENCRYPTION_KEY</code> chiffre chaque identifiant enregistré. Perdez-la et ils sont tous irrécupérables. Gardez-en une copie dans votre gestionnaire de mots de passe (Homelab 3) le jour où vous la créez.</p>
+
+<h2>2. La cascade de décision</h2>
+<p>L'erreur coûteuse en automatisation, c'est d'appeler un gros modèle pour chaque petite décision. La nôtre descend une cascade, et s'arrête à la première étape qui peut trancher :</p>
+<ol>
+<li><strong>Les règles</strong> : des conditions fixes, déterministes. Beaucoup de décisions s'arrêtent là, en quelques millisecondes.</li>
+<li><strong>Un petit juge local</strong> : un modèle de moins d'un milliard de paramètres sur le processeur, à qui l'on pose une question typée (oui/non, un choix, une note), pas un texte libre.</li>
+<li><strong>Un modèle hébergé</strong>, seulement si la donnée est publique.</li>
+<li><strong>Vous</strong>, pour tout ce qui est privé et encore ambigu : une tâche dans votre liste (Homelab 13) et une notification (Homelab 10). Rien ne sort de la maison.</li>
+</ol>
+<p>Chaque décision écrit un événement (qui a demandé, quelle étape a tranché), jamais le contenu lui-même : vous pouvez auditer la cascade sans stocker de texte privé.</p>
+
+<h2>3. Le laisser réparer, dans des limites</h2>
+<p>Un workflow peut réparer seul, par exemple recharger un modèle qui a planté. Donnez-lui des limites qui viennent de l'action, pas de sa confiance : une courte liste d'actions permises, trois réparations par heure au plus pour la même chose, rien pendant qu'un jeu tient la carte, et une vérification après chaque réparation.</p>
+
+<h2>Pièges</h2>
+<p class="note">Les workflows ne peuvent pas lire les variables d'environnement par défaut (<code>N8N_BLOCK_ENV_ACCESS_IN_NODE</code>). Gardez-le ainsi : le débloquer donnerait à chaque nœud le mot de passe de la base et la clé de chiffrement. Mettez les secrets dans les identifiants de n8n.</p>
+<p class="note">Signez les webhooks qui déclenchent des actions (un en-tête HMAC vérifié dans le workflow) : une URL de webhook seule est une porte que quiconque la trouve peut pousser.</p>
+<p class="note">Redémarrer n8n peut faire lever de fausses alarmes aux workflows de surveillance (un job vu « muet » pendant le redémarrage). Prévenez qui lit les alertes avant de redémarrer.</p>

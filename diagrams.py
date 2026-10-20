@@ -643,6 +643,38 @@ def tasks(lang):
     return figure("tasks", 770, 150, L["cap"], body)
 
 
+# ── homelab 14: the decision cascade ────────────────────────────────────────
+def cascade(lang):
+    L = {
+        "en": labels(cap="Each decision goes down the cheapest path that can settle it. Fixed rules first; if they cannot, a small local model; a hosted model only for public data; private and ambiguous goes to you, and nothing leaves home.",
+                     ev="An event", esub="webhook, schedule", rules="Rules", rsub="deterministic", local="Local judge",
+                     lsub="small model, CPU", hosted="Hosted model", hsub="public data only", you="Ask you",
+                     ysub="task + notification", act="Act", unclear="not settled", unsure="unsure", public="public",
+                     private="private", sure="settled by the rules"),
+        "fr": labels(cap="Chaque décision prend le chemin le moins cher qui puisse la trancher. Les règles fixes d'abord ; si elles ne peuvent pas, un petit modèle local ; un modèle hébergé seulement pour les données publiques ; privé et ambigu vient à vous, et rien ne sort de la maison.",
+                     ev="Un événement", esub="webhook, planning", rules="Règles", rsub="déterministes", local="Juge local",
+                     lsub="petit modèle, CPU", hosted="Modèle hébergé", hsub="données publiques seulement", you="On vous demande",
+                     ysub="tâche + notification", act="Agir", unclear="pas tranché", unsure="incertain", public="public",
+                     private="privé", sure="tranché par les règles"),
+    }[lang]
+    body = box(10, 30, 130, 54, L["ev"], L["esub"])
+    body += box(180, 30, 130, 54, L["rules"], L["rsub"])
+    body += box(350, 30, 140, 54, L["local"], L["lsub"])
+    body += box(530, 30, 110, 54, L["act"], None, stroke=GOOD)
+    body += box(335, 160, 170, 54, L["hosted"], L["hsub"])
+    body += box(530, 160, 140, 54, L["you"], L["ysub"], stroke=ACCENT)
+    body += arrow(140, 57, 178, 57)
+    body += arrow(310, 57, 348, 57)
+    body += arrow(490, 57, 528, 57, None, GOOD, marker="good")
+    body += (f'<polyline points="245,30 245,12 585,12 585,28" fill="none" stroke="{GOOD}" stroke-width="1.6" marker-end="url(#good)"/>')
+    body += t(415, 8, L["sure"], 11, "middle", GOOD)
+    body += arrow(420, 84, 420, 158, L["unsure"] + " · " + L["public"], lx=470, ly=125)
+    body += (f'<polyline points="470,84 470,100 600,100 600,158" fill="none" stroke="{ACCENT}" stroke-width="1.6" marker-end="url(#acc)"/>')
+    body += t(620, 128, L["unsure"] + " · " + L["private"], 11, "start", ACCENT)
+    body += arrow(505, 175, 560, 86, None, GOOD, marker="good")
+    return figure("cascade", 760, 230, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -651,7 +683,8 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "remote": remote, "photos": photos,
             "forge": forge, "search": search, "notify": notify,
             "intent": intent, "office": office,
-            "paper": paper, "tasks": tasks}
+            "paper": paper, "tasks": tasks,
+            "cascade": cascade}
 
 
 def render(name, lang):
