@@ -1,0 +1,24 @@
+<!-- {"title": "Homelab 15 : Home Assistant avec une voix locale, en français", "summary": "Parler à votre maison sans aucun cloud : reconnaissance et synthèse vocales sur votre propre GPU, un repli sur processeur quand la carte est prise, et un modèle local pour comprendre.", "order": 23, "series": "homelab"} -->
+<p class="lead">L'assistant vocal de Home Assistant, Assist, est fait de pièces interchangeables : la parole en texte, un agent qui comprend, le texte en parole. Chaque pièce peut tourner à la maison. Le nôtre répond en français, sur notre propre carte graphique, et se replie sur le processeur quand un jeu ou un modèle prend la carte.</p>
+
+{{diagram:voice}}
+
+<h2>1. Les pièces vocales parlent Wyoming</h2>
+<p>Home Assistant parle aux moteurs vocaux par le protocole Wyoming. Le projet Rhasspy publie des conteneurs tout prêts : <code>wyoming-whisper</code> pour la reconnaissance (port 10300) et <code>wyoming-piper</code> pour la synthèse (port 10200). Ajoutez-les dans Home Assistant avec l'intégration <strong>Wyoming Protocol</strong>, puis montez un pipeline Assist qui les utilise.</p>
+<pre><code>wyoming-whisper:  --model small-int8 --language fr --beam-size 1
+wyoming-piper:    --voice fr_FR-siwis-medium</code></pre>
+<p>Ce duo tourne sur le processeur seul. C'est le plancher : toujours là.</p>
+
+<h2>2. Un meilleur duo sur la carte graphique</h2>
+<p>Sur un GPU, Whisper <em>large-v3-turbo</em> reconnaît bien mieux, et le TTS de Kyutai parle bien plus naturellement. Mesuré sur notre carte : les deux ensemble utilisent 3,9 Go de VRAM ; sur 72 extraits de test en français, turbo a fait 8,3 % d'erreurs de mots en 0,08 s, quand <em>large</em> en faisait 8,5 % en 0,32 s. Turbo est aussi bon et quatre fois plus rapide : nous l'avons gardé.</p>
+
+<h2>3. Une adresse, deux moteurs</h2>
+<p>Home Assistant connaît une adresse par service. Un petit relais écoute là et se connecte au duo GPU quand il répond, sinon au duo CPU. Quand un jeu prend la carte (voir <a href="/fr/gpu-for-ai.html">Libérer vos cartes graphiques pour l'IA</a>), le duo GPU est arrêté et la maison continue de parler, juste un peu plus lentement.</p>
+
+<h2>4. Un modèle local pour comprendre</h2>
+<p>Pour l'agent, reliez Home Assistant à votre serveur de modèles local par une intégration de conversation qui parle l'API OpenAI (il en existe plusieurs dans HACS : choisissez-en une maintenue). Donnez au modèle les entités qu'il peut piloter, et rien de plus.</p>
+
+<h2>Pièges que nous avons payés</h2>
+<p class="note">Un port publié par Docker accepte les connexions avant que le programme derrière soit prêt. Notre relais voyait le moteur GPU « en ligne » pendant ses 30 secondes de chauffe et envoyait des requêtes dans le vide. La solution : faire tourner le moteur sur le réseau de l'hôte, sur l'adresse de bouclage, pour que le port refuse tant que le serveur n'écoute pas vraiment, et que le relais se replie.</p>
+<p class="note">Après un redémarrage, un conteneur GPU créé avant peut ne plus atteindre la carte (un numéro de périphérique change à chaque démarrage). Le relais sert alors le duo CPU sans rien dire : dégradé, pas cassé. Recréez le conteneur, ou régénérez la description du GPU au démarrage.</p>
+<p class="note">Le modèle compile une partie de lui-même au démarrage et a besoin d'un compilateur C dans l'image. Sans lui, le moteur GPU ne démarre jamais.</p>

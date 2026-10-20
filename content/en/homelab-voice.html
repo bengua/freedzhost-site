@@ -1,0 +1,24 @@
+<!-- {"title": "Homelab 15: Home Assistant with a local voice, in French", "summary": "Speak to your house without any cloud: speech recognition and synthesis on your own GPU, a CPU fallback when the card is busy, and a local model to understand.", "order": 23, "series": "homelab"} -->
+<p class="lead">Home Assistant's voice assistant, Assist, is built from interchangeable parts: speech to text, an agent that understands, text to speech. Each part can run at home. Ours answers in French, on our own graphics card, and falls back to the processor when a game or a model takes the card.</p>
+
+{{diagram:voice}}
+
+<h2>1. The speech parts speak Wyoming</h2>
+<p>Home Assistant talks to speech engines over the Wyoming protocol. The Rhasspy project publishes ready containers: <code>wyoming-whisper</code> for recognition (port 10300) and <code>wyoming-piper</code> for synthesis (port 10200). Add them in Home Assistant with the <strong>Wyoming Protocol</strong> integration, then build an Assist pipeline that uses them.</p>
+<pre><code>wyoming-whisper:  --model small-int8 --language fr --beam-size 1
+wyoming-piper:    --voice fr_FR-siwis-medium</code></pre>
+<p>That pair runs on the processor alone. It is the floor: always there.</p>
+
+<h2>2. A better pair on the graphics card</h2>
+<p>On a GPU, Whisper <em>large-v3-turbo</em> recognises far better, and Kyutai's TTS speaks far more naturally. Measured on our card: both together use 3.9 GB of VRAM; on 72 French test clips, turbo made 8.3 % word errors in 0.08 s, while <em>large</em> made 8.5 % in 0.32 s. Turbo is as good and four times faster: we kept it.</p>
+
+<h2>3. One address, two backends</h2>
+<p>Home Assistant knows one address per service. A small relay listens there and connects to the GPU pair when it answers, otherwise to the CPU pair. When a game takes the card (see <a href="/gpu-for-ai.html">Free your graphics cards for AI</a>), the GPU pair is stopped and the house keeps talking, just a little slower.</p>
+
+<h2>4. A local model to understand</h2>
+<p>For the agent, point Home Assistant at your local model server through a conversation integration that speaks the OpenAI API (several exist in HACS: choose a maintained one). Give the model the entities it may control, and nothing more.</p>
+
+<h2>Traps we paid for</h2>
+<p class="note">A Docker published port accepts connections before the program behind it is ready. Our relay saw the GPU backend "up" during its 30-second warm-up and sent requests into the void. The fix: run the backend on the host network, on the loopback address, so the port refuses until the server really listens, and the relay falls back.</p>
+<p class="note">After a reboot, a GPU container created earlier may no longer reach the card (a device number changes at each boot). The relay then quietly serves the CPU pair: degraded, not broken. Recreate the container, or regenerate the GPU description at boot.</p>
+<p class="note">The model compiles parts of itself at start and needs a C compiler in the image. Without it, the GPU backend never starts.</p>
