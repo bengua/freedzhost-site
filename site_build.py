@@ -170,6 +170,8 @@ def layout(lang, slug, title, body, description, side=""):
 <meta property="og:image" content="{SITE}/media/teaser-poster.jpg">
 <meta property="og:locale" content="{t['locale']}">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="/media/inari-icon.png">
+<link rel="apple-touch-icon" href="/media/inari-icon-180.png">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>

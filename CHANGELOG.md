@@ -11,4 +11,11 @@ than "modified fh-suivre".
 
 ### Added
 
+### Changed
+- The Android console is now called Inari (FreedzHost Inari): articles say
+  "Inari" where they said "SwarmFox", in both languages. Slugs and links do
+  not move.
+- Pages carry the Inari favicon: the seven-tailed kitsune silhouette, copper
+  on charcoal, same mark as the app's launcher icon.
+
 - English and French site: home with teaser and FoxBot app, manifesto, hardware guide, NVIDIA driver, Docker with GPU, first local model.
