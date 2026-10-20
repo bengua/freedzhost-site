@@ -1,0 +1,30 @@
+<!-- {"title": "Homelab 7: replace Google Photos with Immich", "summary": "Automatic phone backup, faces, maps and search, at home. And the two things you must back up, not one.", "order": 15} -->
+<p class="lead">Immich is the open-source photo and video library that comes closest to Google Photos: a phone app that backs up in the background, albums, shared links, a map, face recognition and search by content, all computed on your own machine. It is also the service where a careless setup loses the most: years of photos.</p>
+
+{{diagram:photos}}
+
+<h2>1. Install, the official way</h2>
+<p>Immich publishes its own compose file and environment template with every release. On a VM with Docker (Homelab 1), in an empty folder:</p>
+<pre><code>wget -O docker-compose.yml https://github.com/immich-app/immich/releases/latest/download/docker-compose.yml
+wget -O .env https://github.com/immich-app/immich/releases/latest/download/example.env</code></pre>
+<p>Then edit <code>.env</code>:</p>
+<ul>
+<li><code>UPLOAD_LOCATION</code>: where your photos will live. A disk with room to grow.</li>
+<li><code>DB_DATA_LOCATION</code>: the database files, on a local disk (network shares are not supported).</li>
+<li><code>DB_PASSWORD</code>: change it, letters and digits only.</li>
+<li><code>IMMICH_VERSION</code>: pin a precise version, as the file's own comment suggests, and upgrade on purpose after reading the release notes.</li>
+</ul>
+<pre><code>docker compose up -d</code></pre>
+<p>Publish it through your HTTPS proxy (Homelab 2), create the administrator account, then install the Immich app on your phone and point it at your address.</p>
+
+<h2>2. The two things to back up</h2>
+<p>A photo library is the files <strong>and</strong> the database that knows the albums, the faces, the dates and who shared what. Immich dumps its database automatically every night at 2:00 and keeps the last 14 dumps, in <code>UPLOAD_LOCATION/backups</code>. It does <strong>not</strong> back up your files: that part is yours. Copy the whole of <code>UPLOAD_LOCATION</code> every night, to another machine (Homelab 5).</p>
+<p>If you cannot stop the server during the copy, the official order is: database first, files second.</p>
+
+<h2>3. Restore, once, to see</h2>
+<p>On a fresh install, put the old files back in the new <code>UPLOAD_LOCATION</code>, start Immich, and choose <strong>Restore from backup</strong> on the welcome screen. Do it once on a test machine before you need it.</p>
+
+<h2>Traps</h2>
+<p class="note">If the photo folder sits on a separate disk mounted into the VM, the hypervisor's VM backups do not include it. Check what your backups really contain: the library is often the largest and the least covered.</p>
+<p class="note">The first face recognition and indexing pass over a large library runs for hours on the processor. Let it run, or point the machine-learning container at a graphics card.</p>
+<p class="note">On Android, the background backup stops if the system puts the app to sleep: exclude Immich from battery optimisation.</p>

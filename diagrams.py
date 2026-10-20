@@ -447,12 +447,39 @@ def remote(lang):
     return figure("remote", 760, 260, L["cap"], body)
 
 
+# ── homelab 7: two things to save ───────────────────────────────────────────
+def photos(lang):
+    L = {
+        "en": labels(cap="Two things make a photo library: the files, and the database that knows albums, faces and dates. Immich dumps the database every night; the files you must copy yourself. One without the other restores nothing useful.",
+                     phone="Phone app", psub="backs up in the background", srv="Immich", ssub="server + recognition",
+                     db="Database", dbs="albums, faces, dates", files="Photo folder", fs="the originals",
+                     dump="daily dump, 14 kept", copy="Your backup", csub="both, every night", yours="you copy it"),
+        "fr": labels(cap="Une photothèque, c'est deux choses : les fichiers, et la base qui connaît albums, visages et dates. Immich exporte la base chaque nuit ; les fichiers, c'est à vous de les copier. L'un sans l'autre ne restaure rien d'utile.",
+                     phone="App du téléphone", psub="sauvegarde en arrière-plan", srv="Immich", ssub="serveur + reconnaissance",
+                     db="Base de données", dbs="albums, visages, dates", files="Dossier des photos", fs="les originaux",
+                     dump="export quotidien, 14 gardés", copy="Votre sauvegarde", csub="les deux, chaque nuit", yours="à vous de le copier"),
+    }[lang]
+    body = box(20, 100, 160, 54, L["phone"], L["psub"])
+    body += box(240, 100, 160, 54, L["srv"], L["ssub"])
+    body += arrow(180, 127, 238, 127, "HTTPS", lx=209, ly=119)
+    body += box(470, 30, 150, 54, L["db"], L["dbs"])
+    body += box(470, 170, 150, 54, L["files"], L["fs"], stroke=ACCENT)
+    body += arrow(400, 115, 468, 62)
+    body += arrow(400, 140, 468, 192)
+    body += box(660, 100, 120, 54, L["copy"], None, stroke=GOOD)
+    body += arrow(620, 57, 670, 98, None, GOOD, marker="good")
+    body += t(700, 20, L["dump"], 11, "middle", GOOD)
+    body += arrow(620, 197, 670, 156, None, ACCENT, marker="acc")
+    body += t(640, 242, L["yours"], 11, "middle", ACCENT)
+    return figure("photos", 790, 255, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
             "gpu": gpu_split, "stream": stream, "wake": wake,
             "dns": dns, "backups": backups,
-            "remote": remote}
+            "remote": remote, "photos": photos}
 
 
 def render(name, lang):
