@@ -1,0 +1,35 @@
+<!-- {"title": "Your own CI on Forgejo: the runner traps, one image for everything, and tests that cannot lie", "summary": "A self-hosted forge with its own CI runner is freedom, until a job waits forever without a word. The traps of Forgejo Actions, a single runner image that removes the tools a job reinstalled at every run, a language ratchet, and the rule that saved us the most time: read the forge's log before reproducing anything.", "order": 95, "series": "homelab", "level": "intermediate", "time": "1 h", "requires": ["homelab-forgejo"]} -->
+<p class="lead">Running your own forge means running your own CI: every pull request tested on your hardware, no minutes to buy, nothing leaving the house. Forgejo Actions reads the same workflow files as GitHub Actions, almost. The "almost" is where the evenings go.</p>
+
+<p class="proof"><strong>What you get.</strong> The three traps that block a first workflow, a runner image that holds every tool so jobs stop reinstalling them (one job spent 1 min 24 of its 1 min 30 reinstalling tools), and four habits that keep a green CI honest across about forty repositories here.</p>
+
+<h2>A bit of history</h2>
+<p>Forgejo descends from Gogs, a self-hosted Git service written in Go (2014), forked as Gitea in 2016 by its community. When Gitea's governance moved to a company in 2022, the non-profit Codeberg started Forgejo as a community fork, and made it fully independent in 2024. Its CI, Forgejo Actions, deliberately reads the workflow format popularised by GitHub Actions (2018), so most existing workflows run with small changes. The runner is a separate program: you decide which machine runs your jobs, and what tools it carries.</p>
+
+<h2>1. Three traps of a first workflow</h2>
+<ol>
+<li><strong>The runner only answers its labels.</strong> Ours announces <code>ubuntu-latest</code>. Any other <code>runs-on:</code> leaves the job <em>waiting</em> forever, with no error: nobody claims it.</li>
+<li><strong>No slim image as job container.</strong> JavaScript actions such as <code>checkout</code> run with <code>node</code> <em>inside</em> the job's container. A <code>python:slim</code> image has no node: the job dies with exit code 127 before its first step.</li>
+<li><strong>Write actions with their full URL</strong>: <code>https://data.forgejo.org/actions/checkout@v4</code>. Short names are not resolved to GitHub.</li>
+</ol>
+
+<h2>2. One runner image for every repository</h2>
+<p>Each workflow used to install pip, ruff, pytest, uv, node and friends at every run: 1 min 24 of a 1 min 30 job. We built one image that carries them all, and pointed the runner's label at it.</p>
+<ul>
+<li>Based on a full Python image, with node copied from the official image (actions need it).</li>
+<li>Tool versions pinned in one place, and checked by the last build step: a wrong pin <strong>fails the build</strong>, it never ships.</li>
+<li>A manifest of every tool and version is written inside the image, as proof.</li>
+<li>No registry needed: the Dockerfile is the source, and the image is rebuilt in a few minutes inside the runner's own Docker daemon.</li>
+</ul>
+
+<h2>3. Four habits that keep green honest</h2>
+<ul>
+<li><strong>Read the forge's log before reproducing anything.</strong> A local reproduction of a failing job once came out green on a genuinely broken commit; the log named the four failing assertions at once. Logs are stored compressed, one file per job, in the forge's data folder.</li>
+<li><strong>Verify locally before pushing.</strong> A typecheck or a test run on the laptop takes a minute; each round trip through CI costs ten, and a pull request to close.</li>
+<li><strong>A test that locks a bug is worse than no test.</strong> After a repository was renamed, three tests still asserted the old name: the CI stayed green while every deployment failed. Test what the system must do, not the value it happens to have today.</li>
+<li><strong>A ratchet for consistency.</strong> Our CI counts text that is not in the project's language and fails if the count rises; when it falls, the ceiling must fall in the same pull request. Legitimate exceptions are listed in a file, each with its reason.</li>
+</ul>
+
+<h2>Traps</h2>
+<p class="note">A commit message written with a here-document on the same line as other commands takes those commands as its text. Keep <code>git commit -F - &lt;&lt;'MSG'</code> alone in its command, read the subject back with <code>git log -1 --format=%s</code>, and only then push.</p>
+<p class="note">Some API endpoints for runs return empty lists or 404 on certain versions, which looks like "no runner". Trust the job log and the runner's own status, not an empty list.</p>

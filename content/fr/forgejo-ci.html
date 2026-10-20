@@ -1,0 +1,35 @@
+<!-- {"title": "Votre propre CI sur Forgejo : les pièges du runner, une image pour tout, et des tests qui ne mentent pas", "summary": "Une forge auto-hébergée avec son propre exécutant de CI, c'est la liberté, jusqu'au jour où un job attend pour toujours sans un mot. Les pièges de Forgejo Actions, une image unique d'exécutant qui supprime les outils qu'un job réinstallait à chaque passage, un cliquet de langue, et la règle qui nous a fait gagner le plus de temps : lire le journal de la forge avant de reproduire quoi que ce soit.", "order": 95, "series": "homelab", "level": "intermediate", "time": "1 h", "requires": ["homelab-forgejo"]} -->
+<p class="lead">Avoir sa propre forge, c'est avoir sa propre CI : chaque demande de fusion testée sur votre matériel, pas de minutes à acheter, rien qui sorte de la maison. Forgejo Actions lit les mêmes fichiers de workflow que GitHub Actions, presque. C'est dans le « presque » que partent les soirées.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Les trois pièges qui bloquent un premier workflow, une image d'exécutant qui porte tous les outils pour que les jobs cessent de les réinstaller (un job passait 1 min 24 de ses 1 min 30 à réinstaller ses outils), et quatre habitudes qui gardent une CI verte honnête sur une quarantaine de dépôts ici.</p>
+
+<h2>Un peu d'histoire</h2>
+<p>Forgejo descend de Gogs, un service Git auto-hébergé écrit en Go (2014), repris sous le nom de Gitea en 2016 par sa communauté. Quand la gouvernance de Gitea est passée à une entreprise en 2022, l'association Codeberg a lancé Forgejo comme fork communautaire, devenu entièrement indépendant en 2024. Sa CI, Forgejo Actions, lit volontairement le format de workflow popularisé par GitHub Actions (2018), si bien que la plupart des workflows existants tournent avec de petites retouches. L'exécutant est un programme à part : vous décidez quelle machine fait tourner vos jobs, et quels outils elle porte.</p>
+
+<h2>1. Trois pièges d'un premier workflow</h2>
+<ol>
+<li><strong>L'exécutant ne répond qu'à ses étiquettes.</strong> Le nôtre annonce <code>ubuntu-latest</code>. Tout autre <code>runs-on:</code> laisse le job <em>en attente</em> pour toujours, sans erreur : personne ne le réclame.</li>
+<li><strong>Pas d'image slim comme conteneur de job.</strong> Les actions JavaScript comme <code>checkout</code> tournent avec <code>node</code> <em>dans</em> le conteneur du job. Une image <code>python:slim</code> n'a pas node : le job meurt en code 127 avant sa première étape.</li>
+<li><strong>Écrivez les actions avec leur adresse complète</strong> : <code>https://data.forgejo.org/actions/checkout@v4</code>. Les noms courts ne sont pas résolus vers GitHub.</li>
+</ol>
+
+<h2>2. Une seule image d'exécutant pour tous les dépôts</h2>
+<p>Chaque workflow réinstallait pip, ruff, pytest, uv, node et compagnie à chaque passage : 1 min 24 sur un job de 1 min 30. Nous avons construit une image qui les porte tous, et pointé l'étiquette de l'exécutant dessus.</p>
+<ul>
+<li>Basée sur une image Python complète, avec node copié depuis l'image officielle (les actions en ont besoin).</li>
+<li>Versions des outils épinglées en un seul endroit, et vérifiées par la dernière étape de construction : un mauvais épinglage <strong>fait échouer la construction</strong>, il ne part jamais.</li>
+<li>Un manifeste de chaque outil et version est écrit dans l'image, comme preuve.</li>
+<li>Pas besoin de registre : le Dockerfile est la source, et l'image se reconstruit en quelques minutes dans le propre démon Docker de l'exécutant.</li>
+</ul>
+
+<h2>3. Quatre habitudes qui gardent le vert honnête</h2>
+<ul>
+<li><strong>Lisez le journal de la forge avant de reproduire quoi que ce soit.</strong> Une reproduction locale d'un job en échec est un jour sortie verte sur un commit réellement cassé ; le journal nommait les quatre assertions en échec d'un coup. Les journaux sont stockés compressés, un fichier par job, dans le dossier de données de la forge.</li>
+<li><strong>Vérifiez en local avant de pousser.</strong> Une vérification de types ou un passage de tests sur le portable prend une minute ; chaque aller-retour par la CI en coûte dix, et une demande de fusion à fermer.</li>
+<li><strong>Un test qui verrouille un bug est pire qu'aucun test.</strong> Après le renommage d'un dépôt, trois tests affirmaient encore l'ancien nom : la CI restait verte pendant que chaque déploiement échouait. Testez ce que le système doit faire, pas la valeur qu'il a aujourd'hui.</li>
+<li><strong>Un cliquet pour la cohérence.</strong> Notre CI compte le texte qui n'est pas dans la langue du projet et échoue si le compte monte ; quand il baisse, le plafond doit baisser dans la même demande de fusion. Les exceptions légitimes sont listées dans un fichier, chacune avec sa raison.</li>
+</ul>
+
+<h2>Pièges</h2>
+<p class="note">Un message de commit écrit avec un here-document sur la même ligne que d'autres commandes prend ces commandes pour son texte. Gardez <code>git commit -F - &lt;&lt;'MSG'</code> seul dans sa commande, relisez le sujet avec <code>git log -1 --format=%s</code>, et seulement ensuite poussez.</p>
+<p class="note">Certains points d'accès de l'API des runs renvoient des listes vides ou des 404 selon les versions, ce qui ressemble à « aucun exécutant ». Fiez-vous au journal du job et à l'état de l'exécutant lui-même, pas à une liste vide.</p>
