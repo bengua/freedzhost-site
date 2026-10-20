@@ -1173,6 +1173,49 @@ def browsers(lang):
     return figure("browsers", 760, 165, L["cap"], body)
 
 
+# ── a 177B model: placement beats bandwidth ─────────────────────────────────
+def placement(lang):
+    L = {
+        "en": labels(cap="Three measurements, in the order they were taken. Widening the PCIe link alone changed nothing, because most of the model still lived behind the slow card. Putting the model on one card doubled the speed.",
+                     rows=[("spread over both cards, big card at x4", 26.1), ("spread over both cards, big card at x16", 22.1),
+                           ("confined to the big card, x16", 55.6)], unit="tokens per second"),
+        "fr": labels(cap="Trois mesures, dans l'ordre où elles ont été prises. Élargir le lien PCIe seul n'a rien changé, parce que l'essentiel du modèle vivait toujours derrière la carte lente. Regrouper le modèle sur une carte a doublé la vitesse.",
+                     rows=[("réparti sur les deux cartes, grosse carte en x4", 26.1), ("réparti sur les deux cartes, grosse carte en x16", 22.1),
+                           ("regroupé sur la grosse carte, x16", 55.6)], unit="jetons par seconde"),
+    }[lang]
+    x0, w = 330, 330
+    body = t(x0, 20, L["unit"], 11, "start", MUTED)
+    for i, (label, v) in enumerate(L["rows"]):
+        y = 36 + i * 44
+        col = GOOD if i == 2 else MUTED
+        body += t(x0 - 12, y + 18, label, 12, "end")
+        body += f'<rect x="{x0}" y="{y + 2}" width="{w * v / 55.6:.1f}" height="24" rx="4" fill="{col}" fill-opacity="0.8"/>'
+        val = f"{v:g}".replace(".", ",") if lang == "fr" else f"{v:g}"
+        body += t(x0 + w * v / 55.6 + 8, y + 19, val, 13, weight=600)
+    return figure("placement", 720, 180, L["cap"], body)
+
+
+# ── hybrid: local first, then the cheaper cloud, then the expensive one ─────
+def escalation(lang):
+    L = {
+        "en": labels(cap="A task climbs only as high as it needs. Local models first; if they cannot, the cheaper hosted agent; the most expensive one only when the task demands it or you pinned it. Each hosted agent has a daily cap and a cage, and nothing climbs without your confirmation on the phone.",
+                     steps=[("Local models", "free, private"), ("Cheaper cloud agent", "most of the rest"), ("Frontier agent", "hard tasks, final review")],
+                     caps=["no limit", "cap 30 a day, sandboxed", "cap 10 a day, allow-list"], you="your confirmation card"),
+        "fr": labels(cap="Une tâche ne monte que jusqu'où elle en a besoin. Les modèles locaux d'abord ; s'ils ne peuvent pas, l'agent hébergé le moins cher ; le plus cher seulement quand la tâche l'exige ou que vous l'avez épinglée. Chaque agent hébergé a un plafond par jour et une cage, et rien ne monte sans votre confirmation sur le téléphone.",
+                     steps=[("Modèles locaux", "gratuits, privés"), ("Agent cloud moins cher", "l'essentiel du reste"), ("Agent frontier", "tâches dures, relecture finale")],
+                     caps=["sans limite", "plafond 30 par jour, en cage", "plafond 10 par jour, liste d'outils"], you="votre carte de confirmation"),
+    }[lang]
+    body = ""
+    for i, ((a, b), c) in enumerate(zip(L["steps"], L["caps"])):
+        x, y = 20 + i * 245, 130 - i * 50
+        body += box(x, y, 200, 54, a, b, stroke=GOOD if i == 0 else (ACCENT if i == 1 else BAD))
+        body += t(x + 100, y + 72, c, 11, "middle", MUTED)
+        if i:
+            body += arrow(x - 45, y + 77, x - 2, y + 40, None, MUTED)
+    body += t(500, 22, L["you"], 11, "middle", ACCENT)
+    return figure("escalation", 760, 210, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -1188,7 +1231,7 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "rotation": rotation, "ram": ram, "egpu": egpu,
             "mtp": mtp, "judge": judge, "rag": rag,
             "f2b": f2b, "errors": errors, "drift": drift, "secrets": secrets,
-            "mutation": mutation, "browsers": browsers}
+            "mutation": mutation, "browsers": browsers, "placement": placement, "escalation": escalation}
 
 
 def render(name, lang):

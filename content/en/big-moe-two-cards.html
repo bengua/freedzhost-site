@@ -1,0 +1,18 @@
+<!-- {"title": "A 177-billion-parameter model on two consumer cards: placement beats bandwidth", "summary": "A mixture-of-experts model that does not fit in VRAM can still run at home. Where its weights live matters more than the PCIe link, and two settings decide between a fast server and a frozen machine.", "order": 22, "series": "ai", "level": "advanced", "time": "an evening", "requires": ["gpu-grid", "ram-zram-swap"]} -->
+<p class="lead">A mixture-of-experts (MoE) model only uses a small part of its weights for each token. That is what lets a 177-billion-parameter model, compressed to 2 bits, run on two 16 GB cards and system RAM: most experts wait in RAM, the busy ones sit on the cards. It works, at about 55 tokens per second for us, once three things are right.</p>
+
+{{diagram:placement}}
+
+<h2>1. Placement first, bandwidth second</h2>
+<p>Our model was spread over both cards, and the big card ran its PCIe link at x4 instead of x16. Fixing the link alone gave nothing: 26.1 before, 22.1 after. Most of the model still lived on the second card, behind its own four-lane link. Confining the model to the big card, at x16, gave 55.6. Measure one change at a time, in order, or you will credit the wrong one.</p>
+
+<h2>2. Map the weights, never pin them</h2>
+<p>Loading options decide whether the model's weights can leave RAM when memory runs short. Memory-mapped loading (mmap) lets the system drop pages it can read again from the file; "resident" loading pins them. With resident loading, 47.6 GB of our 60 became memory nothing could reclaim, and the machine froze twice in one afternoon. Load big MoE models with mmap, and keep the RAM thieves away (see <a href="/ram-zram-swap.html">RAM, zram and swap</a>).</p>
+
+<h2>3. Keep the prompt cache</h2>
+<p>An agent sends the same long prefix (instructions and tool definitions) with every message. llama.cpp keeps the state of prompts it has already read in a RAM cache, <code>--cache-ram</code>, 8,192 MB by default. Someone set it to 0 after the freeze, by confusion with the weights: every turn then re-read 11,233 tokens, 112 seconds. With the cache back, the second turn read 4 tokens in 2 seconds: fifty times faster, for no loss.</p>
+
+<h2>Traps</h2>
+<p class="note">The prompt cache holds a prompt's state, not the model's weights: it was not the cause of the freeze. Two memories with similar names; turn off only the one you have measured.</p>
+<p class="note">The first turn after loading still pays the full prompt. After switching to a big model, play one turn yourself before an agent or a person uses it.</p>
+<p class="note">Make the dangerous settings impossible to come back: our deployment test refuses a configuration with the prompt cache at 0, and we checked that the test turns red when someone tries.</p>

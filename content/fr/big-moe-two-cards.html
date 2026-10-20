@@ -1,0 +1,18 @@
+<!-- {"title": "Un modèle de 177 milliards de paramètres sur deux cartes grand public : l'emplacement compte plus que le débit", "summary": "Un modèle à mélange d'experts qui ne tient pas en VRAM peut quand même tourner à la maison. L'endroit où vivent ses poids compte plus que le lien PCIe, et deux réglages font la différence entre un serveur rapide et une machine gelée.", "order": 22, "series": "ai", "level": "advanced", "time": "une soirée", "requires": ["gpu-grid", "ram-zram-swap"]} -->
+<p class="lead">Un modèle à mélange d'experts (MoE) n'utilise qu'une petite partie de ses poids pour chaque jeton. C'est ce qui permet à un modèle de 177 milliards de paramètres, compressé sur 2 bits, de tourner sur deux cartes de 16 Go et la RAM : la plupart des experts attendent en RAM, les plus sollicités sont sur les cartes. Ça marche, autour de 55 jetons par seconde chez nous, une fois trois choses réglées.</p>
+
+{{diagram:placement}}
+
+<h2>1. L'emplacement d'abord, le débit ensuite</h2>
+<p>Notre modèle était réparti sur les deux cartes, et la grosse carte faisait tourner son lien PCIe en x4 au lieu de x16. Corriger le lien seul n'a rien donné : 26,1 avant, 22,1 après. L'essentiel du modèle vivait toujours sur la seconde carte, derrière son propre lien de quatre lignes. Regrouper le modèle sur la grosse carte, en x16, a donné 55,6. Mesurez un changement à la fois, dans l'ordre, sinon vous attribuerez le gain au mauvais.</p>
+
+<h2>2. Mapper les poids, ne jamais les épingler</h2>
+<p>Les options de chargement décident si les poids du modèle peuvent quitter la RAM quand la mémoire manque. Le chargement mappé (mmap) laisse le système libérer des pages qu'il pourra relire dans le fichier ; le chargement « résident » les épingle. En résident, 47,6 Go de nos 60 sont devenus une mémoire que rien ne pouvait récupérer, et la machine a gelé deux fois dans l'après-midi. Chargez les gros MoE en mmap, et tenez les voleurs de RAM à l'écart (voir <a href="/fr/ram-zram-swap.html">RAM, zram et swap</a>).</p>
+
+<h2>3. Garder le cache de prompt</h2>
+<p>Un agent renvoie le même long préfixe (instructions et définitions d'outils) à chaque message. llama.cpp garde l'état des prompts déjà lus dans un cache en RAM, <code>--cache-ram</code>, 8 192 Mo par défaut. Quelqu'un l'a mis à 0 après le gel, par confusion avec les poids : chaque tour relisait alors 11 233 jetons, 112 secondes. Avec le cache rétabli, le second tour a lu 4 jetons en 2 secondes : cinquante fois plus vite, sans rien perdre.</p>
+
+<h2>Pièges</h2>
+<p class="note">Le cache de prompt garde l'état d'un prompt, pas les poids du modèle : il n'était pas la cause du gel. Deux mémoires aux noms proches ; ne coupez que celle que vous avez mesurée.</p>
+<p class="note">Le premier tour après le chargement paie toujours le prompt complet. Après une bascule vers un gros modèle, jouez un tour vous-même avant qu'un agent ou une personne l'utilise.</p>
+<p class="note">Rendez impossibles les réglages dangereux : notre test de déploiement refuse une configuration avec le cache de prompt à 0, et nous avons vérifié que le test passe au rouge quand quelqu'un essaie.</p>
