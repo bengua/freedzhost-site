@@ -1266,6 +1266,37 @@ def agents(lang):
     return figure("agents", 740, 295, L["cap"], body)
 
 
+# ── everything wired into one console ───────────────────────────────────────
+def wiring(lang):
+    L = {
+        "en": labels(cap="Two screens, one back end. The phone app and the desktop client never talk to an agent directly: they go through a small API that reads the fleet, and a rooms controller that keeps every conversation. Reads run alone; any action waits for your tap on a confirmation card.",
+                     ph="Phone app", phs="native, fingerprint", pc="Desktop client", pcs="served on every workstation",
+                     api="Console API", apis="reads, one write: go", rooms="Rooms controller", roomss="durable, idempotent, replay",
+                     of="OpenFox instances", ofs="local models", ag="Claude Code, Kimi", ags="native or by adapter",
+                     fl="Forge, n8n, GPU grid", fls="issues, workflows, models", tap="your tap"),
+        "fr": labels(cap="Deux écrans, un seul arrière. L'appli du téléphone et le client de bureau ne parlent jamais directement à un agent : ils passent par une petite API qui lit le parc, et par un contrôleur de salles qui garde chaque conversation. Les lectures passent seules ; toute action attend votre tap sur une carte de confirmation.",
+                     ph="Appli téléphone", phs="native, empreinte", pc="Client de bureau", pcs="servi sur chaque poste",
+                     api="API de console", apis="lectures, une écriture : go", rooms="Contrôleur de salles", roomss="durable, idempotent, rejeu",
+                     of="Instances OpenFox", ofs="modèles locaux", ag="Claude Code, Kimi", ags="natif ou par adaptateur",
+                     fl="Forge, n8n, grille GPU", fls="issues, workflows, modèles", tap="votre tap"),
+    }[lang]
+    body = box(20, 50, 200, 54, L["ph"], L["phs"], stroke=ACCENT)
+    body += box(20, 190, 200, 54, L["pc"], L["pcs"], stroke=ACCENT)
+    body += box(290, 50, 210, 54, L["api"], L["apis"])
+    body += box(290, 190, 210, 54, L["rooms"], L["roomss"])
+    body += box(570, 20, 190, 50, L["fl"], L["fls"], stroke=GOOD)
+    body += box(570, 120, 190, 50, L["of"], L["ofs"], stroke=GOOD)
+    body += box(570, 220, 190, 50, L["ag"], L["ags"], stroke=GOOD)
+    body += arrow(220, 77, 288, 77, L["tap"])
+    body += arrow(220, 217, 288, 217, None)
+    body += arrow(220, 95, 288, 205, None)
+    body += arrow(220, 200, 288, 92, None)
+    body += arrow(500, 70, 568, 45, None, GOOD, marker="good")
+    body += arrow(500, 210, 568, 150, None, GOOD, marker="good")
+    body += arrow(500, 225, 568, 245, None, GOOD, marker="good")
+    return figure("wiring", 780, 290, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -1282,7 +1313,7 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "mtp": mtp, "judge": judge, "rag": rag,
             "f2b": f2b, "errors": errors, "drift": drift, "secrets": secrets,
             "mutation": mutation, "browsers": browsers, "placement": placement, "escalation": escalation,
-            "apk": apk, "agents": agents}
+            "apk": apk, "agents": agents, "wiring": wiring}
 
 
 def render(name, lang):

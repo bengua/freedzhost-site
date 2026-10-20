@@ -1,0 +1,30 @@
+<!-- {"title": "Rooms and FoxDesk: one conversation, any machine, any agent", "summary": "A rooms controller keeps every agent conversation durable and replayable, across several machines. An open-source agent core, never patched, with your agents plugged in by adapters. And a desktop client served on every workstation, so one machine down never cuts you off.", "order": 50, "series": "agents", "level": "advanced", "time": "a weekend", "requires": ["agent-swarmfox"]} -->
+<p class="lead">A coding session lives in one agent, on one machine. Close the app, change machine, or let the agent run all night, and you lose the thread. Rooms fix that: a room is a conversation that outlives the session, the app and the screen that started it. FoxDesk is the desktop window on those rooms, next to the phone.</p>
+
+{{diagram:wiring}}
+
+<h2>1. A rooms controller in front of the agents</h2>
+<p>Our controller, CloudFoxRoom, sits in front of several OpenFox instances, one per machine. It is a small program with no dependency beyond the language's standard library, and it:</p>
+<ul>
+<li>records rooms, prompts and events in SQLite (WAL mode, so reads never block writes);</li>
+<li>makes every creation idempotent by a <code>request_id</code>: the same request twice returns the same receipt;</li>
+<li>keeps one client per instance with isolated errors: a machine asleep never hides the others;</li>
+<li>keeps a queue per room that you can edit, cancel, reorder, pause or interrupt;</li>
+<li>streams events by SSE, with replay from the last event received after a disconnection.</li>
+</ul>
+<p class="note">Replay is the feature you notice. The phone loses its signal in a lift; when it comes back, it asks "everything after event 412" and the conversation is whole again.</p>
+
+<h2>2. An open-source core, never patched</h2>
+<p>For multi-agent sessions we use the core of an open-source project, cloudroom (Apache 2.0), which already runs Claude Code natively. Our rule: never patch the core. Every agent it does not know (Kimi, local models through the gateway) is plugged in by an <strong>adapter</strong> outside the core, which speaks the same protocol as a native harness. Upstream updates then install without a merge.</p>
+
+<h2>3. FoxDesk: the desktop client</h2>
+<p>FoxDesk is a web client served by every workstation, not by one server. If one machine falls, the others still drive the fleet. A small local server in front of it injects the token on the server side: the browser never holds a secret.</p>
+<p>Two rules make it trustworthy:</p>
+<ul>
+<li><strong>What is not wired is greyed, with the reason.</strong> A button that does nothing yet is shown disabled, with "not wired: the core sends no state for this". Never fake data, never a button that silently does nothing.</li>
+<li><strong>The mascot is a gauge.</strong> FoxBot's mood is computed from real probes (health, load, a task waiting for you), never a decorative animation.</li>
+</ul>
+
+<h2>Traps</h2>
+<p class="note">Never show an identifier or a raw timestamp to a human. A room is shown by its title, its project and "2 min ago".</p>
+<p class="note">Do not reinvent the core's gestures. If the core can move a session between machines, call it; do not simulate it in the interface.</p>
