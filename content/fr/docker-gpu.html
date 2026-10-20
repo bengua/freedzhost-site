@@ -1,6 +1,8 @@
 <!-- {"title": "Docker avec accès à votre carte graphique", "summary": "Installer Docker et le NVIDIA Container Toolkit, tester, et éviter le piège après une mise à jour du pilote.", "order": 4} -->
 <p class="lead">Chaque serveur de modèles de cette série tourne dans un conteneur : il s'installe proprement, se désinstalle proprement, et deux versions peuvent cohabiter. Deux pièces, aucune n'est de nous : Docker, et le Container Toolkit de NVIDIA.</p>
 
+{{diagram:docker}}
+
 <h2>1. Docker</h2>
 <p>Le script d'installation de Docker installe la dernière version. Docker le réserve aux machines de test et de développement ; pour un serveur de production, utilisez la méthode par dépôt de leur documentation.</p>
 <pre><code>curl -fsSL https://get.docker.com -o get-docker.sh

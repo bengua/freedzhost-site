@@ -4,6 +4,8 @@
 <h2>The rule: video memory decides</h2>
 <p>A model runs fast when it fits entirely in the card's video memory (VRAM). The file size of the model is a good first estimate of what it needs, plus room for the context (the "KV cache") and a margin.</p>
 
+{{diagram:hardware}}
+
 <div class="table"><table>
 <tr><th>Model</th><th>File / VRAM</th><th>Fits on</th></tr>
 <tr><td>Qwen3 8B, Q4_K_M</td><td>5.0 GB file</td><td>an 8 GB card</td></tr>

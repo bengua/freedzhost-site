@@ -40,7 +40,7 @@ freedzhost-site-build = "site_build:main"
 
 [tool.setuptools]
 packages = []
-py-modules = ["site_build"]
+py-modules = ["site_build", "diagrams"]
 
 [tool.ruff]
 line-length = 88

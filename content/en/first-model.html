@@ -22,6 +22,8 @@ curl -L -o ~/models/Qwen3-8B-Q4_K_M.gguf \
 <li><code>-p 127.0.0.1:8080:8080</code>: reachable from this machine only. Do not open it to your network before you have put something in front of it.</li>
 </ul>
 
+{{diagram:request}}
+
 <h2>3. Talk to it</h2>
 <pre><code>curl http://127.0.0.1:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
@@ -29,4 +31,5 @@ curl -L -o ~/models/Qwen3-8B-Q4_K_M.gguf \
 <p>Or open <code>http://127.0.0.1:8080</code> in a browser: the server ships a small chat page.</p>
 
 <h2>A trap we measured</h2>
+{{diagram:kv}}
 <p class="note">To save memory you can compress the context cache with <code>-ctk q8_0 -ctv q8_0</code>. Do not go further on the V side: with <code>-ctv q4_0</code>, flash attention silently switches off and reading a long prompt became <strong>21 times slower</strong> on our card (62.7 instead of 1,330 tokens per second), while generation speed did not change. A test that only measures generation would never see it.</p>
