@@ -1,0 +1,25 @@
+<!-- {"title": "Homelab 12 : tous vos papiers numérisés, lus et retrouvables avec Paperless-ngx", "summary": "Déposez un scan ou une photo dans un dossier : il est lu, étiqueté et classé. Cherchez un mot sur n'importe quelle facture des dix dernières années.", "order": 20, "series": "homelab"} -->
+<p class="lead">Paperless-ngx transforme le papier en archive où l'on peut chercher. Un scan, une photo de téléphone, un fichier Office ou un e-mail arrive dans un dossier ; Paperless le lit par OCR, devine le correspondant et le type, l'étiquette, et le classe. Ensuite, la recherche d'un mot le retrouve sur n'importe quelle page de n'importe quel document, des années plus tard.</p>
+
+{{diagram:paper}}
+
+<h2>1. Le lancer</h2>
+<p>Le projet publie des fichiers Docker Compose : Paperless avec PostgreSQL et Redis, et une variante avec Tika et Gotenberg pour lire aussi les documents Office et les e-mails. Prenez cette variante, épinglez la version, et réglez au minimum :</p>
+<pre><code>PAPERLESS_SECRET_KEY=&lt;une longue valeur aléatoire&gt;  # obligatoire : il refuse de démarrer sans
+PAPERLESS_URL=https://paperless.votredomaine.tld     # derrière un proxy : hôtes autorisés et CSRF en un réglage
+PAPERLESS_OCR_LANGUAGE=fra                          # la langue de la plupart de vos papiers
+PAPERLESS_TIKA_ENABLED=1</code></pre>
+<p>Publiez-le par votre proxy HTTPS (Homelab 2), ou gardez-le sur votre réseau privé (Homelab 6) : ce sont vos documents les plus personnels.</p>
+
+<h2>2. Le nourrir</h2>
+<p>Partagez le dossier d'entrée sur votre réseau et faites-y enregistrer votre scanner, ou envoyez depuis la page web et les apps mobiles. Paperless prend un fichier, le traite, et le retire du dossier. Apprenez-lui une fois : corrigez le correspondant et les étiquettes sur quelques documents, et le classement automatique apprend.</p>
+
+<h2>3. Le sauvegarder comme il l'attend</h2>
+<p>L'exportateur écrit chaque document et toutes les métadonnées (étiquettes, correspondants, notes) dans un dossier que vous pouvez sauvegarder et importer n'importe où :</p>
+<pre><code>docker compose exec -T webserver document_exporter ../export</code></pre>
+<p>Lancez-le chaque nuit avant votre copie (Homelab 5). Pour restaurer : <code>document_importer</code> sur ce dossier, dans une instance neuve.</p>
+
+<h2>Pièges</h2>
+<p class="note">La langue de l'OCR est l'anglais par défaut. Des papiers français lus comme de l'anglais sortent pleins d'erreurs et la recherche les rate. Le français est inclus dans l'image : réglez <code>fra</code>. Les combinaisons comme <code>fra+eng</code> marchent, au prix de beaucoup plus de temps processeur.</p>
+<p class="note">Un dossier d'entrée sur un partage réseau ne signale pas les nouveaux fichiers à Paperless. Activez la scrutation (<code>PAPERLESS_CONSUMER_POLLING_INTERVAL</code>), sinon les fichiers attendent pour toujours.</p>
+<p class="note">Copier la base seule n'est pas une sauvegarde de Paperless : fichiers et base doivent correspondre. Utilisez l'exportateur, qui écrit les deux de façon cohérente.</p>

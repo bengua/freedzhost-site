@@ -594,6 +594,33 @@ def office(lang):
     return figure("office", 760, 255, L["cap"], body)
 
 
+# ── homelab 12: paper in, searchable archive out ────────────────────────────
+def paper(lang):
+    L = {
+        "en": labels(cap="Anything dropped in the consume folder is read (OCR in your language), converted, tagged and filed. The archive keeps the original and a searchable PDF; the exporter writes everything, files and metadata, for your backup.",
+                     src=["Scanner", "Phone photo", "Office files, e-mail"], cons="Consume folder", csub="drop and forget",
+                     pl="Paperless-ngx", psub="OCR fra · Tika · Gotenberg", arch="Archive", asub="original + searchable PDF",
+                     exp="document_exporter", esub="→ your backup"),
+        "fr": labels(cap="Tout ce qui tombe dans le dossier d'entrée est lu (OCR dans votre langue), converti, étiqueté et classé. L'archive garde l'original et un PDF où l'on peut chercher ; l'exportateur écrit tout, fichiers et métadonnées, pour votre sauvegarde.",
+                     src=["Scanner", "Photo au téléphone", "Fichiers Office, e-mails"], cons="Dossier d'entrée", csub="on dépose et on oublie",
+                     pl="Paperless-ngx", psub="OCR fra · Tika · Gotenberg", arch="Archive", asub="original + PDF consultable",
+                     exp="document_exporter", esub="→ votre sauvegarde"),
+    }[lang]
+    body = ""
+    for i, name in enumerate(L["src"]):
+        y = 20 + i * 60
+        body += box(10, y, 160, 46, name, None)
+        body += arrow(170, y + 23, 228, 103)
+    body += box(230, 76, 140, 54, L["cons"], L["csub"])
+    body += box(410, 76, 170, 54, L["pl"], L["psub"], stroke=ACCENT)
+    body += box(610, 40, 150, 54, L["arch"], L["asub"])
+    body += box(610, 130, 150, 54, L["exp"], L["esub"], stroke=GOOD)
+    body += arrow(370, 103, 408, 103)
+    body += arrow(580, 95, 608, 72)
+    body += arrow(580, 112, 608, 150, None, GOOD, marker="good")
+    return figure("paper", 770, 205, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -601,7 +628,8 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "dns": dns, "backups": backups,
             "remote": remote, "photos": photos,
             "forge": forge, "search": search, "notify": notify,
-            "intent": intent, "office": office}
+            "intent": intent, "office": office,
+            "paper": paper}
 
 
 def render(name, lang):
