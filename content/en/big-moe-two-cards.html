@@ -10,7 +10,7 @@
 <p>Loading options decide whether the model's weights can leave RAM when memory runs short. Memory-mapped loading (mmap) lets the system drop pages it can read again from the file; "resident" loading pins them. With resident loading, 47.6 GB of our 60 became memory nothing could reclaim, and the machine froze twice in one afternoon. Load big MoE models with mmap, and keep the RAM thieves away (see <a href="/ram-zram-swap.html">RAM, zram and swap</a>).</p>
 
 <h2>3. Keep the prompt cache</h2>
-<p>An agent sends the same long prefix (instructions and tool definitions) with every message. llama.cpp keeps the state of prompts it has already read in a RAM cache, <code>--cache-ram</code>, 8,192 MB by default. Someone set it to 0 after the freeze, by confusion with the weights: every turn then re-read 11,233 tokens, 112 seconds. With the cache back, the second turn read 4 tokens in 2 seconds: fifty times faster, for no loss.</p>
+<p>An agent sends the same long prefix (instructions and tool definitions) with every message. llama.cpp keeps the state of prompts it has already read in a RAM cache, <code>--cache-ram</code>, 8,192 MB by default. We set it to 0 after the freeze, confusing it with the weights: every turn then re-read 11,233 tokens, 112 seconds. With the cache back, the second turn read 4 tokens in 2 seconds: fifty times faster, for no loss.</p>
 
 <h2>Traps</h2>
 <p class="note">The prompt cache holds a prompt's state, not the model's weights: it was not the cause of the freeze. Two memories with similar names; turn off only the one you have measured.</p>
