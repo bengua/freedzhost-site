@@ -12,7 +12,7 @@ LEAK = re.compile(
     r"|\b100\.(?:6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d+\.\d+\b"  # CGNAT, as used by tailnets
     r"|\btail[0-9a-f]{6,}\b"  # a real tailnet name
     r"|/home/[a-z]"  # a home directory
-    r"|[\w.+-]+@[\w-]+\.[\w.]+"  # any e-mail address
+    r"|[\w.+-]+@[\w-]+\.[a-z]{2,6}\b"  # any e-mail address (not a systemd unit like x@y.service)
 )
 
 
