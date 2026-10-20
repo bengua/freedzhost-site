@@ -574,6 +574,26 @@ def intent(lang):
     return figure("intent", 770, 185, L["cap"], body)
 
 
+# ── homelab 11: who talks to whom when you open a document ──────────────────
+def office(lang):
+    L = {
+        "en": labels(cap="Opening a document involves three parties. Your browser gets the file list from Nextcloud but loads the editor from the document server; the document server fetches the file from Nextcloud and saves it back. Every request between them is signed with the same shared secret.",
+                     br="Your browser", nc="Nextcloud", ncs="your files", oo="OnlyOffice", oos="document server",
+                     files="file list", editor="loads the editor", fetch="fetches, then saves the file", jwt="same JWT secret on both sides"),
+        "fr": labels(cap="Ouvrir un document fait parler trois acteurs. Votre navigateur obtient la liste des fichiers de Nextcloud mais charge l'éditeur depuis le serveur de documents ; celui-ci va chercher le fichier chez Nextcloud et l'y enregistre. Chaque requête entre eux est signée avec le même secret partagé.",
+                     br="Votre navigateur", nc="Nextcloud", ncs="vos fichiers", oo="OnlyOffice", oos="serveur de documents",
+                     files="liste des fichiers", editor="charge l'éditeur", fetch="récupère, puis enregistre le fichier", jwt="même secret JWT des deux côtés"),
+    }[lang]
+    body = box(300, 20, 160, 54, L["br"], None)
+    body += box(60, 170, 170, 54, L["nc"], L["ncs"])
+    body += box(530, 170, 170, 54, L["oo"], L["oos"], stroke=ACCENT)
+    body += arrow(320, 74, 170, 168, L["files"], lx=200, ly=115)
+    body += arrow(440, 74, 590, 168, L["editor"], ACCENT, marker="acc", lx=575, ly=115)
+    body += arrow(528, 205, 232, 205, L["fetch"], lx=380, ly=197)
+    body += t(380, 240, L["jwt"], 11, "middle", GOOD)
+    return figure("office", 760, 255, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -581,7 +601,7 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "dns": dns, "backups": backups,
             "remote": remote, "photos": photos,
             "forge": forge, "search": search, "notify": notify,
-            "intent": intent}
+            "intent": intent, "office": office}
 
 
 def render(name, lang):
