@@ -1,0 +1,27 @@
+<!-- {"title": "Homelab 16: keep everything you read, forever, with Karakeep", "summary": "Replace Pocket and browser bookmarks: full-page archives that survive the original site, tags and summaries by a local model, and your agents can search them.", "order": 24, "series": "homelab", "level": "beginner", "time": "45 min", "requires": ["homelab-proxy", "model-gateway"]} -->
+<p class="lead">A bookmark is a promise that the page will still be there. Often it is not. Karakeep (formerly Hoarder) saves the page itself: the full archive, readable even when the original site is gone, with tags and a summary written by a model running at home. Ours also passes every saved page to our knowledge base, so our agents can search what we read.</p>
+
+{{diagram:keep}}
+
+<h2>1. Run it</h2>
+<p>Karakeep publishes a Docker Compose setup: the application, a headless Chrome to fetch pages, and Meilisearch for full-text search. Follow it, pin the versions, publish through your HTTPS proxy (Homelab 2), and install the browser extension and the phone app.</p>
+
+<h2>2. The settings that matter</h2>
+<div class="table"><table>
+<tr><th>Setting</th><th>Why, measured</th></tr>
+<tr><td><code>CRAWLER_FULL_PAGE_ARCHIVE=true</code></td><td>41,327 characters archived instead of 8,927: the whole page, not just its first screen</td></tr>
+<tr><td><code>INFERENCE_ENABLE_AUTO_SUMMARIZATION=true</code></td><td>a summary answers a search better than a raw page full of menus</td></tr>
+<tr><td><code>INFERENCE_JOB_TIMEOUT_SEC=300</code></td><td>tagging took 54 s on a long page with a small local model; the 30 s default cut it off</td></tr>
+<tr><td><code>OCR_LANGS=fra+eng</code></td><td>French documents and images are read correctly</td></tr>
+<tr><td><code>DB_WAL_MODE=true</code></td><td>another program can read the database while Karakeep writes</td></tr>
+</table></div>
+<p>For tags and summaries, point Karakeep at your model gateway (<a href="/model-gateway.html">One gateway for all your models</a>) through its OpenAI-compatible settings, and choose a small model: tagging does not need a large one.</p>
+
+<h2>3. Hand it to your agents</h2>
+<p>In Karakeep's settings, add a webhook to a small receiver of yours that exports new pages into your knowledge base. Put the token in Karakeep's <strong>auth token</strong> field, not in the URL: it is then sent as a header, and headers do not end up in proxy logs.</p>
+
+<h2>Traps we paid for</h2>
+<p class="note">Our gateway's alias answered "I am the big model" while silently serving a 3B fallback. Ask the gateway which model actually served, never trust an alias (that is why our gateway now has no aliases at all).</p>
+<p class="note">Turn semantic search off if your gateway serves no embedding model: left on, indexing fails without a single visible error.</p>
+<p class="note"><code>NEXTAUTH_URL</code> is not only a redirect: the login checks requests against it. Set it to the address you really use, and behind a proxy add <code>AUTH_TRUST_HOST=true</code>. A login page that loads is not a login that works.</p>
+<p class="note">Importing 500 bookmarks fires 500 webhooks. Do not re-index on each one: let the receiver set a flag, and run the export once after 30 seconds of calm. Ours had a small VM killed by the out-of-memory killer before that change.</p>

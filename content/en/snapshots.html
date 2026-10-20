@@ -1,0 +1,27 @@
+<!-- {"title": "Undo any change: snapshots of your home folder with snapper", "summary": "Instead of .bak copies everywhere, a photo of your folder before every risky change, taken in a second, and a one-line undo.", "order": 40, "series": "desk", "level": "beginner", "time": "20 min", "requires": []} -->
+<p class="lead">Before editing a configuration file, people copy it to <code>.bak</code>. A month later the home folder holds forty of them, nobody knows which one is good, and some sit in places where they get executed by mistake. If your system uses the btrfs file system (Fedora, openSUSE, CachyOS and many others do by default), there is a better way: snapshots.</p>
+
+{{diagram:snapshots}}
+
+<h2>1. A configuration for your home folder</h2>
+<p>Snapper manages btrfs snapshots. Create a configuration for <code>/home</code>, allow your user to use it without sudo, and keep a reasonable history:</p>
+<pre><code>sudo snapper -c home create-config /home
+sudo snapper -c home set-config ALLOW_USERS=$USER SYNC_ACL=yes \
+     TIMELINE_CREATE=yes TIMELINE_LIMIT_DAILY=7 TIMELINE_LIMIT_WEEKLY=2</code></pre>
+<p>Then make sure both timers run: one takes the hourly snapshots, the other deletes the old ones.</p>
+<pre><code>sudo systemctl enable --now snapper-timeline.timer snapper-cleanup.timer</code></pre>
+
+<h2>2. Before a risky change</h2>
+<pre><code>snapper -c home create -d "before editing ssh config"</code></pre>
+<p>One second, no copy. The command prints nothing; <code>snapper -c home list</code> shows the snapshot and its number.</p>
+
+<h2>3. Undo</h2>
+<p>See what changed since snapshot 42, then bring one file back:</p>
+<pre><code>snapper -c home status 42..0
+snapper -c home undochange 42..0 /home/you/.ssh/config</code></pre>
+<p>Or simply read the old version: every snapshot is a normal folder, <code>/home/.snapshots/42/snapshot/</code>.</p>
+
+<h2>Traps we paid for</h2>
+<p class="note">If the cleanup timer is not running, snapshots pile up forever. Ours had collected more than 800; deleted files kept their space because old snapshots still held them. Enabling the cleanup gave back more than 200 GB at once.</p>
+<p class="note">Do not leave Docker's data inside a snapshotted volume. Every snapshot keeps the images you delete, so removing a 160 GB model store freed 5 GB. Give <code>/var/lib/docker</code> its own btrfs subvolume, which snapshots skip.</p>
+<p class="note">Large model files belong in a folder that is not snapshotted, for the same reason: a 40 GB download you delete should come back as free space, not stay in a snapshot for two weeks.</p>
