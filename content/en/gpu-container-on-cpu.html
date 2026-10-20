@@ -1,0 +1,48 @@
+<!-- {"title": "Your GPU container runs on the CPU: three traps after an update or a reboot", "summary": "The model says healthy in seven seconds, then crawls: it is running on the processor. The card is visible, CUDA is not. A stale device description, a device number that changes at every boot, and the bisection that found them.", "order": 56, "series": "ai", "level": "intermediate", "time": "30 min", "requires": ["docker-gpu"]} -->
+<p class="lead">It worked yesterday. Today, after a driver update or a simple reboot, your model containers either refuse to start or, worse, start and run on the processor without a word. Both came from the same file, and both are fixed for good with one small service.</p>
+
+<p class="proof"><strong>What you get.</strong> A two-minute check that tells you whether your card is really used, the fix for the two failures we hit, and a boot service that makes them never come back. Ours has run every boot since.</p>
+
+<h2>1. Is the card really used?</h2>
+<p>A model that turns healthy in seven seconds and answers at a few tokens per second is running on the processor. Check three things:</p>
+<pre><code>docker exec model nvidia-smi -L        # the card is visible...
+docker logs model 2>&amp;1 | grep -i -E "cuda|offloaded"   # ...but is CUDA alive?</code></pre>
+<p>If the second line says <code>failed to initialize CUDA: unknown error</code>, or <code>offloaded 0/..</code> layers, the card is seen but not used. Seeing the card is not proof: <code>nvidia-smi</code> only needs the driver files, CUDA needs the device nodes too.</p>
+
+<h2>2. Trap one: the description is older than the driver</h2>
+<p>With CDI, Docker reads <code>/etc/cdi/nvidia.yaml</code>, a list of the driver's files and devices written when it was generated. Update the driver without regenerating it, and the list names files that no longer exist:</p>
+<pre><code>failed to fulfil mount request: open /usr/lib/libnvidia-egl-wayland.so.1.1.21: no such file or directory</code></pre>
+<p>Recreating the container changes nothing: the description is the source, not the container. Regenerate it:</p>
+<pre><code>sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml</code></pre>
+
+<h2>3. Trap two: a device number that changes at every boot</h2>
+<p>The harder one. After a reboot, CUDA failed with "unknown error" while the host itself worked. We bisected the container's options one at a time:</p>
+<ul>
+<li><code>--privileged</code>: works;</li>
+<li>only <code>--device-cgroup-rule "c 235:* rwm"</code>: works;</li>
+<li>seccomp, capabilities, <code>/dev/dri</code>, <code>/sys</code>: no effect.</li>
+</ul>
+<p>The cause: the <code>nvidia-uvm</code> device gets its number at boot, dynamically. It was 234 when the description was written, 235 after the reboot. The device was mounted with the new number, but the container was only allowed the old one.</p>
+<pre><code>grep nvidia-uvm /proc/devices     # today's number</code></pre>
+
+<h2>4. The permanent fix: regenerate at every boot</h2>
+<p>One small service, run before Docker starts, fixes both traps at once:</p>
+<pre><code># /etc/systemd/system/nvidia-cdi-generate.service
+[Unit]
+Description=Regenerate the NVIDIA CDI spec (nvidia-uvm major changes each boot)
+After=systemd-modules-load.service
+Before=docker.service
+
+[Service]
+Type=oneshot
+ExecStartPre=/usr/bin/nvidia-modprobe -u -c=0
+ExecStart=/usr/bin/nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<pre><code>sudo systemctl enable nvidia-cdi-generate.service</code></pre>
+<p class="note"><code>nvidia-modprobe -u</code> loads the <code>nvidia-uvm</code> module first, so the description is written with the number of this boot.</p>
+
+<h2>Traps</h2>
+<p class="note">A driver update without a reboot hides trap one: running containers keep their old files open. It shows up days later, at the first real start. Regenerate right after the update.</p>
+<p class="note">When nothing makes sense, bisect: remove one option at a time and keep the one that changes the result.</p>
