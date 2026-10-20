@@ -23,7 +23,7 @@ LANGS = {
            "levels": {"read": "Reading", "beginner": "Beginner", "intermediate": "Intermediate", "advanced": "Advanced"},
            "fiche": {"level": "Level", "time": "Estimated time", "before": "Read first", "words": "A word you don't know?",
                      "glossary": "Glossary"},
-           "series": {"start": "Start here", "ai": "Local AI", "n8n": "Local agentic automation with n8n", "homelab": "Homelab: replace the subscriptions"},
+           "series": {"start": "Start here", "ai": "Local AI", "n8n": "Local agentic automation with n8n", "desk": "Your Linux workstation", "homelab": "Homelab: replace the subscriptions"},
            "description": "Free tutorials to run your own AI agent swarm and homelab at home: hardware, local models, and the services that replace your subscriptions.",
            "locale": "en_US", "feed": "New articles",
            "footer":
@@ -33,7 +33,7 @@ LANGS = {
            "levels": {"read": "Lecture", "beginner": "Débutant", "intermediate": "Intermédiaire", "advanced": "Avancé"},
            "fiche": {"level": "Niveau", "time": "Temps estimé", "before": "À lire avant", "words": "Un mot inconnu ?",
                      "glossary": "Lexique"},
-           "series": {"start": "Commencer ici", "ai": "IA locale", "n8n": "L'agentique locale avec n8n", "homelab": "Homelab : remplacer les abonnements"},
+           "series": {"start": "Commencer ici", "ai": "IA locale", "n8n": "L'agentique locale avec n8n", "desk": "Votre poste Linux", "homelab": "Homelab : remplacer les abonnements"},
            "description": "Tutos gratuits pour monter votre essaim d'agents IA et votre homelab à la maison : matériel, modèles locaux, et les services qui remplacent vos abonnements.",
            "locale": "fr_FR", "feed": "Nouveaux articles",
            "footer":

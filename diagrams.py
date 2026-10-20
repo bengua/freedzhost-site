@@ -848,6 +848,52 @@ def grid(lang):
     return figure("grid", 640, 275, L["cap"], body)
 
 
+# ── snapshots: undo any change ──────────────────────────────────────────────
+def snapshots(lang):
+    L = {
+        "en": labels(cap="A snapshot is a photo of a folder at an instant, taken in a second and costing only what changes afterwards. Take one before touching anything; if the change goes wrong, bring the file back from the photo.",
+                     tl="every hour, kept 7 days + 2 weeks", before="before the change", change="your change", oops="it breaks",
+                     undo="undochange: the file comes back", now="now"),
+        "fr": labels(cap="Un instantané est une photo d'un dossier à un instant, prise en une seconde et qui ne coûte que ce qui change ensuite. Prenez-en une avant de toucher à quoi que ce soit ; si le changement tourne mal, faites revenir le fichier depuis la photo.",
+                     tl="chaque heure, gardés 7 jours + 2 semaines", before="avant le changement", change="votre changement", oops="ça casse",
+                     undo="undochange : le fichier revient", now="maintenant"),
+    }[lang]
+    body = f'<line x1="30" y1="90" x2="720" y2="90" stroke="{LINE}" stroke-width="3"/>'
+    for x in (60, 130, 200, 270):
+        body += f'<circle cx="{x}" cy="90" r="7" fill="{MUTED}"/>'
+    body += t(165, 70, L["tl"], 11, "middle", MUTED)
+    body += f'<circle cx="400" cy="90" r="10" fill="{ACCENT}"/>' + t(400, 66, L["before"], 12, "middle", ACCENT, 600)
+    body += f'<rect x="450" y="80" width="90" height="20" rx="4" fill="{PANEL}" stroke="{LINE}"/>' + t(495, 120, L["change"], 11, "middle")
+    body += f'<circle cx="610" cy="90" r="8" fill="{BAD}"/>' + t(610, 70, L["oops"], 12, "middle", BAD, 600)
+    body += t(700, 120, L["now"], 11, "middle", MUTED)
+    body += f'<path d="M610,104 C600,170 420,170 404,104" fill="none" stroke="{GOOD}" stroke-width="1.8" marker-end="url(#good)"/>'
+    body += t(505, 182, L["undo"], 12, "middle", GOOD, 600)
+    return figure("snapshots", 750, 200, L["cap"], body)
+
+
+# ── homelab 16: keep what you read ──────────────────────────────────────────
+def keep(lang):
+    L = {
+        "en": labels(cap="Save a page from the browser or the phone. Karakeep archives the whole page, a small local model tags and summarises it, and a webhook hands it to your knowledge base, where your agents can search it a minute later.",
+                     src="Browser, phone", ssub="share → save", kk="Karakeep", ksub="full archive", ai="Local model",
+                     asub="tags + summary", hook="Webhook", hsub="token in a header", kb="Your knowledge base", kbs="searchable by agents"),
+        "fr": labels(cap="Gardez une page depuis le navigateur ou le téléphone. Karakeep archive la page entière, un petit modèle local l'étiquette et la résume, et un webhook la passe à votre base de connaissance, où vos agents peuvent la chercher une minute plus tard.",
+                     src="Navigateur, téléphone", ssub="partager → garder", kk="Karakeep", ksub="archive complète", ai="Modèle local",
+                     asub="étiquettes + résumé", hook="Webhook", hsub="jeton dans un en-tête", kb="Votre base de connaissance", kbs="interrogeable par les agents"),
+    }[lang]
+    body = box(10, 40, 150, 54, L["src"], L["ssub"])
+    body += box(200, 40, 140, 54, L["kk"], L["ksub"], stroke=ACCENT)
+    body += box(200, 150, 140, 54, L["ai"], L["asub"])
+    body += box(390, 40, 140, 54, L["hook"], L["hsub"])
+    body += box(570, 40, 205, 54, L["kb"], L["kbs"], stroke=GOOD)
+    body += arrow(160, 67, 198, 67)
+    body += arrow(270, 94, 270, 148)
+    body += arrow(300, 148, 300, 96)
+    body += arrow(340, 67, 388, 67)
+    body += arrow(530, 67, 568, 67, None, GOOD, marker="good")
+    return figure("keep", 785, 220, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -859,7 +905,7 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "paper": paper, "tasks": tasks,
             "cascade": cascade, "voice": voice,
             "saas": saas, "clock": clock, "route": route,
-            "gateway": gateway, "grid": grid}
+            "gateway": gateway, "grid": grid, "snapshots": snapshots, "keep": keep}
 
 
 def render(name, lang):
