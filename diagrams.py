@@ -546,13 +546,42 @@ def notify(lang):
     return figure("notify", 760, 220, L["cap"], body)
 
 
+# ── giving code work to a local agent ───────────────────────────────────────
+def intent(lang):
+    L = {
+        "en": labels(cap="The agent never touches main. It gets a short, closed request with the real data, works on its own branch in a sandbox, must make a test that runs the code pass, and opens a pull request that a human or a stronger model reads before the merge.",
+                     you="Your request", ysub="≤ 4 deliverables, real data", agent="Local agent", asub="own branch, sandbox",
+                     tests="Tests", tsub="must execute the code", pr="Pull request", psub="read before merge",
+                     main="main", reject="too wide: refused", red="red: back to work"),
+        "fr": labels(cap="L'agent ne touche jamais main. Il reçoit une demande courte et fermée avec les vraies données, travaille sur sa branche dans un bac à sable, doit faire passer un test qui exécute le code, et ouvre une pull request qu'un humain ou un modèle plus fort relit avant la fusion.",
+                     you="Votre demande", ysub="≤ 4 livrables, vraies données", agent="Agent local", asub="sa branche, bac à sable",
+                     tests="Tests", tsub="doivent exécuter le code", pr="Pull request", psub="relue avant fusion",
+                     main="main", reject="trop large : refusée", red="rouge : on recommence"),
+    }[lang]
+    body = box(10, 60, 150, 54, L["you"], L["ysub"])
+    body += box(200, 60, 140, 54, L["agent"], L["asub"])
+    body += box(380, 60, 140, 54, L["tests"], L["tsub"], stroke=ACCENT)
+    body += box(560, 60, 120, 54, L["pr"], L["psub"])
+    body += box(700, 60, 60, 54, L["main"], None, stroke=GOOD)
+    body += arrow(160, 87, 198, 87)
+    body += arrow(340, 87, 378, 87)
+    body += arrow(520, 87, 558, 87, None, GOOD, marker="good")
+    body += arrow(680, 87, 698, 87, None, GOOD, marker="good")
+    body += (f'<polyline points="450,114 450,150 270,150 270,116" fill="none" stroke="{BAD}" stroke-width="1.6" '
+             f'stroke-dasharray="5 4" marker-end="url(#bad)"/>')
+    body += t(360, 168, L["red"], 11, "middle", BAD)
+    body += t(85, 40, L["reject"], 11, "middle", BAD)
+    return figure("intent", 770, 185, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
             "gpu": gpu_split, "stream": stream, "wake": wake,
             "dns": dns, "backups": backups,
             "remote": remote, "photos": photos,
-            "forge": forge, "search": search, "notify": notify}
+            "forge": forge, "search": search, "notify": notify,
+            "intent": intent}
 
 
 def render(name, lang):
