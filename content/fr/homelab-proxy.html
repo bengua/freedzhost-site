@@ -3,8 +3,8 @@
 
 {{diagram:proxy}}
 
-<h2>Ce que fait le nôtre</h2>
-<p>Une petite VM (4 Go de RAM, partagés avec le filtrage DNS) publie 19 sites avec 35 certificats. Ce site a été mis en ligne par elle aujourd'hui : un conteneur qui sert les pages, une entrée de proxy, un certificat, environ quinze minutes.</p>
+<h2>La preuve que c'est simple</h2>
+<p>Ce site a été mis en ligne exactement ainsi : un conteneur qui sert les pages, une entrée de proxy, un certificat, environ quinze minutes. Une petite VM suffit pour tout un homelab.</p>
 
 <h2>1. Le nom</h2>
 <p>Chez votre registraire de domaine, créez un enregistrement <code>A</code> pour votre domaine et un pour chaque sous-domaine (ou un joker <code>*</code>), qui pointe vers votre adresse IP publique. Vérifiez depuis l'extérieur de votre réseau que le nom répond avant d'aller plus loin.</p>
@@ -33,12 +33,12 @@
 <ol>
 <li><strong>Hosts → Proxy Hosts → Add Proxy Host.</strong></li>
 <li>Noms de domaine : <code>votredomaine.tld</code>, <code>www.votredomaine.tld</code>.</li>
-<li>Redirigez vers l'adresse et le port du service sur votre réseau, par exemple <code>192.0.2.10</code> et <code>8096</code>.</li>
+<li>Redirigez vers l'adresse et le port du service sur votre réseau, par exemple <code>192.0.2.10</code> et <code>8000</code>.</li>
 <li>Onglet <strong>SSL</strong> : demandez un nouveau certificat Let's Encrypt, cochez <strong>Force SSL</strong>.</li>
 </ol>
 <p>Enregistrez : Let's Encrypt vérifie par le port 80 que le nom est bien à vous, délivre le certificat, et NPM le renouvelle avant qu'il n'expire.</p>
 
 <h2>Pièges</h2>
-<p class="note">Ne recopiez pas deux habitudes que nous devons encore corriger chez nous : le tag <code>:latest</code> (une mise à jour arrive le jour où vous redémarrez, sans prévenir ; épinglez une version et montez-la exprès) et <code>privileged: true</code> (le proxy n'a pas besoin du contrôle total de l'hôte).</p>
+<p class="note">Épinglez une version plutôt que <code>:latest</code> : sinon une mise à jour arrive le jour où vous redémarrez, sans prévenir. Et n'ajoutez jamais <code>privileged: true</code> par habitude : un proxy n'a pas besoin du contrôle total de l'hôte.</p>
 <p class="note">Si les demandes de certificat échouent en boucle, arrêtez de réessayer : Let's Encrypt limite le nombre de certificats identiques par semaine. Corrigez d'abord la cause, en général le port 80 non redirigé ou un nom qui ne répond pas encore.</p>
 <p class="note">Vous testez depuis chez vous et le site ne répond pas ? Certaines box ne savent pas reboucler vers leur propre adresse publique. Testez depuis un téléphone en données mobiles avant de soupçonner le proxy.</p>

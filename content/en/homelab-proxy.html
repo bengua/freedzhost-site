@@ -3,8 +3,8 @@
 
 {{diagram:proxy}}
 
-<h2>What ours does</h2>
-<p>One small VM (4 GB of RAM, shared with DNS filtering) publishes 19 sites with 35 certificates. This site went online through it today: a container serving the pages, one proxy entry, one certificate, about fifteen minutes.</p>
+<h2>Proof it is simple</h2>
+<p>This site went online exactly this way: a container serving the pages, one proxy entry, one certificate, about fifteen minutes. A small VM is plenty for a whole homelab.</p>
 
 <h2>1. The name</h2>
 <p>At your domain registrar, create an <code>A</code> record for your domain and one for each subdomain (or a wildcard <code>*</code>), pointing to your public IP address. Check from outside your network that the name resolves before going further.</p>
@@ -33,12 +33,12 @@
 <ol>
 <li><strong>Hosts → Proxy Hosts → Add Proxy Host.</strong></li>
 <li>Domain names: <code>yourdomain.tld</code>, <code>www.yourdomain.tld</code>.</li>
-<li>Forward to the service's address and port on your network, for example <code>192.0.2.10</code> and <code>8096</code>.</li>
+<li>Forward to the service's address and port on your network, for example <code>192.0.2.10</code> and <code>8000</code>.</li>
 <li>Tab <strong>SSL</strong>: request a new Let's Encrypt certificate, tick <strong>Force SSL</strong>.</li>
 </ol>
 <p>Save: Let's Encrypt checks that you own the name through port 80, issues the certificate, and NPM renews it before it expires.</p>
 
 <h2>Traps</h2>
-<p class="note">Do not copy two habits we still have to fix ourselves: the <code>:latest</code> tag (an update arrives the day you restart, unannounced; pin a version and upgrade on purpose) and <code>privileged: true</code> (the proxy does not need full control of the host).</p>
+<p class="note">Pin a version instead of <code>:latest</code>: otherwise an update arrives the day you restart, unannounced. And never add <code>privileged: true</code> out of habit: a proxy does not need full control of the host.</p>
 <p class="note">If certificate requests keep failing, stop retrying: Let's Encrypt limits how many identical certificates you can get per week. Fix the cause first, usually port 80 not forwarded or a name that does not resolve yet.</p>
 <p class="note">Testing from home and the site does not answer? Some boxes cannot loop back to their own public address. Test from a phone on mobile data before suspecting the proxy.</p>

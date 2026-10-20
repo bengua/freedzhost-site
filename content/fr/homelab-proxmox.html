@@ -3,17 +3,15 @@
 
 {{diagram:proxmox}}
 
-<h2>Ce que fait tourner le nôtre</h2>
-<p>Mesuré sur notre nœud (Proxmox VE 9.2, 16 threads, 30 Go de RAM, un SSD NVMe de 2 To pour les invités, un disque de 8 To pour les sauvegardes) :</p>
+<h2>Ce qu'une machine peut porter</h2>
+<p>Un exemple de répartition pour un nœud comme le nôtre (Proxmox VE 9.2, 16 threads, 30 Go de RAM, un SSD NVMe pour les invités, un gros disque pour les sauvegardes) :</p>
 <div class="table"><table>
 <tr><th>Invité</th><th>Rôle</th><th>RAM</th></tr>
-<tr><td>VM</td><td>proxy inverse avec HTTPS, filtrage DNS</td><td>4 Go</td></tr>
-<tr><td>VM</td><td>suite bureautique, moteur de recherche, gestionnaire de tâches</td><td>9 Go</td></tr>
-<tr><td>VM</td><td>forge de code et sa CI</td><td>6 Go</td></tr>
+<tr><td>VM</td><td>proxy inverse avec HTTPS</td><td>2–4 Go</td></tr>
+<tr><td>VM</td><td>bureautique, recherche, tâches, photos</td><td>8–10 Go</td></tr>
+<tr><td>VM</td><td>forge de code et sa CI</td><td>4–6 Go</td></tr>
 <tr><td>VM</td><td>automatisation et domotique</td><td>4 Go</td></tr>
-<tr><td>VM</td><td>base de connaissance (recherche dans nos notes)</td><td>2 Go</td></tr>
-<tr><td>VM</td><td>coffre privé, tenu à part</td><td>3 Go</td></tr>
-<tr><td>conteneur</td><td>un petit modèle juge sur processeur</td><td>—</td></tr>
+<tr><td>conteneur</td><td>un petit service chacun</td><td>0,5–2 Go</td></tr>
 </table></div>
 <p>Un vieux PC de bureau ou un mini PC suffit pour commencer. Ce qui compte : la RAM (16 Go minimum, 32 Go confortable), un SSD pour les invités, et un second disque pour les sauvegardes.</p>
 

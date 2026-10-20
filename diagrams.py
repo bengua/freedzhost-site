@@ -204,11 +204,11 @@ def hybrid(lang):
 def proxmox(lang):
     L = {
         "en": labels(cap="One machine runs every service in its own guest. Backups go to a second disk every night; administration goes through a private network, never the internet.",
-                   node="One machine · Proxmox VE", guests=["proxy", "office", "forge", "automation", "notes", "vault", "judge"],
+                   node="One machine · Proxmox VE", guests=["proxy", "office", "photos", "forge", "automation", "search", "tasks"],
                    nvme="SSD · guests", hdd="2nd disk · backups", nightly="nightly backup", you="Your laptop",
                    ts="Tailscale / WireGuard", net="internet", no="port 8006 closed"),
         "fr": labels(cap="Une machine fait tourner chaque service dans son propre invité. Les sauvegardes partent chaque nuit sur un second disque ; l'administration passe par un réseau privé, jamais par Internet.",
-                   node="Une machine · Proxmox VE", guests=["proxy", "bureautique", "forge", "automatisation", "notes", "coffre", "juge"],
+                   node="Une machine · Proxmox VE", guests=["proxy", "bureautique", "photos", "forge", "automatisation", "recherche", "tâches"],
                    nvme="SSD · invités", hdd="2e disque · sauvegardes", nightly="sauvegarde nocturne", you="Votre portable",
                    ts="Tailscale / WireGuard", net="Internet", no="port 8006 fermé"),
     }[lang]
@@ -236,12 +236,12 @@ def proxy(lang):
         "en": labels(cap="One entrance. The box forwards only 80 and 443 to the proxy; the proxy reads the requested name and passes the request to the right service on your network. The admin port 81 never leaves home.",
                      net="internet", dns="DNS: *.yourdomain → your public IP", box="Your box", bsub="forwards 80, 443",
                      npm="Reverse proxy", nsub="HTTPS, certificates", home="your network",
-                     svc=[("site", "port 8096"), ("forge", "port 3000"), ("photos", "port 2283")],
+                     svc=[("site", "port 8000"), ("forge", "port 8001"), ("photos", "port 8002")],
                      host="by requested name", admin="admin :81, LAN only", le="Let's Encrypt checks port 80"),
         "fr": labels(cap="Une seule entrée. La box ne transmet que 80 et 443 au proxy ; le proxy lit le nom demandé et passe la requête au bon service de votre réseau. Le port d'administration 81 ne sort jamais de la maison.",
                      net="Internet", dns="DNS : *.votredomaine → votre IP publique", box="Votre box", bsub="transmet 80, 443",
                      npm="Proxy inverse", nsub="HTTPS, certificats", home="votre réseau",
-                     svc=[("site", "port 8096"), ("forge", "port 3000"), ("photos", "port 2283")],
+                     svc=[("site", "port 8000"), ("forge", "port 8001"), ("photos", "port 8002")],
                      host="selon le nom demandé", admin="admin :81, LAN seulement", le="Let's Encrypt vérifie le port 80"),
     }[lang]
     body = t(60, 30, L["net"], 12, "middle", MUTED)
