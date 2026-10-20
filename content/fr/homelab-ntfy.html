@@ -1,0 +1,25 @@
+<!-- {"title": "Homelab 10 : les notifications de vos serveurs et de vos agents, sur votre téléphone", "summary": "ntfy transforme une ligne de curl en notification : sauvegardes, agents qui vous attendent, tâche en échec. Auto-hébergé, avec des comptes.", "order": 18, "series": "homelab"} -->
+<p class="lead">Un homelab qui travaille en silence est un homelab dont on découvre les pannes des semaines plus tard. ntfy est un minuscule serveur de notifications open source : n'importe quel script publie une ligne avec <code>curl</code>, et votre téléphone l'affiche. Le nôtre nous prévient quand une sauvegarde se termine, quand un run d'agent échoue, et quand un agent attend une décision humaine.</p>
+
+{{diagram:notify}}
+
+<h2>1. Le lancer, fermé par défaut</h2>
+<p>Lancez l'image officielle, publiez-la par votre proxy HTTPS, et fermez l'accès anonyme dans sa configuration :</p>
+<pre><code>auth-file: "/var/lib/ntfy/user.db"
+auth-default-access: "deny-all"</code></pre>
+<p>Puis créez des comptes et donnez à chacun seulement les sujets dont il a besoin :</p>
+<pre><code>ntfy user add --role=admin vous
+ntfy user add sauvegardes
+ntfy access sauvegardes nuit rw</code></pre>
+
+<h2>2. Publier de partout</h2>
+<pre><code>curl -u sauvegardes:… -d "Copie de nuit : OK, 33 Go" https://ntfy.votredomaine.tld/nuit</code></pre>
+<p>Ajoutez une priorité aux échecs (<code>-H "Priority: urgent"</code>) pour qu'ils sonnent même en mode silencieux, et gardez les réussites discrètes.</p>
+
+<h2>3. S'abonner sur le téléphone</h2>
+<p>Installez l'app ntfy, ajoutez votre serveur et votre compte, abonnez-vous aux sujets. Sur iPhone, la livraison immédiate demande que le serveur relaie par le service ntfy public : réglez <code>upstream-base-url: "https://ntfy.sh"</code>, sinon les notifications arrivent en retard.</p>
+
+<h2>Pièges</h2>
+<p class="note">Sans comptes, le nom du sujet est le seul mot de passe : quiconque le devine peut lire vos alertes et vous en envoyer de fausses. Refusez l'accès anonyme, ou au minimum utilisez des noms de sujets longs et aléatoires.</p>
+<p class="note">Notifiez les échecs et les décisions qui vous attendent ; résumez le reste. Un téléphone qui vibre à chaque réussite est un téléphone qu'on ne lit plus.</p>
+<p class="note">Encodez correctement les titres non ASCII (l'en-tête <code>Title</code> est un en-tête HTTP) : des accents dans un en-tête brut peuvent arriver illisibles.</p>

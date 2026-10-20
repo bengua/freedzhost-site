@@ -1,0 +1,20 @@
+<!-- {"title": "Homelab 9: your own search engine, for you and your agents", "summary": "SearXNG asks dozens of engines for you, without an account or a profile. And it gives your local agents a web search they can read.", "order": 17, "series": "homelab"} -->
+<p class="lead">SearXNG is an open-source metasearch engine: you ask it, it asks Google, Bing, DuckDuckGo, Wikipedia and dozens of others, and merges the answers. The engines see your server, not you: no account, no history tied to your name. And for an agent network it does one more thing: it answers in JSON, so your local agents can search the web without any API key.</p>
+
+{{diagram:search}}
+
+<h2>1. Run it</h2>
+<p>The SearXNG project maintains a ready-made Docker setup (the <em>searxng-docker</em> repository). Follow it, publish the service through your HTTPS proxy (Homelab 2) or keep it on your private network (Homelab 6), and set your browser's default search engine to it.</p>
+
+<h2>2. Two settings that matter</h2>
+<p>In <code>settings.yml</code>, change <code>server.secret_key</code> to a long random value: SearXNG refuses to start with the default one, on purpose.</p>
+<p>Then, for your agents, allow the JSON format next to HTML:</p>
+<pre><code>search:
+  formats:
+    - html
+    - json</code></pre>
+<p>An agent can now call <code>https://search.yourdomain.tld/search?q=…&amp;format=json</code> and read the results.</p>
+
+<h2>Traps</h2>
+<p class="note">A public SearXNG with JSON enabled is a free search API for every bot on the internet, and the engines will soon block your server for the traffic. Keep the JSON instance on your private network, or turn on SearXNG's limiter.</p>
+<p class="note">Some engines block or throttle shared instances from time to time. When one engine's results disappear, check its status in the preferences page before suspecting your setup.</p>

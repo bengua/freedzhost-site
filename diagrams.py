@@ -505,13 +505,54 @@ def forge(lang):
     return figure("forge", 760, 245, L["cap"], body)
 
 
+# ── homelab 9: one search for you and your agents ───────────────────────────
+def search(lang):
+    L = {
+        "en": labels(cap="Your browser and your agents ask the same search engine at home. It asks dozens of engines for you and merges the answers: they see your server, not you. Agents read the JSON format.",
+                     you="Your browser", ysub="HTML results", agents="Your agents", asub="JSON results", sx="SearXNG",
+                     ssub="at home", engines="Search engines", esub="see your server only", merge="asks, then merges"),
+        "fr": labels(cap="Votre navigateur et vos agents interrogent le même moteur à la maison. Il interroge des dizaines de moteurs pour vous et fusionne les réponses : eux voient votre serveur, pas vous. Les agents lisent le format JSON.",
+                     you="Votre navigateur", ysub="résultats HTML", agents="Vos agents", asub="résultats JSON", sx="SearXNG",
+                     ssub="à la maison", engines="Moteurs de recherche", esub="ne voient que votre serveur", merge="interroge, puis fusionne"),
+    }[lang]
+    body = box(20, 30, 160, 54, L["you"], L["ysub"])
+    body += box(20, 140, 160, 54, L["agents"], L["asub"], stroke=ACCENT)
+    body += box(270, 85, 150, 54, L["sx"], L["ssub"], stroke=GOOD)
+    body += box(560, 85, 180, 54, L["engines"], L["esub"])
+    body += arrow(180, 57, 268, 105)
+    body += arrow(180, 167, 268, 120, None, ACCENT, marker="acc")
+    body += arrow(420, 112, 558, 112, L["merge"], lx=489, ly=104)
+    return figure("search", 760, 210, L["cap"], body)
+
+
+# ── homelab 10: every machine can tap you on the shoulder ───────────────────
+def notify(lang):
+    L = {
+        "en": labels(cap="Servers, backups and agents publish one line to a topic; your phone subscribes. With anonymous access denied, only accounts you created can publish or read.",
+                     src=["Backups", "Agents", "Monitoring"], ntfy="ntfy", nsub="deny-all, accounts", phone="Your phone",
+                     psub="ntfy app", pub="curl -d …", sub="subscribes"),
+        "fr": labels(cap="Serveurs, sauvegardes et agents publient une ligne sur un sujet ; votre téléphone s'y abonne. Avec l'accès anonyme refusé, seuls les comptes que vous avez créés peuvent publier ou lire.",
+                     src=["Sauvegardes", "Agents", "Supervision"], ntfy="ntfy", nsub="deny-all, comptes", phone="Votre téléphone",
+                     psub="app ntfy", pub="curl -d …", sub="s'abonne"),
+    }[lang]
+    body = ""
+    for i, name in enumerate(L["src"]):
+        y = 20 + i * 64
+        body += box(20, y, 150, 48, name, None)
+        body += arrow(170, y + 24, 318, 108, L["pub"] if i == 0 else None, lx=236, ly=y + 14)
+    body += box(320, 82, 160, 54, L["ntfy"], L["nsub"], stroke=ACCENT)
+    body += box(580, 82, 160, 54, L["phone"], L["psub"], stroke=GOOD)
+    body += arrow(578, 109, 482, 109, L["sub"], GOOD, marker="good", lx=530, ly=101)
+    return figure("notify", 760, 220, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
             "gpu": gpu_split, "stream": stream, "wake": wake,
             "dns": dns, "backups": backups,
             "remote": remote, "photos": photos,
-            "forge": forge}
+            "forge": forge, "search": search, "notify": notify}
 
 
 def render(name, lang):
