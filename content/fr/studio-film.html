@@ -1,0 +1,29 @@
+<!-- {"title": "Une phrase devient un film : la chaîne de production locale", "summary": "Une phrase en entrée, un court métrage en sortie : un modèle local écrit la fiche technique, le code refuse ce qui gâcherait un rendu, les cartes rendent les plans, ajoutent bruitages synchronisés et musique, coupent et montent. Mesuré étape par étape, avec les trois décisions qui font que ça marche.", "order": 86, "series": "create", "level": "advanced", "time": "une soirée + téléchargements", "requires": ["comfyui-studio", "ace-step-music"]} -->
+<p class="lead">Un modèle vidéo rend cinq secondes. Un film demande une histoire, des plans qui s'enchaînent, un son qui colle à l'image, de la musique, et un montage. Notre chaîne enchaîne tout cela derrière une seule commande : vous écrivez une phrase, vous obtenez un film. Personne ne lance sept scripts à la main.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> De « un horloger répare une vieille montre, la nuit » à un court métrage monté avec bruitages et musique, sur vos propres cartes. Le story-board du film entier en 33 secondes avant tout long rendu, et quatre listes de plans valides sur quatre du premier coup.</p>
+
+<pre><code>realiser.py "Un horloger répare une vieille montre, la nuit" --plans=8</code></pre>
+
+<h2>1. La chaîne, et ce que coûte chaque étape</h2>
+<table>
+<tr><th>Étape</th><th>Outil</th><th>Coût</th></tr>
+<tr><td>la phrase devient une scène et une liste de plans</td><td>un modèle local de 27B, puis un vérificateur</td><td>quelques secondes, sans carte</td></tr>
+<tr><td>les plans</td><td>Wan 2.2 dans ComfyUI</td><td>environ 115 s par plan en mode rapide (774 s à 20 étapes)</td></tr>
+<tr><td>les bruitages, synchronisés à l'image</td><td>MMAudio</td><td>6 s par plan</td></tr>
+<tr><td>la musique</td><td><a href="/fr/ace-step-music.html">ACE-Step</a></td><td>27 s pour 3 minutes</td></tr>
+<tr><td>mixage, coupe et montage</td><td>de petits scripts et ffmpeg</td><td>quelques secondes</td></tr>
+</table>
+
+<h2>2. Trois décisions qui pilotent le reste</h2>
+<p><strong>Le modèle propose, le code refuse.</strong> Le modèle de langage écrit la fiche technique ; un vérificateur la refuse avant qu'une carte ne s'allume : références inconnues, cadrages hors liste, plans manquants, et surtout <em>actions résolues</em>. Un modèle vidéo rend les secondes qui suivent ce que vous décrivez : « il ferme la porte » donne une porte déjà fermée. Chaque plan doit dire <code>still</code> ou employer un participe présent. Un plan coûte treize minutes ; une fiche invalide découverte après coup en coûte deux heures.</p>
+<p><strong>Couper avant de sonoriser.</strong> Le modèle vidéo ralentit en fin de plan. La chaîne coupe à la dernière image encore en mouvement, et seulement ensuite laisse le modèle de bruitage regarder les images ; sinon le son glisse d'un tiers sur la scène.</p>
+<p><strong>Les planches avant les plans.</strong> <code>--mode=planches</code> rend une image par plan : 33 secondes au lieu de 13 minutes. Vous vérifiez le découpage, les personnages et les cadrages, tout ce qui se décide à ce stade, avant le rendu complet.</p>
+
+<h2>3. Le mode rapide, et pourquoi c'est le défaut</h2>
+<p>Des LoRA de distillation rendent en quatre étapes au lieu de vingt. Mesuré sur 33 images, même graine : 225 s à 20 étapes, <strong>33 s en quatre étapes (6,8 fois plus vite)</strong>. Et l'image était meilleure : la référence à 20 étapes sortait sombre et molle, le rendu en quatre étapes net. La mesure disait « très différent », pas « moins bien » : il a fallu regarder pour le savoir.</p>
+<p class="note">Avec ces LoRA, le guidage descend à 1,0, et les deux LoRA sont nécessaires, une par expert du modèle. Une seule, et l'autre expert garde son ancien rythme.</p>
+
+<h2>Pièges</h2>
+<p class="note">Comparez un agrandissement à un témoin bicubique de même taille, pas à la source : doubler la résolution augmente le scintillement à lui seul, et sans témoin le banc accuse le mauvais outil.</p>
+<p class="note">Ne faites jamais confiance à un seul chiffre pour une image. Regardez les images.</p>

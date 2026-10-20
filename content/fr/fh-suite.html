@@ -1,0 +1,56 @@
+<!-- {"title": "La suite fh- : soixante petites commandes qui font tourner le labo", "summary": "Chaque geste quotidien ici est une courte commande nommée fh-quelquechose : interroger le parc, confier du travail à un agent, le suivre en direct, déployer, vérifier la santé, trouver pourquoi ça échoue, publier une branche. Rangées par métier, une ligne chacune, avec la règle qu'elles partagent toutes.", "order": 91, "series": "agents", "level": "read", "time": "15 min", "requires": []} -->
+<p class="lead">Au fil des mois, chaque geste répété est devenu une commande. Pas une plateforme, pas d'abord un tableau de bord : une courte commande nommée <code>fh-quelquechose</code> qui fait une chose, dit ce qu'elle a fait, et échoue avec une raison. Ensemble, elles font tourner le labo. Les voici, rangées par métier.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Un modèle à copier : nommez vos gestes, faites de chacun une petite commande à un seul rôle, et vos agents pourront utiliser les mêmes commandes que vous. La plupart tiennent en un fichier sans autre dépendance que la bibliothèque standard du langage.</p>
+
+<h2>Interroger et décider</h2>
+<ul>
+<li><code>fh-ask</code> : poser une question au parc en langage courant, avec une réponse tirée de ses sources.</li>
+<li><code>fh-assistant</code> : une phrase à l'assistant local du poste, qui désigne une fonction (<a href="/fr/workstation-assistant.html">tutoriel</a>).</li>
+<li><code>fh-judge</code>, <code>fh-decide</code>, <code>fh-jev</code> : des décisions typées par le juge local (<a href="/fr/judge-two-passes.html">tutoriel</a>).</li>
+</ul>
+
+<h2>Confier du travail aux agents, et le suivre</h2>
+<ul>
+<li><code>fh-dev</code> : confier une intention à un agent de code local ; elle revient en demande de fusion.</li>
+<li><code>fh-task</code> : la même chose par le majordome, avec son pare-feu et sa trace.</li>
+<li><code>fh-issues</code> : les issues qui attendent un agent (<a href="/fr/mail-to-pull-request.html">tutoriel</a>).</li>
+<li><code>fh-escalade</code> : la file qui confie une tâche à un agent hébergé quand les modèles locaux n'y sont pas arrivés (<a href="/fr/hybrid-escalation.html">tutoriel</a>).</li>
+<li><code>fh-follow</code>, <code>fh-status</code>, <code>fh-inbox</code> : un run en direct, toute la chaîne d'un coup d'œil, les incidents qui vous attendent.</li>
+</ul>
+
+<h2>Savoir, se souvenir, expliquer</h2>
+<ul>
+<li><code>fh-kb</code> : chercher dans le journal et la base de connaissances (<a href="/fr/journal-rag.html">tutoriel</a>).</li>
+<li><code>fh-why</code>, <code>fh-probes</code>, <code>fh-history</code> : des faits pour un diagnostic, et ce que la machine a vécu (<a href="/fr/facts-before-diagnosis.html">tutoriel</a>).</li>
+<li><code>fh-report</code>, <code>fh-kp</code>, <code>fh-knowledge</code>, <code>fh-runs-close</code> : chaque run rejoint la base de connaissances, les pannes récurrentes deviennent candidates à une page écrite, et aucun run ne disparaît sans trace.</li>
+<li><code>fh-tool-costs</code> : ce que coûte vraiment chaque outil et chaque skill en contexte.</li>
+</ul>
+
+<h2>Forge et livraison</h2>
+<ul>
+<li><code>fh-forge</code>, <code>fh-push</code>, <code>fh-relais</code> : parler à la forge par son assistant, publier une branche en demande de fusion, faire un miroir du travail du poste, sans aucun jeton sur le poste (<a href="/fr/agent-authority.html">tutoriel</a>).</li>
+<li><code>fh-deploy</code>, <code>fh-livrer</code> : déployer un composant tiré d'une liste fermée ; livrer ce qui est fusionné et revenir en arrière si ça va mal (<a href="/fr/failures-that-call.html">tutoriel</a>).</li>
+<li><code>fh-backups</code> : une copie des sauvegardes de l'hyperviseur, hors de l'hyperviseur (<a href="/fr/homelab-backups.html">tutoriel</a>).</li>
+</ul>
+
+<h2>Les machines</h2>
+<ul>
+<li><code>fh-sante</code> : toute l'infrastructure d'un coup d'œil, en deux secondes environ.</li>
+<li><code>fh-egpu</code> : quel lien PCIe chaque carte a vraiment obtenu (<a href="/fr/second-gpu-oculink.html">tutoriel</a>).</li>
+<li><code>fh-alerte</code> : une notification sur le téléphone quand un service échoue.</li>
+<li><code>fh-tuer</code> : arrêter des processus par motif sans tuer son propre shell (<a href="/fr/ssh-for-agents.html">tutoriel</a>).</li>
+<li><code>fh-secret</code> : un mot de passe de connexion naît dans le coffre et voyage par tuyau, jamais dans un fichier (<a href="/fr/secrets-pipe.html">tutoriel</a>).</li>
+<li><code>fh-mcp</code>, <code>fh-tools-mcp</code>, <code>fh-tool</code> : les mêmes commandes et les <a href="/fr/fh-tools.html">outils déterministes</a>, proposés à n'importe quel agent.</li>
+</ul>
+
+<h2>Poste et preuve</h2>
+<ul>
+<li><code>fh-bete</code> : ouvrir le <a href="/fr/inframagotchi.html">chat du homelab</a>, ou dire pourquoi c'est impossible.</li>
+<li><code>fh-fenetres</code>, <code>fh-apercu</code> : une fenêtre de bureau par application ; publier une appli en développement sur le réseau privé avec un lien cliquable.</li>
+<li><code>fh-mutant</code>, <code>fh-enquete</code>, <code>fh-bench</code> : casser le code pour prouver les tests, désigner où regarder, mesurer les modèles (<a href="/fr/mutation-testing.html">tutoriel</a>).</li>
+</ul>
+
+<h2>La règle qu'elles partagent toutes</h2>
+<p>Chacune dit ce qu'elle a fait, et quand elle ne peut pas, dit pourquoi. « Moteur muet, l'unité du tunnel est arrêtée, regardez là » vaut mieux qu'une fenêtre vide. Une commande qui échoue en silence n'apprend rien ; une qui nomme la cause sauve la soirée.</p>
+<p class="note">Gardez un seul exemplaire de chaque commande. Des sauvegardes datées laissées à côté des originaux (<code>fh-dev.20261002.bak</code>) finissent dans la complétion et dans les recherches ; gardez l'historique dans Git.</p>

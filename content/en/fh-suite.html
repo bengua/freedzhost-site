@@ -1,0 +1,56 @@
+<!-- {"title": "The fh- suite: sixty small commands that run the lab", "summary": "Every everyday gesture here is a short command named fh-something: ask the fleet, hand work to an agent, follow it live, deploy, check health, find why something fails, publish a branch. Grouped by job, one line each, with the rule they all share.", "order": 91, "series": "agents", "level": "read", "time": "15 min", "requires": []} -->
+<p class="lead">Over the months, every gesture we repeated became a command. Not a platform, not a dashboard first: a short command named <code>fh-something</code> that does one thing, says what it did, and fails with a reason. Together they run the lab. Here they are, grouped by job.</p>
+
+<p class="proof"><strong>What you get.</strong> A pattern you can copy: name your gestures, make each a small command with one job, and your agents can use the same commands you do. Most are a single file with no dependency beyond the language's standard library.</p>
+
+<h2>Ask and decide</h2>
+<ul>
+<li><code>fh-ask</code>: ask the fleet a question in plain language, answered from its sources.</li>
+<li><code>fh-assistant</code>: one sentence to the workstation's local assistant, which points at a function (<a href="/workstation-assistant.html">tutorial</a>).</li>
+<li><code>fh-judge</code>, <code>fh-decide</code>, <code>fh-jev</code>: typed decisions from the local judge (<a href="/judge-two-passes.html">tutorial</a>).</li>
+</ul>
+
+<h2>Hand work to agents, and follow it</h2>
+<ul>
+<li><code>fh-dev</code>: delegate one intention to a local coding agent; it comes back as a pull request.</li>
+<li><code>fh-task</code>: the same through the majordomo, with its firewall and its trace.</li>
+<li><code>fh-issues</code>: the issues waiting for an agent (<a href="/mail-to-pull-request.html">tutorial</a>).</li>
+<li><code>fh-escalade</code>: the queue that hands a task to a hosted agent when local models could not (<a href="/hybrid-escalation.html">tutorial</a>).</li>
+<li><code>fh-follow</code>, <code>fh-status</code>, <code>fh-inbox</code>: a run live, the whole chain at a glance, the incidents that need you.</li>
+</ul>
+
+<h2>Know, remember, explain</h2>
+<ul>
+<li><code>fh-kb</code>: search the journal and the knowledge base (<a href="/journal-rag.html">tutorial</a>).</li>
+<li><code>fh-why</code>, <code>fh-probes</code>, <code>fh-history</code>: facts for a diagnosis, and what the machine lived through (<a href="/facts-before-diagnosis.html">tutorial</a>).</li>
+<li><code>fh-report</code>, <code>fh-kp</code>, <code>fh-knowledge</code>, <code>fh-runs-close</code>: every run reaches the knowledge base, recurring failures become candidates for a written page, and no run disappears without a record.</li>
+<li><code>fh-tool-costs</code>: what each tool and each skill really costs in context.</li>
+</ul>
+
+<h2>Forge and delivery</h2>
+<ul>
+<li><code>fh-forge</code>, <code>fh-push</code>, <code>fh-relais</code>: talk to the forge through its helper, publish a branch as a pull request, mirror the workstation's work, with no token on the workstation (<a href="/agent-authority.html">tutorial</a>).</li>
+<li><code>fh-deploy</code>, <code>fh-livrer</code>: deploy one component from a closed list; deliver what is merged and roll back if unhealthy (<a href="/failures-that-call.html">tutorial</a>).</li>
+<li><code>fh-backups</code>: a copy of the hypervisor's backups, off the hypervisor (<a href="/homelab-backups.html">tutorial</a>).</li>
+</ul>
+
+<h2>The machines</h2>
+<ul>
+<li><code>fh-sante</code>: the whole infrastructure at a glance, in about two seconds.</li>
+<li><code>fh-egpu</code>: what PCIe link each card really got (<a href="/second-gpu-oculink.html">tutorial</a>).</li>
+<li><code>fh-alerte</code>: a phone notification when a service fails.</li>
+<li><code>fh-tuer</code>: stop processes by pattern without killing your own shell (<a href="/ssh-for-agents.html">tutorial</a>).</li>
+<li><code>fh-secret</code>: a login password is born in the vault and travels by pipe, never in a file (<a href="/secrets-pipe.html">tutorial</a>).</li>
+<li><code>fh-mcp</code>, <code>fh-tools-mcp</code>, <code>fh-tool</code>: the same commands and the <a href="/fh-tools.html">deterministic tools</a>, offered to any agent.</li>
+</ul>
+
+<h2>Desk and proof</h2>
+<ul>
+<li><code>fh-bete</code>: open the <a href="/inframagotchi.html">homelab cat</a>, or say why it cannot.</li>
+<li><code>fh-fenetres</code>, <code>fh-apercu</code>: one desktop window per application; publish a dev app on the private network with a clickable link.</li>
+<li><code>fh-mutant</code>, <code>fh-enquete</code>, <code>fh-bench</code>: break the code to prove the tests, designate where to look, measure the models (<a href="/mutation-testing.html">tutorial</a>).</li>
+</ul>
+
+<h2>The rule they all share</h2>
+<p>Each one says what it did, and when it cannot, says why. "Engine silent, the tunnel unit is stopped, look there" beats an empty window. A command that fails in silence teaches you nothing; one that names the cause saves the evening.</p>
+<p class="note">Keep a single copy of each command. Dated backups left next to the originals (<code>fh-dev.20261002.bak</code>) end up in tab completion and in searches; keep history in Git instead.</p>

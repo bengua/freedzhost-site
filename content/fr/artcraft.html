@@ -1,0 +1,28 @@
+<!-- {"title": "ArtCraft : mettre la scène en place avant de la générer", "summary": "Écrire un prompt, c'est deviner ; ArtCraft permet de construire le plan : des calques en 2D, décors et accessoires en 3D, des personnages posés, une caméra que vous placez, puis la génération. Un studio de création libre que nous compilons depuis les sources sous Linux, avec le seul correctif de dépendance qu'il a demandé.", "order": 87, "series": "create", "level": "intermediate", "time": "1 h + compilation", "requires": ["comfyui-studio"]} -->
+<p class="lead">Taper un prompt et espérer le bon cadrage, ça marche pour une esquisse, pas pour une série de plans qui doivent se raccorder. ArtCraft est un studio de création libre qui transforme le prompt en mise en scène : composer des calques en 2D, placer un décor, des accessoires et des personnages posés en 3D, régler la caméra, et seulement ensuite générer l'image ou la vidéo.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> La maîtrise de la composition, de la pose des personnages et de la caméra avant la génération : la même pièce sur plusieurs plans, un personnage placé exactement, une image transformée en objet 3D que l'on fait pivoter. Libre (MIT et Apache 2.0), compilé ici depuis les sources en une soirée.</p>
+
+<h2>1. Ce qu'il fait</h2>
+<ul>
+<li><strong>La composition 2D</strong> : calques, détourage, outils de dessin, masques et retouche par zone.</li>
+<li><strong>La mise en scène 3D</strong> : fonds, accessoires et kits placés en profondeur, personnages posés avec un mannequin, une caméra que vous cadrez.</li>
+<li><strong>De l'image à la 3D</strong> : transformer une image en maillage que l'on déplace et éclaire.</li>
+<li><strong>De l'image à la vidéo</strong> : animer une image mise en scène avec le modèle vidéo de votre choix.</li>
+</ul>
+<p class="note">Beaucoup des modèles qu'il propose sont des services hébergés. Pour un studio entièrement local, gardez la mise en scène dans ArtCraft et faites la génération avec vos propres modèles (voir <a href="/fr/comfyui-studio.html">ComfyUI</a>).</p>
+
+<h2>2. Le compiler depuis les sources sous Linux</h2>
+<pre><code>git clone https://github.com/storytold/artcraft.git &amp;&amp; cd artcraft
+# suivre _docs/dev_setup.md : une chaîne Rust pour l'appli native, Node pour l'interface
+cd frontend &amp;&amp; npm install &amp;&amp; cd ..
+cargo build --release          # produit target/release/artcraft</code></pre>
+<p>Le binaire natif pèse environ 90 Mo. La première compilation prend du temps ; les suivantes sont incrémentales.</p>
+
+<h2>3. Le seul correctif qu'il a demandé</h2>
+<p>L'interface dépend d'un paquet récupéré depuis une branche Git (<code>github:proprietaire/depot#branche</code>). Notre npm refusait de le résoudre. Épingler le même code sous forme d'archive d'un commit précis a réglé le problème :</p>
+<pre><code>"ccapture.js": "https://github.com/aceslowman/ccapture.js/archive/&lt;commit&gt;.tar.gz"</code></pre>
+<p class="note">Une dépendance sur une branche Git est de toute façon une cible mouvante. Épingler un commit rend la compilation reproductible ; notez le changement, pour pouvoir le retirer quand l'amont corrige le sien.</p>
+
+<h2>Pièges</h2>
+<p class="note">Gardez vos modifications locales petites et listées : un fork qui diverge partout ne rattrape jamais l'amont.</p>

@@ -1,0 +1,45 @@
+<!-- {"title": "fh-tools: fourteen deterministic tools for coding agents", "summary": "Each one answers one question with a fact, always the same way: does this patch apply, which added lines does no test exercise, does this text carry a credential, have we seen this failure before. JSON in, JSON out, exit codes that mean something, and a checker that replays every case three times.", "order": 90, "series": "agents", "level": "intermediate", "time": "1 h", "requires": ["deterministic-doctrine"]} -->
+<p class="lead">fh-tools is where the <a href="/deterministic-doctrine.html">deterministic doctrine</a> becomes concrete: fourteen small tools that coding agents call instead of guessing. Each answers one question, each answers it the same way every time, and each says clearly whether it gave a verdict or hit a technical problem.</p>
+
+<p class="proof"><strong>What you get.</strong> Facts on demand for your agents, in any language you like to write tools in, with no server and no shared runtime, and a conformance checker that refuses any tool whose output varies.</p>
+
+<h2>1. The fourteen tools</h2>
+<table>
+<tr><th>Tool</th><th>Answers</th></tr>
+<tr><td>fh-toolgate</td><td>does this repository conform to the tool contract?</td></tr>
+<tr><td>fh-envlint</td><td>do <code>.env</code> and <code>.env.example</code> agree?</td></tr>
+<tr><td>fh-testgap</td><td>which added lines does no test exercise?</td></tr>
+<tr><td>fh-edit-apply</td><td>apply this patch to this content</td></tr>
+<tr><td>fh-edit-diagnose</td><td>why did that patch not apply?</td></tr>
+<tr><td>fh-bench-score</td><td>is this change an improvement?</td></tr>
+<tr><td>fh-repomap</td><td>what does this repository look like?</td></tr>
+<tr><td>fh-secret-scan</td><td>does this text carry a credential?</td></tr>
+<tr><td>fh-changelog</td><td>what changed over this range?</td></tr>
+<tr><td>fh-deps</td><td>is this dependency set reproducible?</td></tr>
+<tr><td>fh-trace-query</td><td>have we seen this failure before?</td></tr>
+<tr><td>fh-pr</td><td>what does this pull request say?</td></tr>
+<tr><td>fh-story-lint</td><td>does this proposed story split conform?</td></tr>
+<tr><td>fh-spec-lint</td><td>does this spec state a contract?</td></tr>
+</table>
+
+<h2>2. The contract</h2>
+<p><strong>A tool is an executable that reads a JSON object on stdin and writes a JSON object on stdout.</strong> Not a library, not a server, not a plugin. Any language qualifies; there is no port, no daemon; and determinism can be tested from outside: replay the input, compare the bytes.</p>
+<p>Each tool carries a <code>tool.json</code>: name, version, a description of 120 characters at most (it sits in the model's context every turn it is loaded), entry point, input and output schemas, exit codes, required system programs, <code>deterministic: true</code>, and an estimated context cost.</p>
+<table>
+<tr><th>Exit code</th><th>Meaning</th></tr>
+<tr><td>0</td><td>success</td></tr>
+<tr><td>1</td><td>a valid answer with a negative verdict</td></tr>
+<tr><td>2</td><td>refusal: the operation is not permitted</td></tr>
+<tr><td>3 and above</td><td>technical error, <strong>never</strong> a verdict</td></tr>
+</table>
+<p class="note">The difference between 1 and 3 is load-bearing. A linter missing from the PATH once produced a red that looked like a code failure, and cost a day chasing the wrong thing.</p>
+
+<h2>3. Conformance: three replays, identical bytes</h2>
+<pre><code>echo '{"repo": "fh-tools/fh-envlint"}' | python3 fh-tools/fh-toolgate/src/fh_tool_verify.py</code></pre>
+<p>The checker reads the manifest, runs the entry point, and replays each declared case three times, demanding byte-identical output. A tool whose output varies does not ship. A small launcher, <code>fh-tool &lt;name&gt;</code>, runs any tool from its manifest so callers never deal with paths, and a tool server exposes them to any agent.</p>
+
+<h2>4. The editing pair, split on purpose</h2>
+<p><code>fh-edit-apply</code> applies a patch; <code>fh-edit-diagnose</code> explains why one did not. The second is where the value is: what comes back after a failed edit decides whether the model repairs its work or starts over from scratch.</p>
+
+<h2>Traps</h2>
+<p class="note">A runner that calls a model is not a tool, even if it lives in the same repository. Ours says so; it produces raw runs, and a real tool scores them, so anyone can re-score published runs without owning the hardware.</p>

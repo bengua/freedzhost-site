@@ -1,0 +1,29 @@
+<!-- {"title": "A sentence becomes a film: the local production chain", "summary": "One sentence in, a short film out: a local model writes the technical sheet, code refuses what would waste a render, the cards render the shots, add synchronised foley and music, cut and edit. Measured step by step, with the three decisions that make it work.", "order": 86, "series": "create", "level": "advanced", "time": "an evening + downloads", "requires": ["comfyui-studio", "ace-step-music"]} -->
+<p class="lead">A video model renders five seconds. A film needs a story, shots that follow each other, sound that matches the picture, music, and an edit. Our chain chains all of it behind one command: you write a sentence, you get a film. Nobody launches seven scripts by hand.</p>
+
+<p class="proof"><strong>What you get.</strong> From "a watchmaker repairs an old watch, at night" to an edited short film with foley and music, on your own cards. A storyboard of the whole film in 33 seconds before any long render, and four valid shot lists out of four on the first try.</p>
+
+<pre><code>realiser.py "A watchmaker repairs an old watch, at night" --plans=8</code></pre>
+
+<h2>1. The chain, and what each step costs</h2>
+<table>
+<tr><th>Step</th><th>Tool</th><th>Cost</th></tr>
+<tr><td>the sentence becomes a scene and a shot list</td><td>a local 27B model, then a checker</td><td>a few seconds, no card</td></tr>
+<tr><td>the shots</td><td>Wan 2.2 in ComfyUI</td><td>about 115 s per shot in fast mode (774 s at 20 steps)</td></tr>
+<tr><td>foley, synchronised to the picture</td><td>MMAudio</td><td>6 s per shot</td></tr>
+<tr><td>the music</td><td><a href="/ace-step-music.html">ACE-Step</a></td><td>27 s for 3 minutes</td></tr>
+<tr><td>mix, cut and edit</td><td>small scripts and ffmpeg</td><td>a few seconds</td></tr>
+</table>
+
+<h2>2. Three decisions that drive the rest</h2>
+<p><strong>The model proposes, the code refuses.</strong> The language model writes the technical sheet; a checker refuses it before a card lights up: unknown references, framings off the list, missing shots, and above all <em>resolved actions</em>. A video model renders the seconds that follow what you describe: "he closes the door" gives a door already closed. Every shot must say <code>still</code> or use a present participle. A shot costs thirteen minutes; an invalid sheet found afterwards costs two hours.</p>
+<p><strong>Cut before adding sound.</strong> The video model slows down at the end of a shot. The chain cuts at the last frame still in motion, and only then lets the foley model look at the frames; otherwise the sound slides by a third over the scene.</p>
+<p><strong>Storyboards before shots.</strong> <code>--mode=planches</code> renders one frame per shot: 33 seconds instead of 13 minutes. You check the breakdown, the characters and the framings, everything decided at that stage, before the full render.</p>
+
+<h2>3. Fast mode, and why it is the default</h2>
+<p>Distillation LoRAs render in four steps instead of twenty. Measured on 33 frames, same seed: 225 s at 20 steps, <strong>33 s in four steps (6.8 times faster)</strong>. And the picture was better: the 20-step reference came out dark and soft, the four-step render sharp. The metric said "very different", not "worse": it took looking to know.</p>
+<p class="note">With these LoRAs, guidance drops to 1.0, and both LoRAs are needed, one per expert of the model. Only one, and the other expert stays at its old pace.</p>
+
+<h2>Traps</h2>
+<p class="note">Compare an upscale against a bicubic control of the same size, not against the source: doubling the resolution increases flicker by itself, and without a control the bench blames the wrong tool.</p>
+<p class="note">Never trust a single number for an image. Look at the frames.</p>
