@@ -1,0 +1,53 @@
+<!-- {"title": "Nos constats : chaque astuce et chaque fait mesuré, une ligne chacun", "summary": "Depuis le premier jour, chaque découverte, chaque piège et chaque résultat de banc que nous avons payés, en une page. Chaque ligne est un fait mesuré sur nos machines, avec le tutoriel qui l'explique.", "order": 4, "series": "start", "level": "read", "time": "15 min", "requires": []} -->
+<p class="lead">Cette page est la version courte de tout le reste : les découvertes, les astuces et les résultats de bancs accumulés depuis le début, une ligne chacun. Rien ici n'est recopié d'un forum ; chaque ligne a été mesurée ou cassée sur nos propres machines, et renvoie au tutoriel qui raconte l'histoire.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Des mois de soirées en quinze minutes de lecture. Parcourez-la avant votre prochaine mise à niveau, votre prochain modèle, ou votre prochain « pourquoi c'est lent ? ».</p>
+
+<h2>Cartes graphiques et PCIe</h2>
+<ul>
+<li>Une carte peut tourner en x4 au lieu de x16 après un redémarrage, sans bruit. « Auto » dans le BIOS, <em>c'est</em> le x16 ; un cycle d'alimentation l'a ramené (<a href="/fr/pcie-link-width.html">tutoriel</a>).</li>
+<li>Désignez une carte par son identité, jamais par son adresse de bus : les adresses bougent d'un démarrage à l'autre (<a href="/fr/pcie-link-width.html">tutoriel</a>).</li>
+<li>Une seconde carte en OCuLink plafonne à x4, 63 Gbit/s, et ça suffit pour l'inférence (<a href="/fr/second-gpu-oculink.html">tutoriel</a>).</li>
+<li>Après une mise à jour du pilote ou un redémarrage, un conteneur peut voir la carte et tourner quand même sur le processeur : régénérez la description des périphériques à chaque démarrage (<a href="/fr/gpu-container-on-cpu.html">tutoriel</a>).</li>
+<li>Sans <code>CUDA_DEVICE_ORDER=PCI_BUS_ID</code>, la « carte 1 » de CUDA n'est pas forcément celle de nvidia-smi (<a href="/fr/comfyui-studio.html">tutoriel</a>).</li>
+</ul>
+
+<h2>Modèles et vitesse</h2>
+<ul>
+<li>Compresser le cache V en q4_0 a rendu la lecture du prompt 21 fois plus lente, en silence. Prenez q8_0 pour K et V (<a href="/fr/kv-cache-trap.html">tutoriel</a>).</li>
+<li>Un modèle MoE de 177B est passé de 26,1 à 55,6 jetons par seconde une fois ses poids bien placés (<a href="/fr/big-moe-two-cards.html">tutoriel</a>).</li>
+<li>Décodage spéculatif (MTP) : 65,7 jetons par seconde pour un 27B sur une carte (<a href="/fr/speculative-decoding.html">tutoriel</a>).</li>
+<li>KVMem : 48/48 en rappel à 130k jetons, une vitesse plate au-delà de 100k, 4,9 Go de VRAM économisés (<a href="/fr/kvmem-long-context.html">tutoriel</a>).</li>
+<li>La réflexion laissée active a brûlé 2 500 jetons sans une ligne de code ; coupée, le même code en 2,5 s (<a href="/fr/model-bench.html">tutoriel</a>).</li>
+<li>llama-server ignore <code>enable_thinking</code> à la racine d'une requête ; utilisez <code>chat_template_kwargs</code> (<a href="/fr/intent-classifier.html">tutoriel</a>).</li>
+<li>Des poids de modèle résidents plutôt que projetés en mémoire : +3 % de vitesse, puis deux gels de la machine (<a href="/fr/lab-notebook.html">carnet</a>).</li>
+<li>Surveillez la pression mémoire, pas la « mémoire disponible » : elle disait que tout allait bien trois minutes avant un gel (<a href="/fr/facts-before-diagnosis.html">tutoriel</a>).</li>
+</ul>
+
+<h2>Agents</h2>
+<ul>
+<li>Petit et cadré bat gros et vague : le 9B a livré des demandes de fusion propres là où le 27B n'a rien produit (<a href="/fr/model-bench.html">tutoriel</a>).</li>
+<li>Déclarez les outils en signatures Python : en JSON Schema, les modèles choisissaient bien mais ne remplissaient pas les valeurs (<a href="/fr/workstation-assistant.html">tutoriel</a>).</li>
+<li>98 % de la facture d'un agent, ce sont les mêmes 30 939 jetons de consignes et d'outils, renvoyés à chaque tour (<a href="/fr/agent-context-floor.html">tutoriel</a>).</li>
+<li>Invité dans son prompt à consulter le juge, un agent l'a fait 0 fois sur 3 ; aiguillé par le code, à chaque fois (<a href="/fr/deterministic-doctrine.html">tutoriel</a>).</li>
+<li>Muni des faits, un 27B a trouvé 5 pannes sur 5 en 72 s, contre 2,75 en 9 minutes sans (<a href="/fr/facts-before-diagnosis.html">tutoriel</a>).</li>
+<li>Un juge de 0,8B sur le processeur : 0,05 s par décision, jamais faux au-dessus de 0,8 de confiance sur nos mails (<a href="/fr/judge-two-passes.html">tutoriel</a>).</li>
+<li>Un proxy de contexte n'a rien économisé sous 100k jetons et a une fois triplé la facture en cassant le cache de prompt (<a href="/fr/billion-context.html">tutoriel</a>).</li>
+<li>Ne tuez jamais par motif de nom à travers SSH : le motif attrape votre propre shell (<a href="/fr/ssh-for-agents.html">tutoriel</a>).</li>
+</ul>
+
+<h2>Création</h2>
+<ul>
+<li>La distillation en quatre étapes a rendu un plan vidéo 6,8 fois plus vite, et l'image était meilleure (<a href="/fr/studio-film.html">tutoriel</a>).</li>
+<li>Un modèle vidéo rend ce qui suit l'action : écrivez « still » ou un participe présent (<a href="/fr/studio-film.html">tutoriel</a>).</li>
+<li>Trois minutes de musique en 27 secondes ; stockez-les en Opus, 3 Mo au lieu de 69 (<a href="/fr/ace-step-music.html">tutoriel</a>).</li>
+</ul>
+
+<h2>Homelab et poste</h2>
+<ul>
+<li>Avec Docker, les bannissements de fail2ban doivent aller dans la chaîne DOCKER-USER, sinon ils ne bloquent rien (<a href="/fr/homelab-fail2ban.html">tutoriel</a>).</li>
+<li>Un service publié sur internet est surtout visité par des scanners : ne publiez que ce qui en a besoin (<a href="/fr/homelab-everyday-trio.html">tutoriel</a>).</li>
+<li><code>ExecCondition</code> traite le code 255 comme un échec, et 255 est ce que renvoie ssh quand l'hôte est absent (<a href="/fr/failures-that-call.html">tutoriel</a>).</li>
+<li>« Luminosité 100 % » peut être le réglage le plus sombre : un débordement du pilote près du maximum (<a href="/fr/omarchy-deep.html">tutoriel</a>).</li>
+<li>Grafana télécharge des greffons au premier démarrage, sauf si on le lui interdit (<a href="/fr/fleet-events.html">tutoriel</a>).</li>
+</ul>

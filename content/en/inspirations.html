@@ -1,0 +1,33 @@
+<!-- {"title": "Inspirations: the projects and people we learn from", "summary": "Nothing here was invented alone. The open-source projects we build on, the authors whose work made us ask better questions, and what each one taught us.", "order": 3, "series": "start", "level": "read", "time": "10 min", "requires": []} -->
+<p class="lead">Every tutorial on this site stands on someone else's work. Here are the projects we use every day, the people behind them when they sign their work, and above all the question each one made us ask. Thank you to all of them.</p>
+
+<h2>The engines</h2>
+<ul>
+<li><strong>llama.cpp</strong>, Georgi Gerganov and the ggml community: the reason a consumer card can serve a serious model. It taught us to measure prompt reading, not just writing speed.</li>
+<li><strong>KVMem</strong>, Wang Leye and the KVMem authors: a bounded working set on the card and the history in RAM. The question it raised: what does an agent really need to keep in front of it?</li>
+<li><strong>Strata</strong>, Niko1221: a 177B model on a gaming PC. Proof that "it needs a server" is often a habit, not a fact.</li>
+<li><strong>The MoE expert cache fork of llama.cpp</strong>, GenerelSchwerz: the busy experts kept on the card. Two commits of the same fork, 28.6 against 36.9 tokens per second: measure before you update.</li>
+<li><strong>The Qwen, Wan, Kyutai and ACE-Step teams</strong>: open models for text, video, voice and music that make a home studio possible.</li>
+</ul>
+
+<h2>The agents and their methods</h2>
+<ul>
+<li><strong>Claude Code</strong>, Anthropic, and <strong>Kimi Code</strong>, Moonshot AI: the agents that showed us what a good coding loop looks like, and that we then tried to reproduce locally.</li>
+<li><strong>OpenFox</strong>: a coding agent designed for local models, with acceptance criteria as a contract. It changed how we write tasks for small models.</li>
+<li><strong>The BMAD method</strong>, BMad Code: a project as a chain of documents written by specialised agents. We kept the chain and gave every verdict to code.</li>
+<li><strong>Cloudroom</strong>, David Ondrej: agents you can move between machines, rooms that survive a closed laptop. The core we build our rooms on.</li>
+<li><strong>REA</strong>, morluto: reverse engineering with evidence. "Prove it" became a rule for our agents.</li>
+<li><strong>billion-context</strong>, ranxianglei: a bold idea about context, which taught us to measure a promise before adopting it.</li>
+</ul>
+
+<h2>The workstation and the lab</h2>
+<ul>
+<li><strong>Omarchy</strong>, DHH and contributors, on <strong>Hyprland</strong>: a Linux workstation with opinions. Extend it from your own folder; never edit what updates overwrite.</li>
+<li><strong>Proxmox, Forgejo, n8n, Immich, Vaultwarden, Paperless, Karakeep, Home Assistant, Tailscale</strong>: each one replaced a subscription, and each one taught us one trap, written in its tutorial.</li>
+<li><strong>ComfyUI</strong>, <strong>ArtCraft</strong> and <strong>HyperFrames</strong>: creation tools that treat a picture, a scene or a video as something you build, not something you wish for.</li>
+<li><strong>Apollo and Moonlight</strong>: a gaming PC without a screen, played from a handheld.</li>
+</ul>
+
+<h2>What they have in common</h2>
+<p>They publish their code, they say what works and what does not, and they let you check. That is the standard we try to hold here: every number measured, every trap written down, everything open.</p>
+<p class="note">One of your projects belongs here, or we used your work without naming you? <a href="/help.html">Tell us</a>, we will add it.</p>

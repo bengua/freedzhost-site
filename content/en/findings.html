@@ -1,0 +1,53 @@
+<!-- {"title": "Our findings: every tip and measured fact, one line each", "summary": "Since the first day, every discovery, every trap and every benchmark result we paid for, in one page. Each line is a fact measured on our machines, with the tutorial that explains it.", "order": 4, "series": "start", "level": "read", "time": "15 min", "requires": []} -->
+<p class="lead">This page is the short version of everything: the discoveries, the tips and the benchmark results we collected since we started, one line each. Nothing here is copied from a forum; every line was measured or broken on our own machines, and links to the tutorial that tells the story.</p>
+
+<p class="proof"><strong>What you get.</strong> Months of evenings in fifteen minutes of reading. Skim it before your next upgrade, your next model, or your next "why is it slow?".</p>
+
+<h2>Graphics cards and PCIe</h2>
+<ul>
+<li>A card can run at x4 instead of x16 after a reboot, silently. "Auto" in the BIOS <em>is</em> x16; a power cycle brought it back (<a href="/pcie-link-width.html">tutorial</a>).</li>
+<li>Find a card by its identity, never by its bus address: addresses move between boots (<a href="/pcie-link-width.html">tutorial</a>).</li>
+<li>A second card on OCuLink tops out at x4, 63 Gbit/s, and it is enough for inference (<a href="/second-gpu-oculink.html">tutorial</a>).</li>
+<li>After a driver update or a reboot, a container can see the card and still run on the CPU: regenerate the device description at every boot (<a href="/gpu-container-on-cpu.html">tutorial</a>).</li>
+<li>Without <code>CUDA_DEVICE_ORDER=PCI_BUS_ID</code>, "card 1" for CUDA may not be "card 1" for nvidia-smi (<a href="/comfyui-studio.html">tutorial</a>).</li>
+</ul>
+
+<h2>Models and speed</h2>
+<ul>
+<li>Compressing the V cache to q4_0 made prompt reading 21 times slower, silently. Use q8_0 for both K and V (<a href="/kv-cache-trap.html">tutorial</a>).</li>
+<li>A 177B mixture-of-experts model went from 26.1 to 55.6 tokens per second once its weights were placed right (<a href="/big-moe-two-cards.html">tutorial</a>).</li>
+<li>Speculative decoding (MTP): 65.7 tokens per second on a 27B on one card (<a href="/speculative-decoding.html">tutorial</a>).</li>
+<li>KVMem: 48/48 recall at 130k tokens, flat speed past 100k, 4.9 GB of VRAM saved (<a href="/kvmem-long-context.html">tutorial</a>).</li>
+<li>Thinking left on burned 2,500 tokens without a line of code; off, the same code in 2.5 s (<a href="/model-bench.html">tutorial</a>).</li>
+<li>llama-server ignores <code>enable_thinking</code> at the root of a request; use <code>chat_template_kwargs</code> (<a href="/intent-classifier.html">tutorial</a>).</li>
+<li>Model weights held resident instead of mapped: +3 % speed, then two machine freezes (<a href="/lab-notebook.html">notebook</a>).</li>
+<li>Watch memory pressure, not "available memory": it said all was well three minutes before a freeze (<a href="/facts-before-diagnosis.html">tutorial</a>).</li>
+</ul>
+
+<h2>Agents</h2>
+<ul>
+<li>Small and well-framed beats big and vague: the 9B delivered clean pull requests where the 27B produced nothing (<a href="/model-bench.html">tutorial</a>).</li>
+<li>Declare tools as Python signatures: in JSON Schema, models chose well but did not fill the values (<a href="/workstation-assistant.html">tutorial</a>).</li>
+<li>98 % of an agent's bill is the same 30,939 tokens of instructions and tools, sent at every turn (<a href="/agent-context-floor.html">tutorial</a>).</li>
+<li>Told to ask the judge in its prompt, an agent did it 0 times out of 3; routed by code, every time (<a href="/deterministic-doctrine.html">tutorial</a>).</li>
+<li>Handed the facts, a 27B found 5 faults out of 5 in 72 s, against 2.75 in 9 minutes without (<a href="/facts-before-diagnosis.html">tutorial</a>).</li>
+<li>A 0.8B judge on the processor: 0.05 s per decision, never wrong above 0.8 confidence on our e-mails (<a href="/judge-two-passes.html">tutorial</a>).</li>
+<li>A context proxy saved nothing under 100k tokens and once tripled the bill by breaking the prompt cache (<a href="/billion-context.html">tutorial</a>).</li>
+<li>Never kill by name pattern over SSH: the pattern matches your own shell (<a href="/ssh-for-agents.html">tutorial</a>).</li>
+</ul>
+
+<h2>Creation</h2>
+<ul>
+<li>Four-step distillation rendered a video shot 6.8 times faster, and the picture was better (<a href="/studio-film.html">tutorial</a>).</li>
+<li>A video model renders what follows the action: write "still" or a present participle (<a href="/studio-film.html">tutorial</a>).</li>
+<li>Three minutes of music in 27 seconds; store it as Opus, 3 MB instead of 69 (<a href="/ace-step-music.html">tutorial</a>).</li>
+</ul>
+
+<h2>Homelab and workstation</h2>
+<ul>
+<li>With Docker, fail2ban bans must go in the DOCKER-USER chain, or they block nothing (<a href="/homelab-fail2ban.html">tutorial</a>).</li>
+<li>A service published on the internet is mostly visited by scanners: publish only what needs it (<a href="/homelab-everyday-trio.html">tutorial</a>).</li>
+<li><code>ExecCondition</code> treats exit code 255 as a failure, and 255 is what ssh returns when the host is away (<a href="/failures-that-call.html">tutorial</a>).</li>
+<li>"100 % brightness" can be the darkest setting: a driver overflow near the maximum (<a href="/omarchy-deep.html">tutorial</a>).</li>
+<li>Grafana downloads plugins on first start unless told not to (<a href="/fleet-events.html">tutorial</a>).</li>
+</ul>
