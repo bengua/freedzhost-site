@@ -1,0 +1,32 @@
+<!-- {"title": "billion-context : un proxy de compression de contexte, mesuré honnêtement", "summary": "Un proxy local qui se place entre votre agent de code et son modèle et promet d'étirer le contexte. Nous l'avons installé avec soin, branché sur Claude Code, Kimi Code et OpenFox, et mesuré. Sous 100k jetons il n'a rien économisé, et une fois il a coûté trois fois plus. Quand il pourrait aider, et comment l'essayer sans risque.", "order": 76, "series": "agents", "level": "advanced", "time": "1 h", "requires": ["agent-context-floor", "agent-kimi-code"]} -->
+<p class="lead">billion-context est un proxy libre : votre agent lui parle au lieu de parler à son modèle, et il réécrit la conversation au passage, en donnant au modèle des outils pour compresser et rappeler ce qui est ancien. La promesse : de longues sessions sans buter sur la fenêtre. Nous n'adoptons pas un outil sur une promesse : nous l'avons mesuré sur les trois agents que nous utilisons.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Une réponse claire avant d'y passer une soirée : aucun gain sous environ 100 000 jetons de contexte, un vrai surcoût dans certains cas, et la façon sûre de l'installer, le brancher et le retirer si vous voulez l'essayer sur de longues sessions.</p>
+
+<h2>1. L'installer serré</h2>
+<ul>
+<li>Épinglez la version et installez sans lancer les scripts du paquet (<code>npm install --ignore-scripts</code>) : sa seule dépendance est une bibliothèque de validation.</li>
+<li>Faites-le tourner en service utilisateur attaché à la machine elle-même, avec <code>NoNewPrivileges</code> et <code>ProtectSystem=strict</code>.</li>
+<li>Coupez dans sa configuration les mises à jour automatiques et les appels « quoi de neuf ».</li>
+</ul>
+
+<h2>2. Le brancher, un agent à la fois</h2>
+<ul>
+<li><strong>Claude Code</strong> : pointez <code>ANTHROPIC_BASE_URL</code> sur le proxy, avec un repli direct s'il ne répond pas. Marche avec un abonnement ; aucun jeton n'apparaît dans son journal.</li>
+<li><strong>Kimi Code</strong> : changer l'adresse ne marche pas, parce que Kimi range sa connexion sous une clé dérivée de cette adresse, et la perd. Utilisez plutôt le greffon natif du proxy : il ajoute un fournisseur à part qui garde la même clé de connexion.</li>
+<li><strong>OpenFox</strong> : un seul interrupteur, l'adresse du modèle qu'il utilise.</li>
+</ul>
+
+<h2>3. Ce que nous avons mesuré</h2>
+<table>
+<tr><th>Essai</th><th>En direct</th><th>Par le proxy</th></tr>
+<tr><td>Claude, 40 fichiers lus en parallèle</td><td>0,19 $</td><td>0,62 $ : le proxy change le début du prompt, le cache du modèle repart à froid</td></tr>
+<tr><td>Kimi, une chaîne de 30 fichiers</td><td>132 s, juste</td><td>102 s, juste, mais 13 % de données envoyées en plus et aucune compression déclenchée en 31 requêtes</td></tr>
+<tr><td>OpenFox, une chaîne de 40 fichiers sur un 27B local</td><td>arrêt à 15 fichiers</td><td>arrêt à 13 fichiers, 60 % de lecture de prompt en plus</td></tr>
+</table>
+<p>Verdict : sous environ 100 000 jetons, rien à gagner et un petit surcoût (ses propres descriptions d'outils ajoutent environ 17 Ko à chaque requête). Son effet attendu porte sur les petites fenêtres locales, 32k à 64k, sur de très longues sessions : encore à démontrer. Nous avons remis chaque agent sur sa route directe.</p>
+
+<h2>Pièges</h2>
+<p class="note">Un proxy qui réécrit le prompt casse le cache de prompt du fournisseur. Sur un abonnement facturé au jeton, cela seul peut tripler une facture.</p>
+<p class="note">Ne copiez pas le jeton de connexion d'un agent pour faire marcher un proxy : les jetons qui se renouvellent seuls peuvent invalider l'original. Utilisez un mécanisme qui partage la connexion existante.</p>
+<p class="note">Gardez un retour arrière d'une ligne : une variable d'environnement ou <code>plugin remove</code>. Les nôtres ont servi le soir même.</p>

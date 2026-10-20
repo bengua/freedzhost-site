@@ -1,0 +1,42 @@
+<!-- {"title": "Rapatrier votre historique Claude.ai : claude-archive, pas à pas", "summary": "Vos conversations avec Claude.ai, en fichiers sur votre disque : un fichier Markdown par conversation, chaque bloc de code en vrai fichier, une liste des pièces jointes à récupérer à la main, et un manifeste qui prouve que rien n'a été perdu. Un script, sans dépendance, sans réseau.", "order": 79, "series": "desk", "level": "beginner", "time": "20 min", "requires": []} -->
+<p class="lead">Des mois de conversations avec une IA contiennent des décisions, du code et des explications dont vous aurez encore besoin. L'export officiel vous les rend, mais en un gros fichier JSON. claude-archive en fait un dossier que vous pouvez lire, chercher, indexer et versionner, et vous dit exactement ce que l'export n'a pas pu donner.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Tout votre historique, lisible hors ligne, dans l'ordre des dates, chaque bout de code extrait en fichier, et un décompte qui prouve que l'archive est complète. Prêt à nourrir une <a href="/fr/journal-rag.html">recherche locale dans vos notes</a>.</p>
+
+<h2>1. Demander l'export</h2>
+<p>Sur Claude.ai : <em>Paramètres → Confidentialité → Exporter les données</em>. Vous recevez par mail un lien vers un ou plusieurs fichiers ZIP.</p>
+
+<h2>2. Lancer le script</h2>
+<pre><code>chmod +x claude_archive.py
+python3 claude_archive.py ~/Téléchargements/data-XXXX-batch-0000.zip -o ./ancien-claude
+# ou un dossier déjà décompressé, tout ce qui contient conversations.json
+python3 claude_archive.py ~/Téléchargements/mon-export -o ./ancien-claude</code></pre>
+<p>Python 3.10 ou plus récent, bibliothèque standard seulement : rien à installer, rien d'envoyé nulle part.</p>
+<p class="note">Plusieurs ZIP (<code>batch-0000</code>, <code>batch-0001</code>…) ? Donnez à chacun son propre dossier de sortie : la numérotation repart à 1 à chaque lancement et les noms entreraient en collision.</p>
+
+<h2>3. Ce que vous obtenez</h2>
+<pre><code>ancien-claude/
+├── conversations/          un .md par conversation, numéroté et daté
+├── code/&lt;conversation&gt;/     chaque bloc de code en vrai fichier (.py, .html, .yml…)
+├── TODO_attachments.md     les pièces jointes à récupérer à la main, avec un lien vers chaque conversation
+└── manifest.json           index, décomptes de complétude, avertissements</code></pre>
+<p>Les blocs de code sont extraits <em>et</em> gardés dans le texte : chaque conversation se lit toujours en entier.</p>
+
+<h2>4. Vérifier que rien n'est perdu</h2>
+<ul>
+<li>Le résumé affiche <code>conversations: N -&gt; N</code> : les deux nombres doivent être égaux.</li>
+<li>Les avertissements doivent être rares ; les conversations vides ou sans titre sont le cas habituel, sans gravité.</li>
+</ul>
+<pre><code>python3 -c "import json; print('\n'.join(json.load(open('ancien-claude/manifest.json'))['warnings']))"</code></pre>
+
+<h2>5. Récupérer ce que l'export laisse de côté</h2>
+<p>L'export contient le texte, pas les pièces jointes binaires. Un script compagnon réduit la liste aux fichiers que Claude a générés (documents, tableurs, archives), ceux qu'on ne peut télécharger qu'à la main :</p>
+<pre><code>python3 recover_generated.py ancien-claude/manifest.json
+# -&gt; RECOVER_generated.md : une liste regroupée par conversation, avec des liens directs</code></pre>
+
+<h2>Limites</h2>
+<ul>
+<li>Pas de pièces jointes binaires dans l'export : elles sont listées, pas reconstruites.</li>
+<li>La mémoire et les résumés de discussion n'en font pas partie : exportez-les à part depuis les paramètres.</li>
+<li>Les conversations supprimées ne sont pas incluses, et l'appartenance aux projets n'est pas dans l'export.</li>
+</ul>

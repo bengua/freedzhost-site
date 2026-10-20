@@ -1,0 +1,41 @@
+<!-- {"title": "Omarchy in depth: extend it without breaking updates, and five 'bugs' that are not", "summary": "Omarchy turns Arch and Hyprland into a ready workstation. Extending its menu the supported way, and five strange behaviours we met, each with its real cause: a screen dark at '100 %', a bar that vanishes for good, four kinds of title bars, milky transparency, a menu entry that cannot be pressed.", "order": 78, "series": "desk", "level": "intermediate", "time": "1 h", "requires": ["linux-laptop"]} -->
+<p class="lead">Omarchy is an opinionated setup of Arch Linux and the Hyprland window manager: install it and you have a fast, keyboard-driven workstation. It updates often, and its updates overwrite its own files. The rule that follows: change nothing in its folders, extend from yours. And when something looks broken, look for the cause before reinstalling.</p>
+
+<p class="proof"><strong>What you get.</strong> Your own entries in Omarchy's menu that survive every update, and the diagnosis of five strange behaviours in one line each, instead of the evenings they cost us.</p>
+
+<h2>1. Extend the menu from your folder</h2>
+<p>The packaged menu (<code>/usr/share/omarchy/default/omarchy/omarchy-menu.jsonc</code>) is to be read, never edited: the next update rewrites it. Your entries go in <code>~/.config/omarchy/extensions/omarchy-menu.jsonc</code>:</p>
+<pre><code>{
+  "setup.default.agent.openfox": {
+    "icon": "", "label": "OpenFox",
+    "description": "Local coding agent",
+    "action": "omarchy launch webapp https://openfox.lan"
+  }
+}</code></pre>
+<p>The identifier is a dotted path, and <strong>its parent is the menu</strong>: <code>setup.default.agent.openfox</code> lands in the "Default Agent" submenu. Reusing an existing identifier extends that entry instead of replacing it. <code>omarchy menu refresh</code> reloads.</p>
+<p class="note">The "default agent" setting only knows binaries launched in a terminal, from a fixed list. A web app can be added to the menu, not made the default.</p>
+
+<h2>2. "100 % brightness" and a dark screen</h2>
+<p>On our laptop's panel, the driver overflows near the top: above about 60,300 out of 65,535, the value wraps to 0 and the screen drops to its minimum. "100 %" was the darkest setting. The fix stays in user space: a small script that caps the raw value at 60,200, and the brightness keys rebound to it.</p>
+<p class="note">Probe value by value (<code>/sys/class/backlight/*/brightness</code>, then read <code>actual_brightness</code>) before blaming the desktop.</p>
+
+<h2>3. The bar that vanished, even after reboot</h2>
+<p>The top bar is not dead: a flag on disk, <code>~/.local/state/omarchy/toggles/bar-off</code>, slides it off screen, and it survives reboots by design. It is set by one menu entry, easy to pick by accident with the keyboard. The command is inverted, which costs a round trip:</p>
+<pre><code>omarchy toggle bar off      # brings the bar BACK</code></pre>
+
+<h2>4. Four title bars, four owners</h2>
+<table>
+<tr><th>What you see</th><th>Who draws it</th><th>What removes it</th></tr>
+<tr><td>a frame around a window</td><td>Hyprland</td><td><code>general:border_size = 0</code></td></tr>
+<tr><td>an address bar over a pop-up</td><td>the browser, inside the page</td><td>nothing from the page</td></tr>
+<tr><td>a title bar on an app window</td><td>Chromium, inside its surface</td><td><code>--disable-features=WaylandWindowDecorations</code></td></tr>
+<tr><td>a title bar on an <em>installed</em> web app</td><td>Chromium, because of <code>display: standalone</code></td><td><code>"display_override": ["window-controls-overlay"]</code> in the manifest</td></tr>
+</table>
+<p class="note">The way you open the app decides which you get: an <code>--app=URL</code> launcher has no bar; the installed app's icon has one until its manifest asks otherwise. Chromium caches the manifest: restart it to see the change.</p>
+
+<h2>5. Transparency that makes text milky</h2>
+<p>Hyprland's window opacity applies to the whole window: the compositor receives a finished image and cannot tell the background from the text. Everything goes milky. For a see-through background with sharp text, set the opacity in the application itself (the terminal's own background opacity), and leave the compositor at 1.0.</p>
+
+<h2>Traps</h2>
+<p class="note">Never restart the terminal service from inside a terminal session you care about: it closes every terminal, including the one running your agent.</p>
+<p class="note">A key-sending tool types text; it does not trigger Hyprland shortcuts. To test a menu without seeing the screen, summon it by command, type the search, and take a screenshot.</p>
