@@ -1,0 +1,55 @@
+<!-- {"title": "Homelab 1 : Proxmox, la base sous chaque service", "summary": "Une machine, plusieurs serveurs isolés, des instantanés et des sauvegardes. Le socle de la série qui remplace Google et les abonnements.", "order": 6} -->
+<p class="lead">Cette série remplace un par un les services que vous louez : stockage, photos, bureautique, recherche, mots de passe. Il leur faut un endroit où vivre. Cet endroit, c'est Proxmox VE : un hyperviseur libre et open source qui transforme une machine en plusieurs serveurs isolés, chacun facile à sauvegarder, à figer en instantané et à jeter.</p>
+
+<h2>Ce que fait tourner le nôtre</h2>
+<p>Mesuré sur notre nœud (Proxmox VE 9.2, 16 threads, 30 Go de RAM, un SSD NVMe de 2 To pour les invités, un disque de 8 To pour les sauvegardes) :</p>
+<div class="table"><table>
+<tr><th>Invité</th><th>Rôle</th><th>RAM</th></tr>
+<tr><td>VM</td><td>proxy inverse avec HTTPS, filtrage DNS</td><td>4 Go</td></tr>
+<tr><td>VM</td><td>suite bureautique, moteur de recherche, gestionnaire de tâches</td><td>9 Go</td></tr>
+<tr><td>VM</td><td>forge de code et sa CI</td><td>6 Go</td></tr>
+<tr><td>VM</td><td>automatisation et domotique</td><td>4 Go</td></tr>
+<tr><td>VM</td><td>base de connaissance (recherche dans nos notes)</td><td>2 Go</td></tr>
+<tr><td>VM</td><td>coffre privé, tenu à part</td><td>3 Go</td></tr>
+<tr><td>conteneur</td><td>un petit modèle juge sur processeur</td><td>—</td></tr>
+</table></div>
+<p>Un vieux PC de bureau ou un mini PC suffit pour commencer. Ce qui compte : la RAM (16 Go minimum, 32 Go confortable), un SSD pour les invités, et un second disque pour les sauvegardes.</p>
+
+<h2>1. Installer</h2>
+<ol>
+<li>Téléchargez l'ISO de Proxmox VE sur <a href="https://www.proxmox.com/en/downloads">proxmox.com/downloads</a>.</li>
+<li>Écrivez-la sur une clé USB. Sous Linux : <code>sudo dd if=proxmox-ve.iso of=/dev/sdX bs=4M status=progress</code>, où <code>/dev/sdX</code> est la clé (vérifiez deux fois avec <code>lsblk</code> : <code>dd</code> efface ce que vous lui désignez).</li>
+<li>Démarrez la machine sur la clé et suivez l'installateur : disque cible, pays, mot de passe root, e-mail, et une <strong>adresse IP fixe</strong> sur votre réseau.</li>
+<li>Depuis un autre ordinateur, ouvrez <code>https://&lt;cette-adresse&gt;:8006</code> et connectez-vous en <code>root</code>. Le navigateur prévient au sujet du certificat : il est auto-signé, c'est normal sur votre propre réseau.</li>
+</ol>
+
+<h2>2. Le canal de mises à jour gratuit</h2>
+<p>Par défaut, Proxmox pointe vers son dépôt « enterprise », qui demande un abonnement payant : les mises à jour échouent avec une erreur. Pour un homelab, passez sur le canal gratuit <code>pve-no-subscription</code>, comme le documente Proxmox.</p>
+<p>Désactivez le dépôt enterprise : dans <code>/etc/apt/sources.list.d/pve-enterprise.sources</code>, ajoutez la ligne</p>
+<pre><code>Enabled: no</code></pre>
+<p>Puis créez <code>/etc/apt/sources.list.d/proxmox.sources</code> :</p>
+<pre><code>Types: deb
+URIs: http://download.proxmox.com/debian/pve
+Suites: trixie
+Components: pve-no-subscription
+Signed-By: /usr/share/keyrings/proxmox-archive-keyring.gpg</code></pre>
+<p>Et mettez à jour :</p>
+<pre><code>apt update && apt full-upgrade</code></pre>
+<p class="note">Proxmox ne recommande pas ce canal pour des serveurs de production : ses paquets sont moins testés que ceux du dépôt enterprise. Pour la maison, c'est le bon choix ; si Proxmox fait tourner votre entreprise, prenez l'abonnement, il finance aussi le projet.</p>
+
+<h2>3. Votre premier conteneur</h2>
+<p>Les conteneurs (LXC) sont plus légers que les machines virtuelles : parfaits pour un service chacun. Téléchargez un modèle, puis créez le conteneur :</p>
+<pre><code>pveam update
+pveam available --section system | grep debian
+pveam download local &lt;le nom du modèle affiché ci-dessus&gt;</code></pre>
+<p>Puis dans l'interface web : <strong>Create CT</strong>, choisissez le modèle, donnez-lui 1 CPU, 512 Mo de RAM et 8 Go de disque pour commencer. Les trois s'agrandissent plus tard.</p>
+
+<h2>4. Votre première machine virtuelle</h2>
+<p>Pour un service qui a besoin de son propre noyau (Docker avec beaucoup de conteneurs, un autre système d'exploitation) : envoyez une ISO dans <strong>local → ISO Images</strong>, puis <strong>Create VM</strong>. Même règle : commencer petit, agrandir ensuite.</p>
+
+<h2>5. Les sauvegardes, avant tout le reste</h2>
+<p>Dans <strong>Datacenter → Backup</strong>, programmez une sauvegarde nocturne de chaque invité vers un <strong>second disque</strong>. Puis restaurez-en une, une fois, pour vérifier que ça marche.</p>
+<p class="note">Une sauvegarde sur le même disque que les invités n'est pas une sauvegarde : elle meurt avec ce disque. Une sauvegarde jamais restaurée est un espoir, pas une sauvegarde.</p>
+
+<h2>Un piège que nous évitons</h2>
+<p class="note">N'ouvrez jamais le port 8006 sur Internet. Pour administrer Proxmox de l'extérieur, passez par un réseau privé comme Tailscale ou WireGuard : la page d'administration reste invisible depuis Internet.</p>
