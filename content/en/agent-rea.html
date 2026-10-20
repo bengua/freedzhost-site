@@ -1,6 +1,8 @@
 <!-- {"title": "Reverse engineering with evidence: let the agent prove, not guess", "summary": "Before wiring your stack into someone else's program, understand it with proof. An open-source reverse-engineering toolkit that agents can call: analyze once, keep a snapshot, ask follow-up questions, and get answers with their evidence and their limits.", "order": 52, "series": "agents", "level": "advanced", "time": "1 h", "requires": ["agent-claude-code"]} -->
 <p class="lead">An agent asked "how does this program do X" will answer, fluently, after skimming a few files. Often wrong. When we plugged our agents into an open-source agent core, we needed to know exactly what it sends and expects. REA, an open-source (MIT) reverse-engineering toolkit with a command line and a tool server for agents, made the agent answer with proof instead.</p>
 
+<p class="proof"><strong>What you get.</strong> An agent that understands any program with proof, not guesswork: one analysis, then answers in seconds, each with its evidence. Plug your stack into anything, safely.</p>
+
 <h2>1. What it reads</h2>
 <p>Native binaries (through Ghidra), JavaScript and Electron apps, Android APKs, .NET assemblies, websites. Install it with npm, plus Ghidra and a Java runtime dedicated to it:</p>
 <pre><code>npm install -g rea-agents

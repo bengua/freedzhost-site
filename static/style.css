@@ -101,3 +101,5 @@ nav a.help { color: var(--accent); }
 .contact button[disabled] { opacity: .6; cursor: wait; }
 .form-status.ok { color: #7ee2a8; }
 .form-status.bad { color: #ff6b6b; }
+.proof { border-left: 3px solid #7ee2a8; background: var(--panel); padding: 10px 16px; border-radius: 0 8px 8px 0; }
+.proof strong:first-child { color: #7ee2a8; }

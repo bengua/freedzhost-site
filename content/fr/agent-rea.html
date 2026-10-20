@@ -1,6 +1,8 @@
 <!-- {"title": "Rétro-ingénierie avec preuves : que l'agent prouve au lieu de deviner", "summary": "Avant de brancher votre pile sur le programme de quelqu'un d'autre, comprenez-le preuves à l'appui. Une boîte à outils libre de rétro-ingénierie que les agents peuvent appeler : analyser une fois, garder un instantané, poser des questions de suivi, et obtenir des réponses avec leurs preuves et leurs limites.", "order": 52, "series": "agents", "level": "advanced", "time": "1 h", "requires": ["agent-claude-code"]} -->
 <p class="lead">Un agent à qui l'on demande « comment ce programme fait-il X » répondra, avec aisance, après avoir survolé quelques fichiers. Souvent à tort. Quand nous avons branché nos agents sur un cœur d'agents libre, il nous fallait savoir exactement ce qu'il envoie et attend. REA, une boîte à outils libre (MIT) de rétro-ingénierie avec une ligne de commande et un serveur d'outils pour agents, a fait répondre l'agent avec des preuves.</p>
 
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Un agent qui comprend n'importe quel programme preuves à l'appui, sans deviner : une analyse, puis des réponses en quelques secondes, chacune avec sa preuve. Branchez votre pile sur n'importe quoi, sans risque.</p>
+
 <h2>1. Ce qu'il lit</h2>
 <p>Des binaires natifs (via Ghidra), des applis JavaScript et Electron, des APK Android, des assemblies .NET, des sites web. Installation par npm, plus Ghidra et un environnement Java qui lui est dédié :</p>
 <pre><code>npm install -g rea-agents

@@ -1,6 +1,8 @@
 <!-- {"title": "Rooms and FoxDesk: one conversation, any machine, any agent", "summary": "A rooms controller keeps every agent conversation durable and replayable, across several machines. An open-source agent core, never patched, with your agents plugged in by adapters. And a desktop client served on every workstation, so one machine down never cuts you off.", "order": 50, "series": "agents", "level": "advanced", "time": "a weekend", "requires": ["agent-swarmfox"]} -->
 <p class="lead">A coding session lives in one agent, on one machine. Close the app, change machine, or let the agent run all night, and you lose the thread. Rooms fix that: a room is a conversation that outlives the session, the app and the screen that started it. FoxDesk is the desktop window on those rooms, next to the phone.</p>
 
+<p class="proof"><strong>What you get.</strong> Start on the laptop, finish on the phone, let the agent work all night: the conversation is always there, whole, on every screen. One small controller and SQLite do it.</p>
+
 {{diagram:wiring}}
 
 <h2>1. A rooms controller in front of the agents</h2>
