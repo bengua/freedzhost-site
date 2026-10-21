@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inari Mockup</title>
+<style>
+/* ── Design tokens ────────────────────────────────────────────── */
+:root {
+  --bg: #12100e;
+  --surface: #17161A;
+  --surface2: #211F24;
+  --hair: rgba(58, 54, 64, 0.55);
+  --hair-solid: #3A3640;
+  --copper: #E48A46;
+  --copper-soft: rgba(228, 138, 70, 0.13);
+  --ink: #F3EFE9;
+  --ink-dim: #9E9AA8;
+  --warn: #E3B341;
+  --ok: #5FB86B;
+  --bad: #EC6A5E;
+}
+
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('fonts/space-grotesk-400-CJ-V5oYT.woff2') format('woff2');
+  font-weight: 400;
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('fonts/space-grotesk-500-lFbtlQH6.woff2') format('woff2');
+  font-weight: 500;
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('fonts/space-grotesk-600-DjKNqYRj.woff2') format('woff2');
+  font-weight: 600;
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('fonts/space-grotesk-700-RjhwGPKo.woff2') format('woff2');
+  font-weight: 700;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+.phone {
+  width: 1080px;
+  height: 2280px;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+}
+.screen.active { display: flex; }
+
+/* ── helpers ──────────────────────────────────────────────────── */
+.flex { display: flex; }
+.col { display: flex; flex-direction: column; }
+.row { display: flex; flex-direction: row; }
+.grow { flex: 1; }
+.center { display: flex; align-items: center; justify-content: center; }
+
+.ico {
+  width: 44px;
+  height: 44px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+.ico.filled { fill: currentColor; }
+.ico path { vector-effect: non-scaling-stroke; }
+
+.mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; }
+
+.kicker {
+  font-size: 20px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  font-weight: 500;
+}
+
+.timestamp {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 24px;
+  color: var(--ink-dim);
+}
+
+.btn-primary {
+  background: var(--copper);
+  color: var(--surface);
+  border-radius: 26px;
+  padding: 26px 40px;
+  font-size: 34px;
+  font-weight: 600;
+  border: none;
+  text-align: center;
+  box-shadow: 0 6px 24px rgba(228, 138, 70, 0.22);
+}
+
+.topline {
+  display: flex;
+  align-items: center;
+  padding: 30px 24px 22px 24px;
+  gap: 12px;
+}
+.topline .title {
+  flex: 1;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+.icon-btn {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-dim);
+}
+
+.badge {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--copper-soft);
+  border: 2px solid rgba(228, 138, 70, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--copper);
+}
+.badge svg { width: 40px; height: 40px; }
+
+/* ── drawer ───────────────────────────────────────────────────── */
+.drawer {
+  background: var(--surface);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 0 28px 0;
+}
+.drawer-header {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 0 38px 20px 38px;
+}
+.drawer-header .title { font-size: 42px; font-weight: 700; }
+.drawer-new {
+  margin: 0 38px 18px 38px;
+}
+.drawer-groups {
+  flex: 1;
+  overflow: hidden;
+  padding: 0 18px;
+}
+.drawer-group { margin-bottom: 14px; }
+.drawer-kicker {
+  padding: 22px 0 10px 24px;
+}
+.drawer-row {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 18px 26px;
+  border-radius: 20px;
+  margin-bottom: 6px;
+}
+.drawer-row.selected {
+  background: var(--copper-soft);
+  border: 1.5px solid rgba(228, 138, 70, 0.35);
+}
+.drawer-row .dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--hair-solid);
+  flex-shrink: 0;
+}
+.drawer-row .dot.warn { background: var(--warn); }
+.drawer-row .chip {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: rgba(228, 138, 70, 0.12);
+  border: 1.5px solid rgba(228, 138, 70, 0.35);
+}
+.drawer-row .chip img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.drawer-row .label {
+  flex: 1;
+  font-size: 32px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.drawer-row .age {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 24px;
+  color: var(--ink-dim);
+}
+
+.drawer-divider {
+  height: 2px;
+  background: rgba(58, 54, 64, 0.6);
+  margin: 8px 38px;
+}
+.drawer-place {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  padding: 24px 42px;
+  color: var(--ink);
+  font-size: 32px;
+  font-weight: 500;
+}
+.drawer-place svg {
+  width: 38px;
+  height: 38px;
+  color: var(--ink-dim);
+}
+
+/* ── rooms ────────────────────────────────────────────────────── */
+.rooms-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  padding: 34px 42px 42px 42px;
+  flex: 1;
+  align-content: start;
+}
+.room-tile {
+  background: var(--surface);
+  border-radius: 36px;
+  border: 2px solid var(--hair);
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  aspect-ratio: 0.95;
+  box-shadow: 0 0 0 rgba(0,0,0,0);
+}
+.room-tile.running {
+  border-color: rgba(228, 138, 70, 0.55);
+  box-shadow: 0 8px 42px rgba(228, 138, 70, 0.14);
+}
+.room-tile.warn { border-color: rgba(227, 179, 65, 0.65); }
+.room-tile .sprite {
+  width: 190px;
+  height: 190px;
+  margin-bottom: 14px;
+}
+.room-tile .sprite img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.room-tile .name {
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.25;
+  margin-bottom: 10px;
+  max-height: 86px;
+  overflow: hidden;
+}
+.room-tile .sub {
+  font-size: 26px;
+  color: var(--ink-dim);
+  margin-bottom: 18px;
+}
+.room-tile .pill {
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 24px;
+  font-weight: 500;
+}
+.room-tile .pill.copper { background: rgba(228, 138, 70, 0.15); color: var(--copper); }
+.room-tile .pill.ok { background: rgba(95, 184, 107, 0.15); color: var(--ok); }
+.room-tile .pill.warn { background: rgba(227, 179, 65, 0.15); color: var(--warn); }
+
+.live-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(95, 184, 107, 0.12);
+  color: var(--ok);
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 24px;
+  font-weight: 500;
+}
+.live-pill .dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ok);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* ── thread ───────────────────────────────────────────────────── */
+.thread-body {
+  flex: 1;
+  overflow: hidden;
+  padding: 28px 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+.bubble {
+  max-width: 740px;
+  padding: 26px 32px;
+  font-size: 32px;
+  line-height: 1.45;
+}
+.bubble.user {
+  align-self: flex-end;
+  background: var(--surface2);
+  border-radius: 34px 34px 8px 34px;
+  color: var(--ink);
+}
+.bubble.assistant {
+  align-self: flex-start;
+  background: var(--surface);
+  border-radius: 34px 34px 34px 8px;
+  color: var(--ink);
+}
+.bubble-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+.bubble-row .chip {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: rgba(228, 138, 70, 0.12);
+  border: 1.5px solid rgba(228, 138, 70, 0.35);
+}
+.bubble-row .chip img { width: 100%; height: 100%; object-fit: cover; }
+
+.cursor {
+  display: inline-block;
+  width: 3px;
+  height: 1em;
+  background: var(--copper);
+  vertical-align: text-bottom;
+  margin-left: 4px;
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+.composer {
+  margin: 18px 26px 28px 26px;
+  background: var(--surface);
+  border: 2px solid var(--hair);
+  border-radius: 44px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.composer .placeholder {
+  flex: 1;
+  font-size: 32px;
+  color: var(--ink-dim);
+  padding-left: 16px;
+}
+.composer .round {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface2);
+  color: var(--ink-dim);
+}
+.composer .round.send {
+  background: var(--copper);
+  color: var(--surface);
+}
+.composer .round svg { width: 34px; height: 34px; }
+
+/* ── teleport sheet ───────────────────────────────────────────── */
+.sheet-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.sheet {
+  background: var(--surface);
+  border-radius: 44px 44px 0 0;
+  padding: 36px 42px 64px 42px;
+}
+.sheet-title {
+  font-size: 40px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.sheet-room {
+  font-size: 28px;
+  color: var(--ink-dim);
+  margin-bottom: 30px;
+}
+.sheet-row {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  padding: 28px 0;
+  border-bottom: 2px solid var(--hair);
+}
+.sheet-row .icon {
+  width: 48px;
+  height: 48px;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+.sheet-row .text {
+  flex: 1;
+}
+.sheet-row .text .main {
+  font-size: 34px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.sheet-row .text .hint {
+  font-size: 26px;
+  color: var(--ink-dim);
+}
+.sheet-row .sub {
+  display: flex;
+  gap: 14px;
+}
+.sheet-row .sub span {
+  font-size: 24px;
+  color: var(--ink-dim);
+  background: var(--surface2);
+  padding: 8px 16px;
+  border-radius: 10px;
+}
+
+/* ── accueil ──────────────────────────────────────────────────── */
+.accueil {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  text-align: center;
+}
+.accueil .mascot {
+  width: 620px;
+  height: 620px;
+  margin-bottom: 30px;
+}
+.accueil .mascot img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 30px 80px rgba(228, 138, 70, 0.18));
+}
+.accueil .brand {
+  font-size: 96px;
+  font-weight: 700;
+  letter-spacing: -2px;
+  margin-bottom: 14px;
+}
+.accueil .baseline {
+  font-size: 34px;
+  color: var(--ink-dim);
+  margin-bottom: 60px;
+  font-weight: 400;
+}
+.accueil .cta {
+  min-width: 460px;
+}
+</style>
+</head>
+<body>
+<div class="phone">
+
+<!-- ═══════════════════════════════════════════════════════════════
+     1. TIROIR
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-tiroir">
+  <div class="drawer">
+    <div class="drawer-header">
+      <div class="badge">
+        <svg viewBox="0 0 24 24"><path d="M5 3.2L9.2 7.6h5.6L19 3.2l.6 7.8L12 18.4 4.4 11z"/><path d="M8.8 11l1.1.9M15.2 11l-1.1.9"/></svg>
+      </div>
+      <div class="title">Inari</div>
+    </div>
+    <div class="btn-primary drawer-new">+ Nouveau fil</div>
+    <div class="drawer-groups">
+      <div class="drawer-group">
+        <div class="kicker drawer-kicker">Ce matin</div>
+        <div class="drawer-row selected">
+          <div class="chip"><img src="sprites/fox_travaille.png" alt=""></div>
+          <div class="label">Refactor forgejo CI</div>
+          <div class="age">12m</div>
+        </div>
+        <div class="drawer-row">
+          <div class="dot"></div>
+          <div class="label">APK 0.33 rebrand Inari</div>
+          <div class="age">3h</div>
+        </div>
+      </div>
+      <div class="drawer-group">
+        <div class="kicker drawer-kicker">Hier</div>
+        <div class="drawer-row">
+          <div class="dot warn"></div>
+          <div class="label">Sentinelle nocturne</div>
+          <div class="age">hier</div>
+        </div>
+        <div class="drawer-row">
+          <div class="dot"></div>
+          <div class="label">Backup vaultwarden</div>
+          <div class="age">hier</div>
+        </div>
+        <div class="drawer-row">
+          <div class="chip"><img src="sprites/fox_respire.webp" alt=""></div>
+          <div class="label">Room comics avec Léo</div>
+          <div class="age">hier</div>
+        </div>
+      </div>
+      <div class="drawer-group">
+        <div class="kicker drawer-kicker">Cette semaine</div>
+        <div class="drawer-row">
+          <div class="dot"></div>
+          <div class="label">Tutos vidéo saison 1</div>
+          <div class="age">3j</div>
+        </div>
+        <div class="drawer-row">
+          <div class="dot"></div>
+          <div class="label">Migration cloud → local</div>
+          <div class="age">5j</div>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-divider"></div>
+    <div class="drawer-place"><svg class="ico" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Fil</div>
+    <div class="drawer-place"><svg class="ico" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>Rooms</div>
+    <div class="drawer-place"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>Maison</div>
+    <div class="drawer-place"><svg class="ico" viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>Apps</div>
+    <div class="drawer-place"><svg class="ico" viewBox="0 0 24 24"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 1 0 0-6z"/><path d="M12 2v7M12 15v7M2 12h7M15 12h7"/></svg>Core</div>
+    <div class="drawer-place"><svg class="ico" viewBox="0 0 24 24"><path d="M22 12a10 10 0 1 1-20 0 10 10 0 1 1 20 0z"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Site web — freedzhost.cloud</div>
+    <div class="drawer-place"><svg class="ico" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>Réglages</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     2. ROOMS
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-rooms">
+  <div class="topline">
+    <div class="icon-btn"><svg class="ico" viewBox="0 0 24 24"><path d="M4 7h12M4 12h16M4 17h12"/></svg></div>
+    <div class="title">Rooms</div>
+    <div class="live-pill"><span class="dot"></span>en direct</div>
+  </div>
+  <div class="rooms-grid">
+    <div class="room-tile running">
+      <div class="sprite"><img src="sprites/zen_respire.webp" alt=""></div>
+      <div class="name">Tutoriels vidéo</div>
+      <div class="sub">zen · saison 1</div>
+      <div class="pill copper">1 agent · en cours</div>
+    </div>
+    <div class="room-tile running">
+      <div class="sprite"><img src="sprites/militaire_respire.webp" alt=""></div>
+      <div class="name">Sentinelle infra</div>
+      <div class="sub">militaire · nuit</div>
+      <div class="pill copper">2 agents · en cours</div>
+    </div>
+    <div class="room-tile">
+      <div class="sprite"><img src="sprites/artiste_respire.webp" alt=""></div>
+      <div class="name">Visuels site</div>
+      <div class="sub">artiste · v2</div>
+      <div class="pill ok">idle</div>
+    </div>
+    <div class="room-tile warn">
+      <div class="sprite"><img src="sprites/rebel_respire.webp" alt=""></div>
+      <div class="name">Veille sans-filtre</div>
+      <div class="sub">rebel · rss</div>
+      <div class="pill warn">1 alerte</div>
+    </div>
+    <div class="room-tile">
+      <div class="sprite"><img src="sprites/merica_respire.webp" alt=""></div>
+      <div class="name">Facturation cloud→local</div>
+      <div class="sub">merica · q4</div>
+      <div class="pill ok">à l'arrêt</div>
+    </div>
+    <div class="room-tile running">
+      <div class="sprite"><img src="sprites/grok_respire.webp" alt=""></div>
+      <div class="name">Labo expérimental</div>
+      <div class="sub">grok · dev</div>
+      <div class="pill copper">3 agents · en cours</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     3. THREAD
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-thread">
+  <div class="topline">
+    <div class="icon-btn"><svg class="ico" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+    <div class="title">Tutoriels vidéo</div>
+    <div class="icon-btn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+  </div>
+  <div class="thread-body">
+    <div class="bubble user">déplace la room tutos vers le cloud, le gamer doit se libérer</div>
+    <div class="bubble-row">
+      <div class="chip"><img src="sprites/fox_travaille.png" alt=""></div>
+      <div class="bubble assistant">
+        Je prépare la migration de la room <strong>« Tutoriels vidéo »</strong> vers l'instance cloud. Le persona <em>gamer</em> sera libéré une fois les agents relancés sur le nouveau nœud. Cela prend environ 40 secondes.
+      </div>
+    </div>
+    <div class="bubble user">et la mémoire du projet suit ?</div>
+    <div class="bubble-row">
+      <div class="chip"><img src="sprites/fox_travaille.png" alt=""></div>
+      <div class="bubble assistant">
+        Oui — tout le contexte de la room est embarqué : artefacts, journal et préférences. La migration est chaude, il n'y a pas de perte d'état.<span class="cursor"></span>
+      </div>
+    </div>
+  </div>
+  <div class="composer">
+    <div class="round"><svg class="ico" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg></div>
+    <div class="round"><svg class="ico" viewBox="0 0 24 24"><path d="M21.44 11.05L12.25 20.24A6.5 6.5 0 0 1-11.19 0L14.12 0A4.5 4.5 0 0 1 6.36 0L9.43 17.42A2.5 2.5 0 0 1-3.55 0L15.38 4.36"/></svg></div>
+    <div class="placeholder">Dites quelque chose…</div>
+    <div class="round send"><svg class="ico" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     4. TELEPORT
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-teleport">
+  <div class="topline">
+    <div class="icon-btn"><svg class="ico" viewBox="0 0 24 24"><path d="M4 7h12M4 12h16M4 17h12"/></svg></div>
+    <div class="title">Rooms</div>
+    <div class="live-pill"><span class="dot"></span>en direct</div>
+  </div>
+  <div class="rooms-grid" style="padding-top: 10px; opacity: .35;">
+    <div class="room-tile running">
+      <div class="sprite"><img src="sprites/zen_respire.webp" alt=""></div>
+      <div class="name">Tutoriels vidéo</div>
+      <div class="sub">zen · saison 1</div>
+      <div class="pill copper">1 agent · en cours</div>
+    </div>
+    <div class="room-tile running">
+      <div class="sprite"><img src="sprites/militaire_respire.webp" alt=""></div>
+      <div class="name">Sentinelle infra</div>
+      <div class="sub">militaire · nuit</div>
+      <div class="pill copper">2 agents · en cours</div>
+    </div>
+    <div class="room-tile">
+      <div class="sprite"><img src="sprites/artiste_respire.webp" alt=""></div>
+      <div class="name">Visuels site</div>
+      <div class="sub">artiste · v2</div>
+      <div class="pill ok">idle</div>
+    </div>
+    <div class="room-tile">
+      <div class="sprite"><img src="sprites/rebel_respire.webp" alt=""></div>
+      <div class="name">Veille sans-filtre</div>
+      <div class="sub">rebel · rss</div>
+      <div class="pill warn">1 alerte</div>
+    </div>
+  </div>
+  <div class="sheet-overlay">
+    <div class="sheet">
+      <div class="sheet-title">Téléporter vers…</div>
+      <div class="sheet-room">Room « Tutoriels vidéo »</div>
+      <div class="sheet-row">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+        <div class="text"><div class="main">mindhub</div><div class="hint">Nuage principal · 8 cœurs</div></div>
+        <div class="sub"><span>kimi</span><span>claude</span></div>
+      </div>
+      <div class="sheet-row">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M9 9h6v6H9zM9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/></svg>
+        <div class="text"><div class="main">gamer</div><div class="hint">Local · RTX 4070</div></div>
+        <div class="sub"><span>openfox</span></div>
+      </div>
+      <div class="sheet-row">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+        <div class="text"><div class="main">laptop</div><div class="hint">Portable de Ben · silencieux</div></div>
+        <div class="sub"><span>claude</span></div>
+      </div>
+      <div class="sheet-row" style="border-bottom:none;">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        <div class="text"><div class="main">téléphone</div><div class="hint">Ce device · batterie 74 %</div></div>
+        <div class="sub"><span>kimi</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     5. ACCUEIL
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-accueil">
+  <div class="topline" style="padding-top: 22px;">
+    <div class="icon-btn"><svg class="ico" viewBox="0 0 24 24"><path d="M4 7h12M4 12h16M4 17h12"/></svg></div>
+  </div>
+  <div class="accueil">
+    <div class="mascot"><img src="sprites/fox_cligne.webp" alt=""></div>
+    <div class="brand">Inari</div>
+    <div class="baseline">Votre essaim d'agents, à la maison.</div>
+    <div class="btn-primary cta">Ouvrir le tiroir</div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const name = (location.hash.replace('#','') || location.search.replace('?screen=','')) || 'tiroir';
+document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+const target = document.getElementById('screen-' + name);
+if (target) target.classList.add('active');
+else document.getElementById('screen-tiroir').classList.add('active');
+</script>
+</body>
+</html>

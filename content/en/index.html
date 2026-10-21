@@ -1,39 +1,24 @@
 <!-- {"title": "Run your own sovereign AI agent node", "summary": "Home", "order": 0} -->
 <h1>Run your own AI agent swarm, at home</h1>
-<p class="lead">A series that starts from zero and ends with a swarm of AI agents running on your own machine: models, GPU scheduling, a sandbox so the AI can write code without breaking anything, memory, and a voice. Every episode ships one real, tested, open-source building block.</p>
-<section class="player" aria-label="Teaser">
-  <div class="term">
-    <div class="term-bar"><i></i><i></i><i></i><code>foxbot@node:~ $ play teaser.mp4</code><span class="live">local</span></div>
-    <div class="screen">
-      <video id="teaser" preload="metadata" playsinline poster="/media/teaser-poster.jpg">
-        <source src="/media/teaser-fr.mp4" type="video/mp4">
-        <track kind="subtitles" srclang="en" label="English" src="/media/teaser-en.vtt" default>
-      </video>
-      <button class="play" type="button" aria-label="Play the teaser"><span class="tri"></span><span>Play the teaser <small>47 s · French voice, English subtitles</small></span></button>
-    </div>
-    <dl class="made">
-      <div><dt>voice</dt><dd>Piper TTS, on the CPU</dd></div>
-      <div><dt>lips</dt><dd>driven by the voice's loudness</dd></div>
-      <div><dt>character</dt><dd>ComfyUI, on our own GPU</dd></div>
-      <div><dt>cloud APIs</dt><dd>none</dd></div>
-    </dl>
-  </div>
-</section>
+<p class="lead">Tutorials and tools to run your agents and homelab on your own hardware.</p>
+{{revue}}
 
-<h2>The app: FoxBot</h2>
-<p>The swarm has a face. FoxBot lives in the web console and in the Android app: it rests when nothing runs, types away when an agent works, and tells you when something is waiting for you.</p>
+<h2>Free articles</h2>
+<p>Start here. Every episode ships one tested building block, in English and French.</p>
+{{articles}}
+
+<h2>The app: Inari</h2>
+<p>The swarm has a face. FoxBot, the messenger fox, lives in the web console and in the Inari Android app: it rests when nothing runs, types away when an agent works, and tells you when something is waiting for you.</p>
 <figure class="shots">
-<img src="/media/app-swarm.jpg" alt="The web console: machines, their agent rooms, usage per provider, and FoxBot" loading="lazy">
-<img src="/media/app-foxbot-working.jpg" alt="FoxBot typing on its laptop while an agent works" loading="lazy">
-<img class="phone" src="/media/apk-welcome.jpg" alt="The Android app's welcome screen with FoxBot" loading="lazy">
+<img class="phone" src="/media/shot-accueil.jpg" alt="Inari's home screen: the FoxBot mascot and the swarm ready" loading="lazy">
+<img class="phone" src="/media/shot-tiroir.jpg" alt="Inari's drawer: work threads, their ages, and the doors to the rooms" loading="lazy">
+<img class="phone" src="/media/shot-rooms.jpg" alt="Inari's rooms: each tile carries its harness persona and its agents' status" loading="lazy">
+<img class="phone" src="/media/shot-thread.jpg" alt="An Inari thread: ask for a room migration in plain words, the agent answers and executes" loading="lazy">
+<img class="phone" src="/media/shot-teleport.jpg" alt="Long-press a room: teleport it to the cloud, the gamer, the laptop or the phone" loading="lazy">
 </figure>
 
 <h2>What it costs</h2>
 <p>It is not free: you need the hardware. With it, you no longer need a subscription. The articles below say exactly what runs on what, with numbers measured on real cards, not on a spec sheet.</p>
-
-<h2>Free articles</h2>
-<p>Start here. They cover the dependencies we do not write ourselves (GPU driver, containers, model server) and why we do this at all.</p>
-{{articles}}
 
 <h2>What we do not promise</h2>
 <p>A local model on a consumer card is not a frontier cloud model. It is slower, it makes more mistakes, and we show those mistakes instead of hiding them. What you get is control: your data stays on your machine and nothing locks you in.</p>
@@ -42,13 +27,3 @@
 <p>The same building blocks scale. You can grow a very large swarm of agents across several machines and cards. Or you can go hybrid: keep your cloud subscription for the hardest tasks, and put a local agent in front of it, held by deterministic rules. It handles your private data and the routine work at home, and only sends out what truly needs a frontier model. Your frontier quota lasts longer, and your data stays yours.</p>
 {{diagram:hybrid}}
 <p class="note">Either way, what makes it possible is first of all the hardware you put at the disposal of your agent network.</p>
-
-<script>
-(() => {
-  const v = document.getElementById("teaser");
-  const b = document.querySelector(".player .play");
-  if (!v || !b) return;
-  b.addEventListener("click", () => { v.controls = true; b.hidden = true; v.play(); });
-  v.addEventListener("ended", () => { v.controls = false; b.hidden = false; v.load(); });
-})();
-</script>

@@ -41,6 +41,7 @@ def test_every_page_declares_its_language(out):
 def test_every_local_link_resolves(out):
     for page in pages(out):
         for ref in re.findall(r'(?:href|src|poster)="(/[^"]*)"', page.read_text(encoding="utf-8")):
+            ref = ref.split("#")[0]
             target = out / ref.lstrip("/")
             if ref.endswith("/"):
                 target = target / "index.html"
@@ -123,3 +124,32 @@ def test_every_article_has_a_level_and_reaches_the_glossary(out):
         text = page.read_text(encoding="utf-8")
         assert 'class="fiche level-' in text, page
         assert "glossary.html" in text, page
+
+
+def test_new_pages_exist_in_both_languages(out):
+    for slug in ("actualites.html", "formation.html", "materiel.html", "coups-de-coeur.html"):
+        assert (out / slug).exists(), slug
+        assert (out / "fr" / slug).exists(), f"fr/{slug}"
+
+
+def test_home_has_the_daily_briefing(out):
+    for home in (out / "index.html", out / "fr" / "index.html"):
+        text = home.read_text(encoding="utf-8")
+        assert 'class="revue"' in text, home
+        assert "actualites.html" in text, home
+
+
+def test_news_archive_lists_revue_items(out):
+    archive = out / "fr" / "actualites.html"
+    text = archive.read_text(encoding="utf-8")
+    assert "Sipeed MaixStation" in text, archive
+    assert "freedzhost.cloud passe à Inari" in text, archive
+
+
+def test_drawer_has_the_new_navigation_tree(out):
+    for home in (out / "index.html", out / "fr" / "index.html"):
+        text = home.read_text(encoding="utf-8")
+        assert 'class="drawer"' in text, home
+        assert "formation.html" in text, home
+        assert "materiel.html" in text, home
+        assert "coups-de-coeur.html" in text, home
