@@ -186,7 +186,8 @@ def layout(lang, slug, title, body, description, side=""):
 <main>
 {body}
 </main>
-<footer>{t['footer']}</footer>
+<footer><img class="mascot" src="/media/foxbot-coucou.webp" alt="" loading="lazy">
+<p>{t['footer']}</p></footer>
 </body>
 </html>
 """
