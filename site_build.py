@@ -186,7 +186,7 @@ def layout(lang, slug, title, body, description, side=""):
 <main>
 {body}
 </main>
-<footer><img class="mascot" src="/media/foxbot-coucou.webp" alt="" loading="lazy">
+<footer><video class="mascot" src="/media/foxbot-coucou.mp4" autoplay loop muted playsinline aria-hidden="true"></video>
 <p>{t['footer']}</p></footer>
 </body>
 </html>
