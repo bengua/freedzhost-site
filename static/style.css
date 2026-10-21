@@ -85,9 +85,15 @@ footer .mascot { display: block; width: 128px; margin: 0 auto 18px; }
 .glossary dd { margin: 4px 0 0; }
 nav a.help { color: var(--accent); }
 .offers { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin: 22px 0; }
-.offers li { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+.offers li { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; }
 .offers strong { display: block; color: var(--accent); margin-bottom: 6px; }
 .offers span { color: var(--muted); font-size: .95rem; }
+.offers .price { font-size: 1.6rem; font-weight: 700; color: var(--text); margin: 10px 0 6px; }
+.offers .price small { font-size: .9rem; color: var(--muted); font-weight: 400; }
+.offers .cta { display: inline-block; margin-top: auto; padding: 10px 20px; border-radius: 999px; background: var(--accent); color: #141318; font-weight: 700; text-decoration: none; text-align: center; border: 0; cursor: pointer; }
+.offers .cta:hover { filter: brightness(1.08); }
+.offers .featured { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.offers .featured strong::after { content: " ★"; }
 .contact { display: grid; gap: 14px; margin: 18px 0; }
 .contact label { display: grid; gap: 6px; font-weight: 600; font-size: .95rem; }
 .contact input, .contact select, .contact textarea { font: inherit; font-weight: 400; color: var(--text); background: var(--code); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
@@ -166,3 +172,17 @@ nav a.support { color: #7ee2a8; }
 .sources { font-size: .9rem; color: var(--muted); padding-left: 18px; }
 .sources a { color: var(--muted); }
 .sources a:hover { color: var(--accent); }
+
+/* Learning maps: per-article progress toggle and index counters (Pilier 1). */
+.step { margin: 14px 0 8px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.step-done { font: inherit; font-weight: 600; color: var(--text); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 999px; padding: 10px 20px; cursor: pointer; min-height: 44px; }
+.step-done:hover { border-color: var(--accent); }
+.step-done:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.step-done.done { background: var(--accent); border-color: var(--accent); color: #141318; }
+.step small { color: var(--muted); }
+.pc-goal { margin: 4px 0 10px; color: var(--muted); font-size: .95rem; }
+.pc-progress { font-weight: 700; color: var(--accent); white-space: nowrap; }
+.pc-progress.complete { color: #7ee2a8; }
+li.done > a strong { text-decoration: line-through; text-decoration-color: var(--accent); }
+li.done > a::after { content: " ✓"; color: #7ee2a8; font-weight: 700; }

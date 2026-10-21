@@ -37,6 +37,15 @@ LANGS = {
            "tutos": "Tutorials",
            "news": "News", "training": "Training", "hardware_label": "Hardware", "favorites": "Favorites",
            "members": "Members", "soon": "soon",
+           "step_done": "Mark this step as done", "step_done_marked": "Step done ✓",
+           "step_done_hint": "Your progress stays on this device — no account, no tracker.",
+           "goals": {"start": "Goal: a ready-to-work machine, without fear of the terminal.",
+                     "ai": "Goal: run your own models at home and know what they cost.",
+                     "n8n": "Goal: automate your tasks with local agents, no cloud subscription.",
+                     "agents": "Goal: your agent stack, wired, supervised, at your service.",
+                     "create": "Goal: produce images, sound and video without leaving your machine.",
+                     "desk": "Goal: a Linux workstation that is truly yours.",
+                     "homelab": "Goal: replace your subscriptions with services hosted at home."},
            "footer":
            "Content under CC BY-SA 4.0. No trackers, no cookies, no third-party fonts."},
     "fr": {"prefix": "fr/", "name": "Français", "home": "Accueil", "read": "Lire",
@@ -55,6 +64,15 @@ LANGS = {
            "tutos": "Tutos",
            "news": "Actualités", "training": "Formation", "hardware_label": "Matériel", "favorites": "Coups de cœur",
            "members": "Membres", "soon": "bientôt",
+           "step_done": "Marquer cette étape comme faite", "step_done_marked": "Étape faite ✓",
+           "step_done_hint": "Votre progression reste sur cet appareil — sans compte ni traceur.",
+           "goals": {"start": "Objectif : une machine prête à travailler, sans peur du terminal.",
+                     "ai": "Objectif : faire tourner vos propres modèles à la maison, et savoir ce qu'ils coûtent.",
+                     "n8n": "Objectif : automatiser vos tâches avec des agents locaux, sans abonnement cloud.",
+                     "agents": "Objectif : votre pile d'agents, câblée, supervisée, à votre service.",
+                     "create": "Objectif : produire image, son et vidéo sans quitter votre machine.",
+                     "desk": "Objectif : un poste Linux vraiment à vous.",
+                     "homelab": "Objectif : remplacer vos abonnements par des services hébergés à la maison."},
            "footer":
            "Contenu sous licence CC BY-SA 4.0. Ni traceur, ni cookie, ni police externe."},
 }
@@ -126,6 +144,43 @@ def banner(lang, slug):
     text, action = LANGS[lang]["banner"]
     return (f'<aside class="give-banner"><p>{html.escape(text)}</p>'
             f'<a class="give" href="{url(lang, "support")}">{html.escape(action)}</a></aside>\n')
+
+
+def step_button(lang, slug, meta):
+    """Progress toggle on series articles: done state lives in the browser's localStorage."""
+    if not meta.get("series"):
+        return ""
+    t = LANGS[lang]
+    return (f'<div class="step"><button type="button" class="step-done" aria-pressed="false" '
+            f'data-series="{html.escape(meta["series"])}" data-slug="{html.escape(slug)}" '
+            f'data-label="{html.escape(t["step_done"])}" data-marked="{html.escape(t["step_done_marked"])}"'
+            f'>{html.escape(t["step_done"])}</button>'
+            f'<small>{html.escape(t["step_done_hint"])}</small></div>\n')
+
+
+def jsonld_scripts(lang, slug, meta):
+    """Schema.org: Organization everywhere, TechArticle on tutorials (Pilier 2)."""
+    blocks = [json.dumps({
+        "@context": "https://schema.org", "@type": "Organization",
+        "name": "FreedzHost Inari", "url": SITE, "logo": f"{SITE}/media/inari-icon.png",
+    }, ensure_ascii=False)]
+    if slug != "index" and not meta.get("nav") and "level" in meta:
+        source = ROOT / "content" / lang / f"{slug}.html"
+        modified = datetime.datetime.fromtimestamp(source.stat().st_mtime, datetime.timezone.utc).date().isoformat()
+        article = {
+            "@context": "https://schema.org", "@type": "TechArticle",
+            "headline": meta["title"], "description": meta["summary"],
+            "inLanguage": lang, "url": SITE + url(lang, slug), "dateModified": modified,
+            "author": {"@type": "Organization", "name": "FreedzHost Inari", "url": SITE},
+        }
+        if meta.get("level"):
+            article["proficiencyLevel"] = meta["level"]
+        if meta.get("time"):
+            article["timeRequired"] = meta["time"]
+        blocks.append(json.dumps(article, ensure_ascii=False))
+    return "\n".join(
+        '<script type="application/ld+json">' + b.replace("</", "<\\/") + "</script>"
+        for b in blocks)
 
 
 MATERIEL_SLUGS = {
@@ -244,7 +299,7 @@ def url(lang, slug):
     return "/" + LANGS[lang]["prefix"] + page
 
 
-def layout(lang, slug, title, body, description, side=""):
+def layout(lang, slug, title, body, description, side="", jsonld=""):
     t = LANGS[lang]
     other = OTHER[lang]
     here = SITE + url(lang, slug)
@@ -272,7 +327,9 @@ def layout(lang, slug, title, body, description, side=""):
 <link rel="icon" type="image/png" href="/media/inari-icon.png">
 <link rel="apple-touch-icon" href="/media/inari-icon-180.png">
 <link rel="stylesheet" href="/style.css">
+<script defer src="/progress.js"></script>
 <script defer src="https://analytics.freedzhost.cloud/script.js" data-website-id="23badf50-b8d2-4487-b2ae-f67ab9fd172d"></script>
+{jsonld}
 </head>
 <body>
 <header class="top">
@@ -344,11 +401,15 @@ def build(out):
             if not members:
                 continue
             items = "\n".join(
-                f'<li><a href="{url(lang, a)}"><strong>{html.escape(pages[a][0]["title"])}</strong>'
+                f'<li data-pc="{html.escape(key)}" data-slug="{html.escape(a)}">'
+                f'<a href="{url(lang, a)}"><strong>{html.escape(pages[a][0]["title"])}</strong>'
                 f'<span>{html.escape(pages[a][0]["summary"])}</span></a></li>'
                 for a in members
             )
-            groups.append(f'<h3 class="series" id="series-{html.escape(key)}">{fox(key, 56)}{html.escape(heading)}</h3>\n<ul class="cards">\n{items}\n</ul>')
+            goal = (f'<p class="pc-goal">{html.escape(LANGS[lang]["goals"][key])} '
+                    f'<span class="pc-progress" data-pc="{html.escape(key)}"></span></p>\n'
+                    if key in LANGS[lang]["goals"] else "")
+            groups.append(f'<h3 class="series" id="series-{html.escape(key)}">{fox(key, 56)}{html.escape(heading)}</h3>\n{goal}<ul class="cards">\n{items}\n</ul>')
         orphans = [a for a in articles if "series" in pages[a][0] and pages[a][0]["series"] not in LANGS[lang]["series"]]
         if orphans:
             raise ValueError(f"{lang}: pages without a known series: {orphans}")
@@ -364,12 +425,15 @@ def build(out):
                 body = body.replace("{{articles}}", cards)
             elif not meta.get("nav"):  # a nav page brings its own layout
                 members = series_members.get(meta.get("series"), [])
-                body = (f'<article>\n{fox(meta.get("series", ""), 88, "guide")}<h1>{html.escape(meta["title"])}</h1>\n{fiche(lang, meta, pages)}{body}'
+                body = (f'<article>\n{fox(meta.get("series", ""), 88, "guide")}<h1>{html.escape(meta["title"])}</h1>\n'
+                        f'{fiche(lang, meta, pages)}{step_button(lang, slug, meta)}{body}'
                         f'{banner(lang, slug)}{pager(lang, slug, pages, members)}</article>')
             target = out / LANGS[lang]["prefix"] / ("index.html" if slug == "index" else f"{slug}.html")
             target.parent.mkdir(parents=True, exist_ok=True)
             description = LANGS[lang]["description"] if slug == "index" else meta["summary"]
-            target.write_text(layout(lang, slug, meta["title"], body, description, drawer(lang, slug, pages, series_members, latest_revue_date)),
+            target.write_text(layout(lang, slug, meta["title"], body, description,
+                                     drawer(lang, slug, pages, series_members, latest_revue_date),
+                                     jsonld_scripts(lang, slug, meta)),
                               encoding="utf-8")
     if slugs["en"] != slugs["fr"]:
         raise ValueError(f"pages without translation: {sorted(slugs['en'] ^ slugs['fr'])}")
