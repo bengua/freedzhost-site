@@ -1,0 +1,34 @@
+<!-- {"title": "Stacking free tiers: the quota warden", "summary": "Eight providers each give away a small daily quota. Taken one at a time, that is not a workday. Added up, routed and watched automatically, it is: how a bit of automation, thread teleportation and provider handoff keep a swarm moving between frontier quota cycles.", "order": 104, "series": "ai", "level": "advanced", "time": "1 h 30", "requires": ["model-gateway", "hybrid-escalation"]} -->
+<p class="lead">A frontier subscription (Kimi, Claude…) drains in cycles: a few hours of intense work, then a wall until the reset. Meanwhile, eight free providers (Groq, Cerebras, Gemini, Cloudflare, OpenRouter, Cohere, NVIDIA NIM, Mistral) each offer a few hundred or thousand requests a day. None replaces a subscription. But <strong>added up</strong>, they comfortably cover routing, validation, small tasks and part of the coding — given three ingredients: a bit of automation, thread teleportation, and provider handoff.</p>
+
+<h2>1. The sum nobody does by hand</h2>
+<p>Switching providers by hand means copying context, finding the right key, praying the quota holds. Nobody does that ten times a day. Our answer is three pieces:</p>
+<ul>
+<li><strong>A router that knows everyone.</strong> Every free provider is declared in a single gateway (for us: LiteLLM, ~35 free models behind one endpoint). Applications only talk to the gateway; they don't even know who answers.</li>
+<li><strong>Thread teleportation.</strong> When a model runs dry, the whole conversation — context, memory, files — migrates to the next provider <em>losing nothing</em>. That is swarmfox's "teleport" feature: the thread is a suitcase, not a mural. Provider handoff becomes a non-event.</li>
+<li><strong>A quota warden</strong> that watches every call and learns each model's state: <code>ok</code>, <code>cooldown</code>, <code>exhausted</code>, <code>down</code>. A 429 with a reset time → the model is greyed out until that hour. A bare 429 → fifteen minutes of cooldown. Three server errors in a row → <code>down</code>. A forced call that succeeds → back to <code>ok</code>; ground truth always wins.</li>
+</ul>
+
+<h2>2. Routes: cascading escalation</h2>
+<p>Models are arranged into named routes that cascade on their own:</p>
+<ul>
+<li><code>auto-local-first</code> — local cards first (no quota, just VRAM), then the free tiers.</li>
+<li><code>auto-gratuit</code> — free only, fastest first.</li>
+<li><code>auto-difficile</code> — the strongest free models, with non-renewable credits as the very last resort.</li>
+</ul>
+<p>When Groq answers 429, the cascade tries Cerebras, then Gemini, then Mistral… The request lands somewhere, and the warden learned something. Next time, the exhausted model is not even tried: it stays greyed out until its reset.</p>
+
+<h2>3. What it actually changes</h2>
+<p>Before: empty frontier quota = no work until the next cycle. After: the background work (routing, review, small tasks, writing) keeps going on the stacked free tiers, and frontier quota is reserved for what truly justifies it — heavy code, final review, hard decisions. The subscription does not change; <strong>what we ask of it</strong> does. A frontier quota cycle no longer bounds the day, only the peak tasks.</p>
+
+<h2>House rules</h2>
+<ul>
+<li><strong>No silent spending.</strong> Non-renewable paid credits never sit in an automatic cascade: only in a route you call by name.</li>
+<li><strong>A named model never lies.</strong> Asking for <code>groq-gpt-oss-120b</code> returns that model or an error. Only <code>auto-*</code> routes cascade.</li>
+<li><strong>Greying is visible.</strong> The UI asks the warden and greys the model for the length of its regeneration: you see the swarm breathe instead of discovering the wall by hitting it.</li>
+</ul>
+
+<h2>Traps we paid for</h2>
+<p class="note">Free tiers promise nothing: variable latency, weaker models on complex code, quotas that change without notice. Treat them as a bonus, never as a foundation.</p>
+<p class="note">A supervision callback must be invisible when it works and silent when it breaks. Our first version failed the user's request when the warden was unreachable — exactly the opposite of the goal. Everything sits in absolute try/except, and async hooks are mandatory: the proxy never calls the synchronous ones.</p>
+<p class="note">On the proxy, the model name in the logs is the upstream id (<code>openai/gpt-oss-20b</code>), not your deployment name. The warden must read <code>model_group</code>, or it greys a name your UI does not know.</p>
