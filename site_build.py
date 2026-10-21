@@ -272,6 +272,7 @@ def layout(lang, slug, title, body, description, side=""):
 <link rel="icon" type="image/png" href="/media/inari-icon.png">
 <link rel="apple-touch-icon" href="/media/inari-icon-180.png">
 <link rel="stylesheet" href="/style.css">
+<script defer src="https://analytics.freedzhost.cloud/script.js" data-website-id="23badf50-b8d2-4487-b2ae-f67ab9fd172d"></script>
 </head>
 <body>
 <header class="top">
