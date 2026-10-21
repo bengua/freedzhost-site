@@ -1,0 +1,34 @@
+<!-- {"title": "Additionner les free tiers : le quota-warden", "summary": "Huit providers offrent chacun un petit quota gratuit par jour. Pris un par un, ça ne fait pas une journée de travail. Additionnés, routés et surveillés automatiquement, si : voici comment un peu d'automation, la téléportation du thread et la passation entre providers font tenir un swarm entre deux cycles de quota frontier.", "order": 104, "series": "ai", "level": "advanced", "time": "1 h 30", "requires": ["model-gateway", "hybrid-escalation"]} -->
+<p class="lead">Un abonnement frontier (Kimi, Claude…) se vide par cycles : quelques heures de travail intense, puis un mur jusqu'au reset. Pendant ce temps, huit providers gratuits (Groq, Cerebras, Gemini, Cloudflare, OpenRouter, Cohere, NVIDIA NIM, Mistral) offrent chacun quelques centaines ou milliers de requêtes par jour. Aucun ne remplace un abonnement. Mais <strong>additionnés</strong>, ils couvrent largement le routage, la validation, les petites tâches et une partie du code — à condition de trois ingrédients : un peu d'automation, la téléportation du thread, et la passation entre providers.</p>
+
+<h2>1. L'addition que personne ne fait à la main</h2>
+<p>Changer de provider à la main, c'est copier le contexte, trouver la bonne clé, prier pour que le quota tienne. Personne ne le fait dix fois par jour. Notre réponse tient en trois pièces :</p>
+<ul>
+<li><strong>Un routeur qui connaît tout le monde.</strong> Tous les providers gratuits sont déclarés dans une seule gateway (chez nous : LiteLLM, ~35 modèles gratuits derrière un seul point d'entrée). Les applications ne parlent qu'à la gateway ; elles ne savent même pas qui répond.</li>
+<li><strong>La téléportation du thread.</strong> Quand un modèle tombe à sec, le fil de discussion complet — contexte, mémoire, fichiers — migre vers le provider suivant <em>sans rien perdre</em>. C'est la fonction « teleport » de swarmfox : le thread est une valise, pas une fresque murale. La passation entre providers devient un non-événement.</li>
+<li><strong>Un gardien de quota</strong> (le quota-warden) qui observe chaque appel et apprend l'état de chaque modèle : <code>ok</code>, <code>cooldown</code>, <code>exhausted</code>, <code>down</code>. Un 429 avec heure de reset → le modèle est grisé jusqu'à cette heure. Un 429 nu → quinze minutes de cooldown. Trois erreurs serveur de suite → <code>down</code>. Un appel forcé qui passe → retour à <code>ok</code>, la vérité du terrain prime toujours.</li>
+</ul>
+
+<h2>2. Les routes : escalade en cascade</h2>
+<p>Les modèles sont rangés dans des routes nommées qui cascadent toutes seules :</p>
+<ul>
+<li><code>auto-local-first</code> — les cartes locales d'abord (elles n'ont pas de quota, juste de la VRAM), puis les gratuits.</li>
+<li><code>auto-gratuit</code> — que du gratuit, le plus rapide d'abord.</li>
+<li><code>auto-difficile</code> — les gratuits les plus forts, et les crédits non renouvelables en tout dernier recours.</li>
+</ul>
+<p>Quand Groq répond 429, la cascade essaie Cerebras, puis Gemini, puis Mistral… La requête aboutit quelque part, et le warden a appris quelque chose. La fois suivante, le modèle épuisé n'est même plus essayé : il est grisé jusqu'à son reset.</p>
+
+<h2>3. Ce que ça change concrètement</h2>
+<p>Avant : le quota frontier vide = arrêt de travail jusqu'au cycle suivant. Après : le travail de fond (routage, relecture, petites tâches, rédaction) continue sur les free tiers additionnés, et le quota frontier est réservé à ce qui le justifie vraiment — le gros code, la relecture finale, les décisions dures. L'abonnement ne change pas ; <strong>ce qu'on lui demande</strong> change. Un cycle de quota frontier ne borne plus la journée, il borne seulement les tâches de pointe.</p>
+
+<h2>Règles de la maison</h2>
+<ul>
+<li><strong>Zéro dépense silencieuse.</strong> Les crédits payants non renouvelables ne sont jamais dans une cascade automatique : seulement dans une route qu'on appelle par son nom.</li>
+<li><strong>Un modèle nommé ne ment jamais.</strong> Demander <code>groq-gpt-oss-120b</code> donne ce modèle ou une erreur. Seules les routes <code>auto-*</code> cascadent.</li>
+<li><strong>Le grisage est visible.</strong> L'interface interroge le warden et grise le modèle le temps de sa régénération : on voit le swarm respirer au lieu de découvrir le mur en le percutant.</li>
+</ul>
+
+<h2>Pièges que nous avons payés</h2>
+<p class="note">Les free tiers ne promettent rien : latence variable, modèles plus faibles sur le code complexe, quotas qui changent sans prévenir. Traitez-les comme du bonus, jamais comme du socle.</p>
+<p class="note">Un callback de supervision doit être invisible quand il marche et silencieux quand il casse. Notre première version faisait échouer la requête utilisateur quand le warden était injoignable — exactement l'inverse du but. Tout est en try/except absolu, et les hooks asynchrones sont obligatoires : le proxy n'appelle jamais les synchrones.</p>
+<p class="note">Sur le proxy, le nom du modèle dans les logs est l'identifiant amont (<code>openai/gpt-oss-20b</code>), pas votre nom de déploiement. Le warden doit lire <code>model_group</code>, sinon il grise un nom que votre interface ne connaît pas.</p>
