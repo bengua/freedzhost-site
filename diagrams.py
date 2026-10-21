@@ -814,6 +814,33 @@ def gateway(lang):
     return figure("gateway", 760, 220, L["cap"], body)
 
 
+# ── a route: ordered members, and a direct name that never falls back ───────
+def freeroute(lang):
+    L = {
+        "en": labels(cap="A request for a route name tries its members in the listed order: a local slot that is not loaded refuses at once, and the next member, a free API, answers. A request for a model's own name never falls back: it gets the error.",
+                     req="auto-local-first", rsub="a route, says so", gw="Gateway", gsub="routes.map",
+                     m=["local 27B", "free API 1", "free API 2", "credits, last"], msub=["not loaded", "answers", "standby", "standby"],
+                     o=["1", "2", "3", "4"], direct="local 27B by its own name", dsub="no fallback", err="connection error, the truth"),
+        "fr": labels(cap="Une requête adressée à une route essaie ses membres dans l'ordre de la liste : un slot local non chargé refuse aussitôt, et le membre suivant, une API gratuite, répond. Une requête au nom propre d'un modèle ne se replie jamais : elle reçoit l'erreur.",
+                     req="auto-local-first", rsub="une route, et elle le dit", gw="Passerelle", gsub="routes.map",
+                     m=["27B local", "API gratuite 1", "API gratuite 2", "crédits, en dernier"], msub=["non chargé", "répond", "en réserve", "en réserve"],
+                     o=["1", "2", "3", "4"], direct="27B local par son nom", dsub="aucun repli", err="erreur de connexion, la vérité"),
+    }[lang]
+    body = box(10, 60, 160, 54, L["req"], L["rsub"], stroke=ACCENT)
+    body += arrow(170, 87, 238, 87)
+    body += box(240, 60, 130, 54, L["gw"], L["gsub"])
+    colors = [BAD, GOOD, LINE, LINE]
+    for i, m in enumerate(L["m"]):
+        y = 10 + i * 40
+        body += box(520, y, 220, 32, f'{L["o"][i]}. {m} · {L["msub"][i]}', None, stroke=colors[i])
+    body += arrow(370, 80, 518, 26, None, BAD, marker="bad")
+    body += arrow(370, 92, 518, 66, None, GOOD, marker="good")
+    body += box(10, 190, 160, 54, L["direct"], L["dsub"])
+    body += arrow(170, 217, 518, 217, L["err"], BAD, marker="bad", ly=208)
+    body += box(520, 200, 220, 32, f'{L["m"][0]} · {L["msub"][0]}', None, stroke=BAD)
+    return figure("freeroute", 760, 256, L["cap"], body)
+
+
 # ── the grid: models × cards ────────────────────────────────────────────────
 def grid(lang):
     L = {
@@ -1422,7 +1449,7 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "paper": paper, "tasks": tasks,
             "cascade": cascade, "voice": voice,
             "saas": saas, "clock": clock, "route": route,
-            "gateway": gateway, "grid": grid, "snapshots": snapshots, "keep": keep,
+            "gateway": gateway, "freeroute": freeroute, "grid": grid, "snapshots": snapshots, "keep": keep,
             "rotation": rotation, "ram": ram, "egpu": egpu,
             "mtp": mtp, "judge": judge, "rag": rag,
             "f2b": f2b, "errors": errors, "drift": drift, "secrets": secrets,
