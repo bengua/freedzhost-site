@@ -19,7 +19,17 @@ ssh -t server tmux attach -t kimi    # from the laptop, any time</code></pre>
 </ul>
 <p>The subscription offers several models; ours lists a coding model, a faster variant, and a long-context model with 256k tokens. Pick the fast one for small edits, the long one for reading a whole codebase.</p>
 
-<h2>3. In a sandbox when it runs alone</h2>
+<h2>3. Your subscription behind the gateway</h2>
+<p>Kimi Code itself wired this one for us: a small bridge, about 180 lines of Python with no dependency, that lets every tool of the lab use the Kimi subscription through the <a href="/model-gateway.html">model gateway</a>, like any other model.</p>
+<ul>
+<li>It listens on the machine itself only, and speaks the OpenAI format (model list, chat, streaming) that the gateway expects.</li>
+<li>It <strong>reuses the official client's login</strong>: it reads the same credential file instead of copying the token.</li>
+<li>It refreshes the token a few minutes before it expires, writes it back atomically to that same file, and reloads the file whenever the official client changed it. Both share one login, so neither invalidates the other.</li>
+<li>It never prints a token, not even in its own log.</li>
+</ul>
+<p class="note">Read your plan's terms before doing the same: providers differ on how their coding subscriptions may be used. Kimi's coding plan is meant for coding agents; if your provider offers an official API key for its plan, prefer it.</p>
+
+<h2>4. In a sandbox when it runs alone</h2>
 <p>When a queue hands a task to Kimi without you watching (see <a href="/hybrid-escalation.html">hybrid by escalation</a>), run it in a sandbox such as <code>bwrap</code>: the repository read-write, the rest of the system read-only, no access to your keys. It cannot break what it cannot see.</p>
 
 <h2>Traps</h2>
