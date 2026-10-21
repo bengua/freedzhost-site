@@ -1,0 +1,81 @@
+<!-- {"title": "Des modèles gratuits dans le nuage derrière votre passerelle, et des routes qui disent qui répond", "summary": "Quand les cartes sont occupées ou éteintes, huit offres gratuites officielles prennent le relais : Groq, Cerebras, Google AI Studio, Cloudflare, OpenRouter, Cohere, NVIDIA et Mistral. Comment les brancher sur la passerelle sans une seule clé dans un fichier, comment les regrouper en routes nommées auto-… qui se replient dans l'ordre, comment nous avons prouvé le repli, et les pièges qui nous ont coûté une soirée.", "order": 13.5, "series": "ai", "level": "intermediate", "time": "1 h", "requires": ["model-gateway"]} -->
+<p class="lead">Vos cartes sont le premier choix : privées, gratuites une fois achetées, et aussi rapides que vous les avez réglées. Mais une carte qui fait tourner un jeu, un long calcul ou un redémarrage ne répond à rien. Plusieurs fournisseurs offrent de vrais modèles gratuitement, dans des quotas par jour ou par minute. Placez-les derrière la même passerelle et regroupez-les en <strong>routes</strong> : un nom qui essaie une liste de modèles dans l'ordre. La règle qui garde tout cela honnête : seul un nom qui commence par <code>auto-</code> a le droit de faire répondre un autre modèle.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> 34 modèles dans le nuage ajoutés à la passerelle, à côté des slots locaux, pour un budget total de 0 €. Trois routes : <code>auto-local-first</code> (les cartes, puis les API gratuites), <code>auto-gratuit</code> (API gratuites seulement) et <code>auto-difficile</code> (les modèles gratuits les plus forts, puis des crédits offerts en dernier). Chaque client qui parle déjà à la passerelle les voit sans rien changer.</p>
+
+{{diagram:freeroute}}
+
+<h2>Un peu d'histoire</h2>
+<p>Les offres gratuites de modèles de langage sont apparues en 2024, quand de nouvelles sociétés d'inférence (Groq avec ses puces LPU maison, puis Cerebras avec des puces de la taille d'une galette de silicium) avaient besoin que les développeurs les essaient. Les grands laboratoires ont suivi avec des clés gratuites pour leurs petits modèles. Le paysage bouge vite, et dans les deux sens. Rien qu'en 2026, GitHub Models a fermé le 30 juillet. Gemini CLI gratuit a laissé place à Antigravity CLI le 18 juin. L'accès gratuit Qwen OAuth s'est arrêté le 15 avril. Et depuis le 23 mars, un projet Google AI Studio rattaché à un compte de facturation prépayé vide refuse tous les appels, modèles gratuits compris. Une source gratuite est un prêt, pas une fondation : c'est pour cela que les cartes restent en tête.</p>
+
+<h2>1. Ce qui est permis, et ce qui ne l'est pas</h2>
+<ul>
+<li><strong>Uniquement les offres officielles</strong> : une clé tirée de la console du fournisseur, utilisée par son API documentée.</li>
+<li><strong>Un compte par fournisseur.</strong> Faire tourner plusieurs comptes pour multiplier un quota gratuit viole les conditions de chacun d'eux.</li>
+<li><strong>Aucun agrégateur par rétro-ingénierie</strong> qui rejoue une session de chat web comme une API : il viole les conditions et casse sans prévenir.</li>
+<li><strong>Lisez la clause sur les données.</strong> Certaines offres gratuites peuvent utiliser vos requêtes pour entraîner leurs modèles (l'offre gratuite « Experiment » de Mistral le dit). N'y faites passer aucun secret, aucun code client, rien de personnel.</li>
+</ul>
+
+<h2>2. Les sources branchées, et ce qu'elles ont fait ce jour-là</h2>
+<table>
+<tr><th>Fournisseur</th><th>Compte</th><th>Testé le 21 octobre 2026</th></tr>
+<tr><td>Groq</td><td>e-mail, sans téléphone</td><td>3 modèles répondent en une seconde environ</td></tr>
+<tr><td>Cerebras</td><td>e-mail, sans téléphone</td><td>2 modèles répondent</td></tr>
+<tr><td>Google AI Studio</td><td>compte Google</td><td>Flash-Lite répond ; Flash a répondu « surchargé » (503)</td></tr>
+<tr><td>Cloudflare Workers AI</td><td>e-mail ; l'adresse porte l'identifiant du compte</td><td>3 modèles répondent</td></tr>
+<tr><td>OpenRouter</td><td>e-mail ou GitHub</td><td>4 modèles <code>:free</code> répondent ; sans crédit, 50 requêtes par jour partagées entre tous</td></tr>
+<tr><td>Cohere</td><td>e-mail</td><td>2 modèles répondent</td></tr>
+<tr><td>NVIDIA NIM</td><td>téléphone exigé</td><td>2 modèles répondent ; d'autres expirent ou sont introuvables, mais restent déclarés</td></tr>
+<tr><td>Mistral</td><td>téléphone exigé</td><td>Codestral répond ; une requête par seconde sur l'offre gratuite</td></tr>
+</table>
+<p class="note">Déclarez un modèle même s'il échoue aujourd'hui. Un modèle gratuit surchargé ou pas encore ouvert revient ; une route le saute simplement en attendant. Le retirer par script au premier échec transforme une mauvaise heure en modèle disparu.</p>
+
+<h2>3. Aucune clé dans un fichier que vous pourriez partager</h2>
+<p>Une clé va de la console du fournisseur à votre gestionnaire de secrets, de là à un seul fichier d'environnement lu par la passerelle, et nulle part ailleurs. La configuration de la passerelle nomme la variable, jamais la valeur :</p>
+<pre><code># la clé passe directement du presse-papiers au gestionnaire de secrets
+wl-paste | tr -d '\n\r ' | votre-coffre put GROQ_API_KEY
+wl-copy --clear
+
+# le fichier d'environnement de la passerelle : mode 0600, lu au démarrage
+#   GROQ_API_KEY='…'
+
+# dans la configuration générée, seulement une référence :
+api_key: "os.environ/GROQ_API_KEY"</code></pre>
+<p>Les modèles distants vivent dans une carte à côté de celle qui liste les slots locaux, une ligne par modèle :</p>
+<pre><code># remote.map — nom|api_base|modèle_amont|max_input_tokens|api_key
+groq-gpt-oss-120b|https://api.groq.com/openai/v1|openai/gpt-oss-120b|131072|os.environ/GROQ_API_KEY
+cf-gpt-oss-120b|https://api.cloudflare.com/client/v4/accounts/YOUR-ACCOUNT-ID/ai/v1|@cf/openai/gpt-oss-120b|131072|os.environ/CLOUDFLARE_AI_TOKEN</code></pre>
+<p>Le générateur refuse un modèle distant qui porte le nom d'un slot local : deux modèles derrière un même nom, c'est exactement la confusion que la passerelle existe pour empêcher.</p>
+
+<h2>4. Les routes : plusieurs modèles derrière un nom, et le nom le dit</h2>
+<p>Une troisième carte liste les routes. Chaque ligne donne un nom et ses membres, dans l'ordre où il faut les essayer :</p>
+<pre><code># routes.map — route|membre,membre,...
+auto-local-first|local-27b-card1,local-9b-card1,groq-gpt-oss-120b,cerebras-gpt-oss-120b,gemini-flash-lite
+auto-gratuit|groq-gpt-oss-120b,cerebras-gpt-oss-120b,gemini-flash-lite,mistral-codestral
+auto-difficile|nv-glm-5.3,or-nemotron-3-ultra,umans-glm-5.3</code></pre>
+<p>Le générateur transforme chaque route en une entrée de la passerelle (une copie de son premier membre) et une liste de repli, et rien d'autre ne se replie :</p>
+<pre><code>router_settings:
+  # Only routes fall back, and only to the models they list.
+  fallbacks:
+    - "auto-gratuit": ["cerebras-gpt-oss-120b", "gemini-flash-lite", "mistral-codestral"]</code></pre>
+<p>Il refuse la configuration entière, plutôt qu'à moitié, quand une route ne commence pas par <code>auto-</code>, cite un membre inconnu, en cite un deux fois, ou reprend le nom d'un modèle existant. Sans fichier de routes, sa sortie est identique, à l'octet près, à ce qu'elle était avant.</p>
+<p class="note">Ordonnez une route selon ce que vous acceptez de dépenser. Des crédits offerts qui ne se renouvellent pas passent en dernier : ils ne servent que quand tous les modèles gratuits ont échoué.</p>
+
+<h2>5. Prouver le repli, ne pas le supposer</h2>
+<p>LiteLLM documente une option <code>mock_testing_fallbacks</code> censée simuler une panne. Sur notre version (1.92), elle n'a rien changé : le premier membre répondait à chaque fois. Nous avons donc provoqué une vraie panne, sans toucher à la passerelle en service :</p>
+<ol>
+<li>Générer une petite configuration avec une route : premier membre, un slot local <strong>non chargé</strong> ; second membre, une API gratuite.</li>
+<li>En démarrer une seconde passerelle sur un port libre, dans le même conteneur, sous <code>timeout 120</code> pour qu'elle s'arrête seule.</li>
+<li>Appeler la route : l'API gratuite a répondu, et l'en-tête de la réponse disait <code>x-litellm-attempted-fallbacks: 1</code>.</li>
+<li>Appeler le slot non chargé par son propre nom : une erreur de connexion, « No fallback model group found ». C'est la seconde moitié de la preuve.</li>
+</ol>
+<p>Sur la vraie passerelle, l'en-tête <code>x-litellm-model-api-base</code> vous dit quel membre a répondu à chaque requête : votre carte, ou quel fournisseur.</p>
+
+<h2>Pièges</h2>
+<p class="note"><strong>La configuration vide.</strong> Dans une session SSH non interactive, <code>~/.local/bin</code> n'est souvent pas dans le <code>PATH</code>. Une ligne comme <code>gen &gt; tmp || true; mv tmp config.yaml</code> installe alors un fichier vide, et la passerelle ne sert plus aucun modèle. Appelez le générateur par son chemin complet, et ne remplacez la configuration qu'après l'avoir vérifiée : elle n'est pas vide, elle contient le nombre de modèles attendu, et aucun <code>api_key</code> ne contient autre chose qu'une référence.</p>
+<p class="note"><strong>Google répond 402, « prepayment credits are depleted », sur un modèle gratuit.</strong> Le projet est rattaché à un compte de facturation prépayé à zéro. Détachez la facturation de ce projet dans AI Studio, créez une nouvelle clé, et l'offre gratuite refonctionne.</p>
+<p class="note"><strong>N'affichez jamais une partie de clé « pour vérifier ».</strong> Trois caractères dans un terminal, ce sont trois caractères dans un journal. Vérifiez un préfixe par un test oui/non, jamais en l'affichant.</p>
+<p class="note"><strong>Le gratuit est lent quand il est demandé.</strong> Un modèle gratuit puissant a mis 115 secondes pour une réponse d'un mot, dans une file partagée. Donnez aux agents un délai à la mesure, ou gardez les lents en fin de route.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.litellm.ai/docs/proxy/reliability" rel="noopener">LiteLLM, fallbacks and reliability</a></li><li><a href="https://docs.litellm.ai/docs/routing" rel="noopener">LiteLLM, router</a></li><li><a href="https://console.groq.com/docs/rate-limits" rel="noopener">Groq, rate limits</a></li><li><a href="https://inference-docs.cerebras.ai/support/rate-limits" rel="noopener">Cerebras, rate limits</a></li><li><a href="https://ai.google.dev/gemini-api/docs/rate-limits" rel="noopener">Gemini API, rate limits</a></li><li><a href="https://ai.google.dev/gemini-api/docs/billing" rel="noopener">Gemini API, billing</a></li><li><a href="https://developers.cloudflare.com/workers-ai/platform/pricing/" rel="noopener">Cloudflare Workers AI, pricing and free allocation</a></li><li><a href="https://openrouter.ai/docs/api-reference/limits" rel="noopener">OpenRouter, limits</a></li><li><a href="https://docs.cohere.com/docs/rate-limits" rel="noopener">Cohere, rate limits</a></li><li><a href="https://build.nvidia.com/" rel="noopener">NVIDIA build (NIM)</a></li><li><a href="https://docs.mistral.ai/getting-started/models/" rel="noopener">Mistral, models</a></li></ul>

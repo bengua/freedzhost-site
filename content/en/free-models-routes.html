@@ -1,0 +1,81 @@
+<!-- {"title": "Free cloud models behind your gateway, and routes that say who answers", "summary": "When the cards are busy or off, eight official free tiers can take over: Groq, Cerebras, Google AI Studio, Cloudflare, OpenRouter, Cohere, NVIDIA and Mistral. How to wire them into the gateway without one key in a file, how to group them into routes named auto-… that fall back in order, how we proved the fallback, and the traps that cost us an evening.", "order": 13.5, "series": "ai", "level": "intermediate", "time": "1 h", "requires": ["model-gateway"]} -->
+<p class="lead">Your cards are the first choice: private, free once bought, and as fast as you made them. But a card running a game, a long job or a reboot answers nothing. Several providers give real models away for free, within daily or per-minute quotas. Put them behind the same gateway, and group them into <strong>routes</strong>: one name that tries a list of models in order. The rule that keeps it honest: only a name that starts with <code>auto-</code> may have another model answer.</p>
+
+<p class="proof"><strong>What you get.</strong> 34 cloud models added to the gateway, next to the local slots, with a total budget of 0 €. Three routes: <code>auto-local-first</code> (the cards, then free APIs), <code>auto-gratuit</code> (free APIs only) and <code>auto-difficile</code> (the strongest free models, then offered credits last). Every client that already talks to the gateway sees them without changing anything.</p>
+
+{{diagram:freeroute}}
+
+<h2>A bit of history</h2>
+<p>Free tiers for language models appeared in 2024, when new inference companies (Groq with its own LPU chips, then Cerebras with wafer-sized ones) needed developers to try them. The large labs followed with free keys for their smaller models. The landscape moves fast, and in both directions. In 2026 alone, GitHub Models closed on 30 July. The free Gemini CLI gave way to the Antigravity CLI on 18 June. The free Qwen OAuth access ended on 15 April. And since 23 March, a Google AI Studio project linked to an empty prepaid billing account refuses every call, free models included. A free source is a loan, not a foundation: that is why the cards stay first.</p>
+
+<h2>1. What is allowed, and what is not</h2>
+<ul>
+<li><strong>Official offers only</strong>: a key from the provider's own console, used through its documented API.</li>
+<li><strong>One account per provider.</strong> Rotating several accounts to multiply a free quota breaks the terms of every one of them.</li>
+<li><strong>No reverse-engineered aggregator</strong> that replays a web chat session as an API: it breaks the terms and it breaks without warning.</li>
+<li><strong>Read the data clause.</strong> Some free tiers may use your requests to train their models (Mistral's free "Experiment" plan says so). Send no secret, no client code, nothing personal through them.</li>
+</ul>
+
+<h2>2. The sources we wired, and what they did on the day</h2>
+<table>
+<tr><th>Provider</th><th>Account</th><th>Tested on 21 October 2026</th></tr>
+<tr><td>Groq</td><td>email, no phone</td><td>3 models answer in about a second</td></tr>
+<tr><td>Cerebras</td><td>email, no phone</td><td>2 models answer</td></tr>
+<tr><td>Google AI Studio</td><td>Google account</td><td>Flash-Lite answers; Flash answered "overloaded" (503)</td></tr>
+<tr><td>Cloudflare Workers AI</td><td>email; the address carries the account id</td><td>3 models answer</td></tr>
+<tr><td>OpenRouter</td><td>email or GitHub</td><td>4 <code>:free</code> models answer; without credit, 50 requests a day shared by all of them</td></tr>
+<tr><td>Cohere</td><td>email</td><td>2 models answer</td></tr>
+<tr><td>NVIDIA NIM</td><td>phone required</td><td>2 models answer; others time out or are not found, but stay declared</td></tr>
+<tr><td>Mistral</td><td>phone required</td><td>Codestral answers; one request per second on the free plan</td></tr>
+</table>
+<p class="note">Declare a model even when it fails today. A free model that is overloaded or not yet open comes back; a route simply skips it until it does. Removing it by script on the first failure turns a bad hour into a missing model.</p>
+
+<h2>3. No key in a file you could share</h2>
+<p>A key goes from the provider's console to your secrets manager, from there to one environment file read by the gateway, and nowhere else. The gateway configuration names the variable, never the value:</p>
+<pre><code># the key goes straight from the clipboard into the secrets manager
+wl-paste | tr -d '\n\r ' | your-vault put GROQ_API_KEY
+wl-copy --clear
+
+# the gateway's environment file: mode 0600, loaded at start
+#   GROQ_API_KEY='…'
+
+# in the generated configuration, only a reference:
+api_key: "os.environ/GROQ_API_KEY"</code></pre>
+<p>Remote models live in a map next to the one that lists the local slots, one line per model:</p>
+<pre><code># remote.map — name|api_base|upstream_model|max_input_tokens|api_key
+groq-gpt-oss-120b|https://api.groq.com/openai/v1|openai/gpt-oss-120b|131072|os.environ/GROQ_API_KEY
+cf-gpt-oss-120b|https://api.cloudflare.com/client/v4/accounts/YOUR-ACCOUNT-ID/ai/v1|@cf/openai/gpt-oss-120b|131072|os.environ/CLOUDFLARE_AI_TOKEN</code></pre>
+<p>The generator refuses a remote named like a local slot: two models behind one name is exactly the confusion the gateway exists to prevent.</p>
+
+<h2>4. Routes: several models behind one name, and the name says so</h2>
+<p>A third map lists the routes. Each line is a name and its members, in the order they should be tried:</p>
+<pre><code># routes.map — route|member,member,...
+auto-local-first|local-27b-card1,local-9b-card1,groq-gpt-oss-120b,cerebras-gpt-oss-120b,gemini-flash-lite
+auto-gratuit|groq-gpt-oss-120b,cerebras-gpt-oss-120b,gemini-flash-lite,mistral-codestral
+auto-difficile|nv-glm-5.3,or-nemotron-3-ultra,umans-glm-5.3</code></pre>
+<p>The generator turns each route into one gateway entry (a copy of its first member) and one fallback list, and nothing else falls back:</p>
+<pre><code>router_settings:
+  # Only routes fall back, and only to the models they list.
+  fallbacks:
+    - "auto-gratuit": ["cerebras-gpt-oss-120b", "gemini-flash-lite", "mistral-codestral"]</code></pre>
+<p>It refuses the whole configuration, rather than half of it, when a route does not start with <code>auto-</code>, names an unknown member, lists one twice, or reuses an existing model name. Without a routes file, its output is byte-for-byte what it was before.</p>
+<p class="note">Order a route by what you are willing to spend. Offered credits that do not renew go last: they serve only when every free model has failed.</p>
+
+<h2>5. Prove the fallback, do not assume it</h2>
+<p>LiteLLM documents a <code>mock_testing_fallbacks</code> flag that should simulate a failure. On our version (1.92) it changed nothing: the first member answered every time. So we built a real failure instead, without touching the running gateway:</p>
+<ol>
+<li>Generate a small configuration with one route: first member, a local slot that is <strong>not loaded</strong>; second member, a free API.</li>
+<li>Start a second gateway from it on a spare port, inside the same container, under <code>timeout 120</code> so it stops by itself.</li>
+<li>Call the route: the free API answered, and the response header said <code>x-litellm-attempted-fallbacks: 1</code>.</li>
+<li>Call the unloaded slot by its own name: a connection error, "No fallback model group found". That is the second half of the proof.</li>
+</ol>
+<p>On the real gateway, the header <code>x-litellm-model-api-base</code> tells you which member answered each request: your card, or which provider.</p>
+
+<h2>Traps</h2>
+<p class="note"><strong>The empty configuration.</strong> Over a non-interactive SSH session, <code>~/.local/bin</code> is often not in the <code>PATH</code>. A line such as <code>gen &gt; tmp || true; mv tmp config.yaml</code> then installs an empty file, and the gateway serves no model at all. Call the generator by its full path, and replace the configuration only after checking it: it is not empty, it holds the expected number of models, and no <code>api_key</code> holds anything but a reference.</p>
+<p class="note"><strong>Google answers 402, "prepayment credits are depleted", on a free model.</strong> The project is linked to a prepaid billing account at zero. Detach the billing from that project in AI Studio, create a new key, and the free tier works again.</p>
+<p class="note"><strong>Never print part of a key "to check it".</strong> Three characters in a terminal are three characters in a log. Check a prefix with a yes/no test, never by displaying it.</p>
+<p class="note"><strong>Free is slow when it is busy.</strong> A strong free model took 115 seconds for a one-word answer through a shared queue. Give agents a timeout that matches, or keep the slow ones at the end of their route.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.litellm.ai/docs/proxy/reliability" rel="noopener">LiteLLM, fallbacks and reliability</a></li><li><a href="https://docs.litellm.ai/docs/routing" rel="noopener">LiteLLM, router</a></li><li><a href="https://console.groq.com/docs/rate-limits" rel="noopener">Groq, rate limits</a></li><li><a href="https://inference-docs.cerebras.ai/support/rate-limits" rel="noopener">Cerebras, rate limits</a></li><li><a href="https://ai.google.dev/gemini-api/docs/rate-limits" rel="noopener">Gemini API, rate limits</a></li><li><a href="https://ai.google.dev/gemini-api/docs/billing" rel="noopener">Gemini API, billing</a></li><li><a href="https://developers.cloudflare.com/workers-ai/platform/pricing/" rel="noopener">Cloudflare Workers AI, pricing and free allocation</a></li><li><a href="https://openrouter.ai/docs/api-reference/limits" rel="noopener">OpenRouter, limits</a></li><li><a href="https://docs.cohere.com/docs/rate-limits" rel="noopener">Cohere, rate limits</a></li><li><a href="https://build.nvidia.com/" rel="noopener">NVIDIA build (NIM)</a></li><li><a href="https://docs.mistral.ai/getting-started/models/" rel="noopener">Mistral, models</a></li></ul>
