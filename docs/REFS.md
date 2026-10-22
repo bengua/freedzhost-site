@@ -17,10 +17,10 @@ là pour UNE leçon précise ; on ne copie pas, on dépasse par l'incarnation (I
   breathtaking », la vidéo immersive comme langage par défaut.
 - **unfold.co** : la retenue typographique dans le spectacle (« restraint in a noisy
   world »), l'IA qui multiplie le craft au lieu de le remplacer — notre posture exacte.
-- **ollivere.co** : la pépite — « simple, creative, nonsense-free ». Leçon : une voix
-  personnelle et directe, des micro-interactions délicieuses qui récompensent l'attention,
-  zéro gras inutile. C'est la malice de ribbit élevée au rang de portfolio : chaque détail
-  est fini, et ça se sent.
+- **ollivere.co** : la pépite — « simple, creative, nonsense-free ». De l'ART NUMÉRIQUE,
+  pas du design de portfolio : la voix personnelle et directe, des micro-interactions
+  délicieuses qui récompensent l'attention, zéro gras inutile. C'est la barre : le site
+  comme œuvre, pas comme interface. La malice de ribbit élevée au rang d'art.
 - **toei.co.jp** : le studio légendaire (One Piece, Dragon Ball, Slam Dunk) — « fill the
   world with stories that bring people joy ». Leçon : ce sont les PERSONNAGES qui portent
   un studio. Inari et les personas sont nos personnages ; le site est un univers de studio,
