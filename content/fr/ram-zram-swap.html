@@ -1,5 +1,6 @@
 <!-- {"title": "RAM, zram et swap sur une machine IA : les trois voleurs qui nous coûtaient un facteur dix", "summary": "Avant de soupçonner le GPU, mesurez la RAM. Trois réglages la mangeaient ; les corriger a fait passer un modèle de 1,9 à environ 20 jetons par seconde.", "order": 15, "series": "ai", "level": "intermediate", "time": "45 min", "requires": ["hardware"]} -->
 <p class="lead">Un modèle qui ne tient pas entièrement en VRAM garde une partie de lui-même en RAM (voir <a href="/fr/hardware.html">Le matériel, honnêtement</a>). Alors la vitesse de la RAM, c'est la vitesse du modèle. Le nôtre se traînait à 1,9 jeton par seconde ; la carte, le lien PCIe et la quantification allaient bien. Trois choses volaient la RAM.</p>
+<p class="note"><strong>Comment ces chiffres ont été obtenus.</strong> Mesurés sur nos propres machines (voir <a href="/fr/about.html">le protocole</a>), en général en un seul passage, vitesses relevées par le serveur lui-même ; nous ne publions pas les journaux bruts. Ce sont des ordres de grandeur sur ce matériel, pas des garanties sur le vôtre. Les chiffres extérieurs sont accompagnés de leur source.</p>
 
 {{diagram:ram}}
 

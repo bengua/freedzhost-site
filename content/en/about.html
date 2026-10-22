@@ -13,6 +13,14 @@
 
 <h2>How we measure</h2>
 <p>We measure tokens per second on the real cards, with the real server and the real model file, and we say which ones. We do not extrapolate from another card. For choosing a model we use <code>fh-bench</code>: code judges each answer and the models then work for real (<a href="/model-bench.html">the bench</a>). GPU and memory readings come from <a href="/fh-probes.html">fh-probes</a>.</p>
+<h3>The protocol, in short</h3>
+<ul>
+<li><strong>Speed</strong> (tokens per second): the figure the llama.cpp server itself reports for each request (<code>predicted_per_second</code> for generation, <code>prompt_per_second</code> for reading the prompt). We do not time it from outside.</li>
+<li><strong>Quality</strong> (<code>fh-bench</code>): temperature 0, and every answer is judged by code, never by another model: a tool really called, a JSON that validates, an answer that matches, a program whose tests pass. The long-context test hides a needle in a generated text at growing sizes (4k up to 128k tokens), always the same text.</li>
+<li><strong>Repetitions</strong>: unless an article says otherwise, a figure is one run on one machine, not an average. Where we repeated a measurement, the article says how many times and reports the median and the range.</li>
+<li><strong>Versions and dates</strong>: models, quantisations and servers change every few weeks. The review date at the top of each article is the last time we reviewed the text, not necessarily the date of each measurement; a figure is only valid for the hardware and the model file named next to it.</li>
+<li><strong>Outside figures</strong> (a paper, a vendor, another team): always labelled as such, with the source linked. If it is not labelled, it is ours.</li>
+</ul>
 <p>When something is not measured, the tutorial says so.</p>
 
 <h2>What we do not promise</h2>

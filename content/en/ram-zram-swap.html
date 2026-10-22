@@ -1,5 +1,6 @@
 <!-- {"title": "RAM, zram and swap on an AI machine: the three thieves that cost us a factor of ten", "summary": "Before suspecting the GPU, measure the RAM. Three settings were eating it; fixing them took a model from 1.9 to about 20 tokens per second.", "order": 15, "series": "ai", "level": "intermediate", "time": "45 min", "requires": ["hardware"]} -->
 <p class="lead">A model that does not fit entirely in VRAM keeps part of itself in system RAM (see <a href="/hardware.html">Hardware, honestly</a>). Then RAM speed is model speed. Ours crawled at 1.9 tokens per second; the card, the PCIe link and the quantisation were all fine. Three things were stealing the RAM.</p>
+<p class="note"><strong>How these figures were obtained.</strong> Measured on our own machines (see <a href="/about.html">the protocol</a>), usually a single run, with speeds as reported by the server itself; we do not publish raw logs. Treat them as orders of magnitude on this hardware, not as guarantees on yours. Figures from outside are labelled with their source.</p>
 
 {{diagram:ram}}
 

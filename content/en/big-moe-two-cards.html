@@ -1,5 +1,6 @@
 <!-- {"title": "A 177-billion-parameter model on two consumer cards: placement beats bandwidth", "summary": "A mixture-of-experts model that does not fit in VRAM can still run at home. Where its weights live matters more than the PCIe link, and two settings decide between a fast server and a frozen machine.", "order": 22, "series": "ai", "level": "advanced", "time": "an evening", "requires": ["gpu-grid", "ram-zram-swap"]} -->
 <p class="lead">A mixture-of-experts (MoE) model only uses a small part of its weights for each token. That is what lets a 177-billion-parameter model, compressed to 2 bits, run on two 16 GB cards and system RAM: most experts wait in RAM, the busy ones sit on the cards. It works, at about 55 tokens per second for us, once three things are right.</p>
+<p class="note"><strong>How these figures were obtained.</strong> Measured on our own machines (see <a href="/about.html">the protocol</a>), usually a single run, with speeds as reported by the server itself; we do not publish raw logs. Treat them as orders of magnitude on this hardware, not as guarantees on yours. Figures from outside are labelled with their source.</p>
 
 {{diagram:placement}}
 

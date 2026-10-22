@@ -1,5 +1,6 @@
 <!-- {"title": "Un modèle de 177 milliards de paramètres sur deux cartes grand public : l'emplacement compte plus que le débit", "summary": "Un modèle à mélange d'experts qui ne tient pas en VRAM peut quand même tourner à la maison. L'endroit où vivent ses poids compte plus que le lien PCIe, et deux réglages font la différence entre un serveur rapide et une machine gelée.", "order": 22, "series": "ai", "level": "advanced", "time": "une soirée", "requires": ["gpu-grid", "ram-zram-swap"]} -->
 <p class="lead">Un modèle à mélange d'experts (MoE) n'utilise qu'une petite partie de ses poids pour chaque jeton. C'est ce qui permet à un modèle de 177 milliards de paramètres, compressé sur 2 bits, de tourner sur deux cartes de 16 Go et la RAM : la plupart des experts attendent en RAM, les plus sollicités sont sur les cartes. Ça marche, autour de 55 jetons par seconde chez nous, une fois trois choses réglées.</p>
+<p class="note"><strong>Comment ces chiffres ont été obtenus.</strong> Mesurés sur nos propres machines (voir <a href="/fr/about.html">le protocole</a>), en général en un seul passage, vitesses relevées par le serveur lui-même ; nous ne publions pas les journaux bruts. Ce sont des ordres de grandeur sur ce matériel, pas des garanties sur le vôtre. Les chiffres extérieurs sont accompagnés de leur source.</p>
 
 {{diagram:placement}}
 

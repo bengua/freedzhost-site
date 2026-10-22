@@ -1,5 +1,6 @@
 <!-- {"title": "Speculative decoding (MTP): up to twice as fast on the same card", "summary": "A small head guesses the next tokens, the model checks them in one pass. The right flags, the value to measure yourself, the real gain in production, and the crash to watch for.", "order": 17, "series": "ai", "level": "intermediate", "time": "1 h", "requires": ["first-model"]} -->
 <p class="lead">A model writes one token at a time, and each token costs a full pass through the model. Speculative decoding guesses several tokens ahead with something cheap, then checks them all in a single pass: every correct guess is a token for free. Some recent models ship their own guessing head (multi-token prediction, MTP) inside the model file.</p>
+<p class="note"><strong>How these figures were obtained.</strong> Measured on our own machines (see <a href="/about.html">the protocol</a>), usually a single run, with speeds as reported by the server itself; we do not publish raw logs. Treat them as orders of magnitude on this hardware, not as guarantees on yours. Figures from outside are labelled with their source.</p>
 
 {{diagram:mtp}}
 
