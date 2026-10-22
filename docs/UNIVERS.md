@@ -23,6 +23,46 @@ de la communauté. Elle porte plusieurs projets, dont :
 Tous partagent la même constitution visuelle et éditoriale. Inari le renard
 reste la mascotte de l'enseigne entière, pas seulement du projet éponyme.
 
+## 0bis. Principe directeur : accessible à tout le monde
+
+L'objectif de l'enseigne est de rendre la chose accessible à **tout le
+monde**, au double sens du terme :
+
+- **Pédagogique** : aucun prérequis supposé. Le curieux non technique comme
+  l'entrepreneur pressé doivent pouvoir suivre chaque chapitre sans jargon
+  gratuit, avec des phénomènes du quotidien pour expliquer les concepts
+  complexes. Coder avec l'IA est bien ; comprendre ce qu'on fait est mieux.
+- **Matérielle et physique** : WCAG 2.2 (contrastes, cibles 44 px, focus
+  visible, `prefers-reduced-motion`), contenus lisibles sur petit écran et
+  vieux matériel, poids de page contenu, et toujours un chemin pour les
+  configurations modestes (free tiers, petits modèles, nocode quand c'est
+  le bon outil).
+
+Toute décision — design, contenu, code — se juge à cette question : est-ce
+que ça rapproche quelqu'un de plus de la chose, ou est-ce que ça l'en
+écarte ?
+
+## 0ter. Posture : tuteurs, pas gourous
+
+Nous sommes leurs **tuteurs**, le temps qu'ils se renforcent sur le sujet.
+Cela implique :
+
+- **Donner du sens à chaque étape** : on n'empile pas des commandes, on
+  explique pourquoi avant comment — chaque geste doit pouvoir être refait
+  seul, sans nous, plus tard.
+- **Révéler la progression** : le lecteur voit où il en est (parcours,
+  chapitres, étapes cochées) et ce qu'il saura faire ensuite.
+- **Rendre autonome, puis s'effacer** : la réussite c'est quand il n'a plus
+  besoin de nous — les formations payantes approfondissent, elles ne
+  retiennent pas en otage.
+- **L'aboutissement : des users sachant.** Pas des consommateurs d'outils
+  magiques, pas des copieurs de commandes — des utilisateurs qui savent ce
+  qu'ils font, pourquoi ils le font, et ce que ça implique (coût, vie
+  privée, limites). Un user sachant choisit souverainement.
+- **Respecter le rythme de chacun** : escalader par paliers, jamais
+  humilier un débutant, jamais ennuyer un confirmé (les approfondissements
+  sont signalés, pas imposés).
+
 ## 1. Couleurs
 
 | Token | Valeur | Rôle |
