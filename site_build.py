@@ -566,6 +566,16 @@ def layout(lang, slug, title, body, description, side="", jsonld=None):
 """
 
 
+
+def filter_chips_html(lang, series_members):
+    """The sticky chip row that filters the tutorials page by series (den.js drives it)."""
+    t = LANGS[lang]
+    chips = [f'<button class="chip on" data-series="*" type="button">{html.escape(t["all_series"])}</button>']
+    for key in series_members:
+        if series_members[key]:
+            chips.append(f'<button class="chip" data-series="{html.escape(key)}" type="button">{html.escape(t["series"][key])}</button>')
+    return '<nav class="chips" aria-label="' + html.escape(t["all_series"]) + '">' + "".join(chips) + "</nav>\n"
+
 def write_feeds_and_sitemap(out, catalogue):
     """sitemap.xml with language alternates, one RSS feed per language, robots.txt."""
     urls = []
@@ -621,10 +631,12 @@ def build(out):
                 continue
             items = "\n".join(
                 f'<li><a href="{url(lang, a)}"><strong>{html.escape(pages[a][0]["title"])}</strong>'
-                f'<span>{html.escape(pages[a][0]["summary"])}</span></a></li>'
+                f'<span>{html.escape(pages[a][0]["summary"])}</span>'
+                f'<span class="meta"><em class="lv-{html.escape(str(pages[a][0].get("level", "beginner")))}">{html.escape(str(pages[a][0].get("level", "")))}</em>'
+                f'<em>{html.escape(str(pages[a][0].get("time", "")))}</em></span></a></li>'
                 for a in members
             )
-            groups.append(f'<h3 class="series" id="series-{html.escape(key)}">{fox(key, 56)}{html.escape(heading)}</h3>\n<ul class="cards">\n{items}\n</ul>')
+            groups.append(f'<h3 class="series" id="series-{html.escape(key)}" data-series="{html.escape(key)}">{fox(key, 56)}{html.escape(heading)}</h3>\n<ul class="cards" data-series="{html.escape(key)}">\n{items}\n</ul>')
         orphans = [a for a in articles if "series" in pages[a][0] and pages[a][0]["series"] not in LANGS[lang]["series"]]
         if orphans:
             raise ValueError(f"{lang}: pages without a known series: {orphans}")
@@ -642,6 +654,7 @@ def build(out):
             body = body.replace("{{learning-paths}}", learning_paths_html(lang, pages))
             body = body.replace("{{series-cards}}", series_cards_html(lang, series_members))
             body = body.replace("{{search}}", search_form(lang, "page"))
+            body = body.replace("{{series-filter}}", filter_chips_html(lang, series_members))
             body = body.replace("{{articles}}", cards)
             if slug == "index":
                 body = hero(lang) + body

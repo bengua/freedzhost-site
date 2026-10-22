@@ -42,3 +42,21 @@
     io.observe(el);
   }
 })();
+
+// Series chips on the tutorials page: filter the groups, one tap, no reload.
+(function () {
+  "use strict";
+  var chips = document.querySelectorAll(".chips .chip");
+  if (!chips.length) return;
+  for (var i = 0; i < chips.length; i++) {
+    chips[i].addEventListener("click", function () {
+      var key = this.getAttribute("data-series");
+      for (var j = 0; j < chips.length; j++) chips[j].classList.toggle("on", chips[j] === this);
+      var groups = document.querySelectorAll("[data-series]:not(.chip)");
+      for (var k = 0; k < groups.length; k++) {
+        var show = key === "*" || groups[k].getAttribute("data-series") === key;
+        groups[k].classList.toggle("hidden", !show);
+      }
+    });
+  }
+})();
