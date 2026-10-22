@@ -170,45 +170,20 @@
     springs.push({ angle: 0, vel: 0, phase: ti * 0.7, tip: TIPS[ti] || TIPS[0] });
   }
 
-  // The Star Fox parade: the team lives in the hero. Inari anchors the scene
-  // (his own loop, always on); every so often a teammate walks in, waves with
-  // its name tag, and steps out. Vanilla, no library — this file never runs
-  // under prefers-reduced-motion.
+  // The team anchors the hero: ONE teammate per page load, picked at random
+  // (the title-screen rotation), its tag beside it. No parade — the pile-up bug
+  // taught us the scene holds one fox at a time.
   var mascot = hero.querySelector(".hero-mascot");
-  if (mascot) { var pm = mascot.play(); if (pm && pm.catch) pm.catch(function () {}); }
+  var tag = hero.querySelector(".hero-anchor-tag");
   var teamEl = hero.querySelector(".hero-team");
-  var parade = hero.querySelector(".hero-parade");
-  var tag = hero.querySelector(".hero-parade-tag");
   var team = teamEl ? JSON.parse(teamEl.textContent) : [];
-  var deck = [];
-  function shuffled(a) {
-    for (var i = a.length - 1; i > 0; i--) {
-      var j = (Math.random() * (i + 1)) | 0;
-      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
-    }
-    return a;
+  if (mascot && team.length) {
+    var pick = team[(Math.random() * team.length) | 0];
+    mascot.src = "/media/personas/" + pick[0] + ".webm";
+    var pm = mascot.play();
+    if (pm && pm.catch) pm.catch(function () {});
+    if (tag) { tag.textContent = pick[1]; tag.classList.add("on"); }
   }
-  function paradeOnce() {
-    if (!team.length || !parade) return;
-    if (!running) { setTimeout(paradeOnce, 8000); return; }
-    if (!deck.length) deck = shuffled(team.slice());
-    var p = deck.pop();
-    tag.textContent = p[1];
-    parade.src = "/media/personas/" + p[0] + ".webm";
-    parade.currentTime = 0;
-    var pr = parade.play();
-    if (pr && pr.catch) pr.catch(function () {});
-    parade.classList.add("on");
-    tag.classList.add("on");
-    parade.onended = function () {
-      setTimeout(function () {
-        parade.classList.remove("on");
-        tag.classList.remove("on");
-        setTimeout(paradeOnce, 14000 + Math.random() * 12000);
-      }, 1600);
-    };
-  }
-  if (team.length && parade) setTimeout(paradeOnce, 6500); // after the entrance settles
   function svgPoint(clientX, clientY) {
     var r = svg.getBoundingClientRect();
     var scale = Math.min(r.width / 720, r.height / 720);

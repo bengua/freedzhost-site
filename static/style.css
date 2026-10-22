@@ -411,3 +411,10 @@ body.home .top { position: relative; z-index: 4; }
 @media (prefers-reduced-motion: reduce) {
   .will-reveal { opacity: 1; transform: none; }
 }
+
+/* The anchor's name tag (one teammate per load): quiet, above the fox. */
+.hero-anchor-tag { right: 8%; bottom: 46%; opacity: 0; }
+.hero-anchor-tag.on { opacity: 1; transform: none; }
+@media (max-width: 760px) {
+  .hero-anchor-tag { top: auto; bottom: 34%; right: 6%; }
+}
