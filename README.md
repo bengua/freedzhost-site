@@ -4,7 +4,7 @@ Le site [freedzhost.cloud](https://freedzhost.cloud) : un générateur statique 
 
 [![Licence contenu : CC BY-SA 4.0](https://img.shields.io/badge/contenu-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE)
 [![Licence code : MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE-CODE)
-[![CI](https://github.com/OWNERTEST/freedzhost-site/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNERTEST/freedzhost-site/actions/workflows/ci.yml)
+[![CI](https://github.com/bengua/freedzhost-site/actions/workflows/ci.yml/badge.svg)](https://github.com/bengua/freedzhost-site/actions/workflows/ci.yml)
 
 ## Présentation
 
@@ -23,7 +23,7 @@ Ce dépôt contient tout ce qui produit freedzhost.cloud : les articles (fragmen
 Prérequis : Python 3.10 ou plus récent. Rien d'autre pour construire le site.
 
 ```sh
-git clone https://github.com/OWNERTEST/freedzhost-site
+git clone https://github.com/bengua/freedzhost-site
 cd freedzhost-site
 python3 site_build.py            # écrit le site dans public/
 ```

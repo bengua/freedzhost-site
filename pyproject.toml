@@ -20,7 +20,7 @@ dev = ["ruff==0.16.6", "pytest>=8"]
 
 [project.urls]
 Homepage = "https://freedzhost.cloud"
-Source = "https://github.com/OWNERTEST/freedzhost-site"
+Source = "https://github.com/bengua/freedzhost-site"
 
 [project.scripts]
 freedzhost-site-build = "site_build:main"
