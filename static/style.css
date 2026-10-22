@@ -398,3 +398,16 @@ body.home .top { position: relative; z-index: 4; }
 /* The global video rule (black backdrop for tutorial videos) must not paint
    behind the transparent mascot and parade webms. */
 .hero-mascot, .hero-parade { background: none; border-radius: 0; margin: 0; }
+
+/* Hero exit: the scene fades into the page background instead of cutting. */
+.hero::before { content: ""; position: absolute; z-index: 4; left: 0; right: 0; bottom: 0;
+  height: 22%; pointer-events: none;
+  background: linear-gradient(180deg, transparent, var(--bg)); }
+
+/* Scroll reveal (den.js adds will-reveal, lifts it with in-view). */
+.will-reveal { opacity: 0; transform: translateY(14px); }
+.will-reveal.in-view { opacity: 1; transform: none;
+  transition: opacity .55s ease, transform .55s cubic-bezier(.2, .8, .2, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .will-reveal { opacity: 1; transform: none; }
+}
