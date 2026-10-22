@@ -74,6 +74,16 @@ qu'au commandement de cette room, c'est Inari, décliné.
   (tap, chatouille, queue) déclenchent des séquences, puis retour au calme.
 - `prefers-reduced-motion` : composition figée finie, jamais un squelette cassé.
 
+## 5bis. Déclinaisons de style (le précédent Mario)
+
+Mario, Sonic, les héros de Final Fantasy ne sont pas toujours en 3D ni dans leur forme
+originelle — on les reconnaît pourtant, et on joue là-dessus. Pareil pour Inari :
+pixel, encre, flat, chibi, peinture… TOUTE réinterprétation de style est légitime tant
+que la signature reste lisible au premier coup d'œil : neuf queues, grandes oreilles,
+cuivre sur charbon, œil en fente. Ce qui trahit Inari n'est jamais le style, c'est la
+perte de la signature (une seule queue, un autre animal). Le style se joue, la signature
+ne se négocie pas.
+
 ## 6. Anti-dérive (rappel opérationnel)
 
 1. Nouvelle image d'Inari → dérivée des sources canoniques, charte citée dans la PR.
