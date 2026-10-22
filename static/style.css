@@ -166,3 +166,6 @@ nav a.support { color: #7ee2a8; }
 .sources { font-size: .9rem; color: var(--muted); padding-left: 18px; }
 .sources a { color: var(--muted); }
 .sources a:hover { color: var(--accent); }
+.fox-overlay { position: absolute; right: 16px; bottom: 56px; width: 180px; pointer-events: none;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, .45)); }
+@media (max-width: 720px) { .fox-overlay { width: 110px; right: 10px; bottom: 48px; } }

@@ -284,8 +284,9 @@ def layout(lang, slug, title, body, description, side=""):
 <main>
 {body}
 </main>
-<footer><video class="mascot" src="/media/foxbot-coucou.mp4" autoplay loop muted playsinline aria-hidden="true"></video>
+<footer><img class="mascot" data-fox="salue" src="/fox/salue/f_00.webp" alt="" aria-hidden="true">
 <p>{t['footer']}</p></footer>
+<script defer src="/fox/fox-player.js"></script>
 </body>
 </html>
 """
