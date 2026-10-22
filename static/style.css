@@ -370,3 +370,31 @@ body.home .top { position: relative; z-index: 4; }
 @media (prefers-reduced-motion: reduce) {
   .hero-embers { display: none; }
 }
+
+/* The Star Fox parade: a teammate walks in, waves, and steps out (hero.js). */
+.hero-parade { position: absolute; z-index: 3; right: 2%; bottom: 0; width: min(36vh, 320px);
+  opacity: 0; transform: translateX(112%); pointer-events: none;
+  transition: transform .9s cubic-bezier(.2, .8, .2, 1), opacity .45s;
+  filter: drop-shadow(0 18px 30px rgba(0, 0, 0, .5)); }
+.hero-parade.on { opacity: 1; transform: none; }
+.hero-parade-tag { position: absolute; z-index: 4; right: 4%; bottom: 24%;
+  max-width: 20ch; padding: 6px 12px; border-left: 2px solid var(--accent);
+  font-family: var(--display); font-style: italic; font-size: .95rem; color: var(--fg);
+  background: rgba(18, 16, 14, .6); opacity: 0; transform: translateY(8px);
+  transition: opacity .4s .25s, transform .4s .25s; pointer-events: none; }
+.hero-parade-tag.on { opacity: 1; transform: none; }
+@media (max-width: 760px) {
+  .hero-parade { width: min(30vh, 210px); right: 0; }
+  .hero-parade-tag { bottom: auto; top: 18%; font-size: .85rem; }
+}
+
+/* Inari anchors the hero scene (his own loop), centre-right like a title-screen lead. */
+.hero-mascot { position: absolute; z-index: 3; right: 6%; bottom: 0; width: min(46vh, 420px);
+  pointer-events: none; filter: drop-shadow(0 22px 34px rgba(0, 0, 0, .5)); }
+@media (max-width: 760px) {
+  .hero-mascot { width: min(34vh, 240px); right: 2%; opacity: .92; }
+}
+
+/* The global video rule (black backdrop for tutorial videos) must not paint
+   behind the transparent mascot and parade webms. */
+.hero-mascot, .hero-parade { background: none; border-radius: 0; margin: 0; }

@@ -169,6 +169,46 @@
     tails[ti].style.transformOrigin = "414px 570px";
     springs.push({ angle: 0, vel: 0, phase: ti * 0.7, tip: TIPS[ti] || TIPS[0] });
   }
+
+  // The Star Fox parade: the team lives in the hero. Inari anchors the scene
+  // (his own loop, always on); every so often a teammate walks in, waves with
+  // its name tag, and steps out. Vanilla, no library — this file never runs
+  // under prefers-reduced-motion.
+  var mascot = hero.querySelector(".hero-mascot");
+  if (mascot) { var pm = mascot.play(); if (pm && pm.catch) pm.catch(function () {}); }
+  var teamEl = hero.querySelector(".hero-team");
+  var parade = hero.querySelector(".hero-parade");
+  var tag = hero.querySelector(".hero-parade-tag");
+  var team = teamEl ? JSON.parse(teamEl.textContent) : [];
+  var deck = [];
+  function shuffled(a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = (Math.random() * (i + 1)) | 0;
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+  function paradeOnce() {
+    if (!team.length || !parade) return;
+    if (!running) { setTimeout(paradeOnce, 8000); return; }
+    if (!deck.length) deck = shuffled(team.slice());
+    var p = deck.pop();
+    tag.textContent = p[1];
+    parade.src = "/media/personas/" + p[0] + ".webm";
+    parade.currentTime = 0;
+    var pr = parade.play();
+    if (pr && pr.catch) pr.catch(function () {});
+    parade.classList.add("on");
+    tag.classList.add("on");
+    parade.onended = function () {
+      setTimeout(function () {
+        parade.classList.remove("on");
+        tag.classList.remove("on");
+        setTimeout(paradeOnce, 14000 + Math.random() * 12000);
+      }, 1600);
+    };
+  }
+  if (team.length && parade) setTimeout(paradeOnce, 6500); // after the entrance settles
   function svgPoint(clientX, clientY) {
     var r = svg.getBoundingClientRect();
     var scale = Math.min(r.width / 720, r.height / 720);

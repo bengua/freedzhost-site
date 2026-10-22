@@ -47,6 +47,9 @@ LANGS = {
            "foot_fox": "Found this useful? Tell us what to measure next.",
            "hero_kicker": "Tutorials · Homelab · Local AI",
            "hero_tag": "Your own swarm of AI agents, at home.",
+           "hero_team": [["zen", "the local way"], ["merica", "claudz, the Anthropic room"],
+                         ["groq", "free-tier speed"], ["mistral", "the European breath"],
+                         ["militaire", "the sentinel"], ["artiste", "the studio"]],
            "hero_down": "Skip to the content",
            "footer":
            "Content under CC BY-SA 4.0. No trackers, no cookies, no third-party fonts."},
@@ -75,6 +78,9 @@ LANGS = {
            "foot_fox": "Utile ? Dites-nous ce qu'il faut mesurer ensuite.",
            "hero_kicker": "Tutos · Homelab · IA locale",
            "hero_tag": "Votre essaim d'agents IA, à la maison.",
+           "hero_team": [["zen", "la voie locale"], ["merica", "claudz, la room Anthropic"],
+                         ["groq", "la vitesse gratuite"], ["mistral", "le souffle européen"],
+                         ["militaire", "la sentinelle"], ["artiste", "le studio"]],
            "hero_down": "Aller au contenu",
            "footer":
            "Contenu sous licence CC BY-SA 4.0. Ni traceur, ni cookie, ni police externe."},
@@ -471,14 +477,18 @@ def hero(lang):
     entrance, parallax), so the hero is complete without script or motion."""
     t = LANGS[lang]
     return (f'<section class="hero">'
-            f'<img class="hero-art" src="/media/hero-keyart.webp" alt="" width="1600" height="914" '
+            f'<img class="hero-art" src="/media/hero-bg.webp" alt="" width="1600" height="914" '
             f'fetchpriority="high" decoding="async">'
+            f'<video class="hero-mascot" src="/media/personas/inari.webm" autoplay muted playsinline loop aria-hidden="true"></video>'
             f'<canvas class="hero-embers" aria-hidden="true"></canvas>'
             f'<div class="hero-stage"><div class="hero-copy">'
             f'<p class="hero-kicker">{html.escape(t["hero_kicker"])}</p>'
             f'<h1 class="hero-title">FreedzHost</h1>'
             f'<p class="hero-tag">{html.escape(t["hero_tag"])}</p>'
             f'</div></div>'
+            f'<video class="hero-parade" muted playsinline preload="none" aria-hidden="true"></video>'
+            f'<span class="hero-parade-tag" aria-hidden="true"></span>'
+            f'<script type="application/json" class="hero-team">{json.dumps(t["hero_team"])}</script>'
             f'<a class="hero-down" href="#hero-end" aria-label="{html.escape(t["hero_down"])}">'
             f'<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">'
             f'<path d="M4 9l8 8 8-8" fill="none" stroke="currentColor" stroke-width="1.6" '
