@@ -16,3 +16,29 @@
     if (!queued) { queued = true; requestAnimationFrame(paint); }
   }, { passive: true });
 })();
+
+// Scroll reveal: content blocks fade up as they enter, once, everywhere.
+// Skipped entirely under prefers-reduced-motion.
+(function () {
+  "use strict";
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (!("IntersectionObserver" in window)) return;
+  var targets = document.querySelectorAll("main h2, main h3, main p, main li, main figure, main .card, main pre");
+  if (!targets.length) return;
+  var seen = new WeakSet();
+  var io = new IntersectionObserver(function (entries) {
+    for (var i = 0; i < entries.length; i++) {
+      if (entries[i].isIntersecting) {
+        entries[i].target.classList.add("in-view");
+        io.unobserve(entries[i].target);
+      }
+    }
+  }, { rootMargin: "0px 0px -8% 0px", threshold: 0.01 });
+  for (var i = 0; i < targets.length; i++) {
+    var el = targets[i];
+    if (seen.has(el)) continue;
+    seen.add(el);
+    el.classList.add("will-reveal");
+    io.observe(el);
+  }
+})();
