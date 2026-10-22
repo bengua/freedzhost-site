@@ -15,6 +15,7 @@
         li.classList.toggle("done", on);
       });
       bar.value = done.length;
+      path.style.setProperty("--done", steps.length ? done.length / steps.length : 0);
       count.textContent = done.length + " / " + steps.length;
     }
     steps.forEach(function (li) {
