@@ -245,11 +245,9 @@ main a:not(.give):not([class]):hover, article p a:hover, article li a:not([class
 .frieze .sprite { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
 .frieze .sprite:first-child { opacity: 1; }
 .peek { position: fixed; right: 18px; bottom: 0; width: 120px; height: 120px; pointer-events: none; z-index: 5; opacity: 0; transform: translateY(40%); }
-body.home .hero-fox { float: right; width: 176px; height: 176px; margin: -8px 0 0 12px; shape-outside: circle(50%); }
-body.home h1 { font-size: clamp(2.4rem, 7.5vw, 4rem); line-height: 1.04; }
 body.home .lead { font-size: clamp(1.15rem, 2.4vw, 1.4rem); max-width: 34ch; color: var(--text); opacity: .85; }
 body.about .lead::first-letter { font-family: var(--display); font-size: 3.4em; float: left; line-height: .85; padding: .06em .12em 0 0; color: var(--accent); }
-@media (max-width: 560px) { body.home .hero-fox { width: 104px; height: 104px; } .peek { display: none; } }
+@media (max-width: 560px) { .peek { display: none; } }
 
 /* Learning path: a vertical line that fills as steps are checked (--done is set by progress.js). */
 .track { position: relative; }
@@ -263,14 +261,8 @@ body.about .lead::first-letter { font-family: var(--display); font-size: 3.4em; 
 @media (prefers-reduced-motion: no-preference) {
   /* The one intro, on the home page only: the headline rises, the lead follows, Inari enters. */
   @keyframes rise { from { opacity: 0; transform: translateY(24px); } }
-  @keyframes enter-fox { from { opacity: 0; transform: translateX(60px) scale(.92); } }
-  @keyframes breathe { 50% { transform: translateY(-4px) scale(1.015); } }
   @keyframes peek-in { to { opacity: 1; transform: none; } }
   @keyframes frieze { 0%, 33% { opacity: 1; } 34%, 100% { opacity: 0; } }
-  body.home h1 { animation: rise var(--t-slow) var(--enter) both; }
-  body.home .lead { animation: rise var(--t-slow) var(--enter) 150ms both; }
-  body.home .hero-fox { animation: enter-fox 900ms var(--enter) 300ms both; }
-  body.home .hero-fox img { animation: breathe 4s var(--breath) 1.2s infinite; }
   .frieze .sprite:nth-child(1) { animation: frieze 2.4s steps(1) infinite; }
   .frieze .sprite:nth-child(2) { animation: frieze 2.4s steps(1) infinite .8s; }
   .frieze .sprite:nth-child(3) { animation: frieze 2.4s steps(1) infinite 1.6s; }
@@ -290,3 +282,76 @@ body.about .lead::first-letter { font-family: var(--display); font-size: 3.4em; 
   .peek { opacity: 1; transform: none; }
 }
 @media (pointer: coarse) { .den::before, .den::after { display: none; } }
+
+/* ---- Home hero: the kitsunebi show (hero.js only enhances; the DOM below is the final state) ---- */
+.hero { position: absolute; inset: 0 0 auto; height: 100vh; height: 100svh; overflow: hidden;
+  background: radial-gradient(130% 90% at 68% 8%, #1d1712 0%, var(--bg) 62%); }
+body.home main { padding-top: calc(100vh + 32px); padding-top: calc(100svh + 32px); }
+body.home .top { position: relative; z-index: 4; }
+.hero-embers { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.hero-stage { position: relative; z-index: 2; height: 100%; max-width: 1160px; margin-inline: auto;
+  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); align-items: center; gap: 16px;
+  padding-inline: clamp(20px, 5vw, 64px); }
+.hero-kicker { margin: 0 0 18px; font: 600 .78rem/1.4 ui-monospace, "JetBrains Mono", monospace;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--accent); }
+.hero-title { margin: 0 0 22px; font-family: var(--display); font-weight: 600;
+  font-size: clamp(3.2rem, 6vw, 5.6rem); line-height: .98; letter-spacing: -.02em; white-space: nowrap; }
+.hero-title .hl { display: inline-block; }
+.hero-tag { margin: 0; max-width: 30ch; font-size: clamp(1.1rem, 2vw, 1.35rem); color: var(--muted); }
+.hero-inari { width: 100%; height: min(80vh, 660px); height: min(80svh, 660px); align-self: end; overflow: visible; }
+.inari-tail, .inari-body { transform-box: view-box; }
+.inari-eye { fill: var(--bg); }
+.hero-down { position: absolute; z-index: 3; left: 50%; bottom: 14px; translate: -50% 0;
+  width: 44px; height: 44px; display: grid; place-items: center; color: var(--muted); }
+.hero-down:hover { color: var(--accent); }
+
+/* Parallax: --sc (0 at rest, 1 one viewport down) is set by hero.js. */
+.hero-copy { transform: translateY(calc(var(--sc, 0) * 34%)); opacity: max(0, calc(1 - var(--sc, 0) * 1.6)); }
+.hero-inari { transform: translateY(calc(var(--sc, 0) * 12%)); opacity: calc(1 - var(--sc, 0) * .75); }
+.hero-embers { transform: translateY(calc(var(--sc, 0) * 22%)); }
+.hero-down { opacity: max(0, calc(1 - var(--sc, 0) * 4)); }
+
+@media (min-width: 1024px) {
+  /* The fixed drawer owns the left 240 px: the hero composes in the rest. */
+  .hero-stage { margin-left: 240px; margin-right: 0; max-width: none; }
+}
+
+@media (max-width: 760px) {
+  .hero-stage { grid-template-columns: 1fr; align-content: center; }
+  .hero-inari { position: absolute; right: -22%; bottom: 0; width: 92%; height: 60%; opacity: .45; z-index: 1; }
+  .hero-copy { position: relative; z-index: 2; }
+  .hero-title { font-size: clamp(3rem, 15vw, 4.6rem); }
+}
+
+/* The entrance: only when hero.js runs (is-live) and motion is welcome.
+   Letters stagger in, the tagline fades, Inari draws itself then fills. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes hero-letter { from { opacity: 0; transform: translateY(.35em) rotate(2deg); filter: blur(6px); }
+    to { opacity: 1; transform: none; filter: none; } }
+  @keyframes hero-fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes inari-draw { to { stroke-dashoffset: 0; } }
+  @keyframes inari-fill { to { fill-opacity: 1; stroke-opacity: .22; } }
+  @keyframes hero-bob { 50% { transform: translateY(6px); } }
+  .hero.is-live .hero-kicker { opacity: 0; animation: hero-fade .6s var(--enter) 80ms forwards; }
+  .hero.is-live .hero-title .hl { opacity: 0; animation: hero-letter .55s var(--enter) both; animation-delay: var(--d); }
+  .hero.is-live .hero-tag { opacity: 0; animation: hero-fade .8s var(--enter) .95s forwards; }
+  .hero.is-live .inari-body, .hero.is-live .inari-tail {
+    fill-opacity: 0; stroke: #b35a1c; stroke-width: 1.4; stroke-dasharray: 1; stroke-dashoffset: 1;
+    animation: inari-draw 1.05s var(--enter) forwards, inari-fill .6s ease forwards; }
+  .hero.is-live .inari-body { animation-delay: .4s, 1.25s; }
+  .hero.is-live .inari-tail.t0 { animation-delay: 0.45s, 1.30s; }
+  .hero.is-live .inari-tail.t1 { animation-delay: 0.51s, 1.36s; }
+  .hero.is-live .inari-tail.t2 { animation-delay: 0.57s, 1.42s; }
+  .hero.is-live .inari-tail.t3 { animation-delay: 0.63s, 1.48s; }
+  .hero.is-live .inari-tail.t4 { animation-delay: 0.69s, 1.54s; }
+  .hero.is-live .inari-tail.t5 { animation-delay: 0.75s, 1.60s; }
+  .hero.is-live .inari-tail.t6 { animation-delay: 0.81s, 1.66s; }
+  .hero.is-live .inari-tail.t7 { animation-delay: 0.87s, 1.72s; }
+  .hero.is-live .inari-tail.t8 { animation-delay: 0.93s, 1.78s; }
+  .hero.is-live .inari-eye { opacity: 0; animation: hero-fade .01s linear 1.9s forwards; }
+  .hero.is-live .hero-down { opacity: 0; animation: hero-fade .6s ease 1.8s forwards; }
+  .hero-down svg { animation: hero-bob 2.6s var(--breath) 2.6s infinite; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-embers { display: none; }
+}

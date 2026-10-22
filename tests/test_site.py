@@ -89,6 +89,8 @@ def test_every_diagram_marker_is_drawn_and_described(out):
         text = page.read_text(encoding="utf-8")
         assert "{{diagram:" not in text, page
         for svg in re.findall(r"<svg[^>]*>", text):
+            if 'aria-hidden="true"' in svg:  # decorative: hidden from the tree by design
+                continue
             assert 'role="img"' in svg and 'aria-label="' in svg, page
 
 
