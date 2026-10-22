@@ -472,7 +472,6 @@ def hero(lang):
     t = LANGS[lang]
     return (f'<section class="hero">'
             f'<canvas class="hero-embers" aria-hidden="true"></canvas>'
-            f'<div class="hero-rays" aria-hidden="true"></div>'
             f'<div class="hero-stage"><div class="hero-copy">'
             f'<p class="hero-kicker">{html.escape(t["hero_kicker"])}</p>'
             f'<h1 class="hero-title">FreedzHost</h1>'
@@ -489,8 +488,7 @@ def hero(lang):
             f'<g fill="url(#inari-copper)">{INARI_TAILS}'
             f'<path pathLength="1" class="inari-body" d="{INARI_BODY}"/></g>'
             f'<path class="inari-eye" d="{INARI_EYE}"/>'
-            f'</svg>'
-            f'<span class="hero-hanko" aria-hidden="true">稲荷</span></div>'
+            f'</svg></div>'
             f'<a class="hero-down" href="#hero-end" aria-label="{html.escape(t["hero_down"])}">'
             f'<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">'
             f'<path d="M4 9l8 8 8-8" fill="none" stroke="currentColor" stroke-width="1.6" '
