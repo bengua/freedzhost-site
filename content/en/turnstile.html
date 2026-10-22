@@ -32,7 +32,7 @@ turnstile restore       # afterwards: puts back exactly what was running</code><
 <p>No more hand-killed sessions and models that never come back. Here, image renders and game sessions go through this, and the 27B takes its seat back on its own afterwards.</p>
 
 <h2>6. For automation</h2>
-<p>The same thing exists over HTTP on port <code>8130</code>: <code>GET /state</code>, <code>GET /slots</code>, <code>GET /counters</code>, <code>POST /slot</code>. That's what our agents use to request a model instead of guessing. And if you put free-quota providers behind the gateway, the warden that greys out an exhausted model is covered in <a href="/en/quota-warden.html">quota-warden</a>.</p>
+<p>The same thing exists over HTTP on port <code>8130</code>: <code>GET /state</code>, <code>GET /slots</code>, <code>GET /counters</code>, <code>POST /slot</code>. That's what our agents use to request a model instead of guessing. And if you put free-quota providers behind the gateway, the warden that greys out an exhausted model is covered in <a href="/quota-warden.html">quota-warden</a>.</p>
 
 <h2>Pitfalls</h2>
 <p class="note">One container = one slot = one name. If your container is called <code>llama-prod</code> and your slot <code>coder-c1</code>, turnstile won't guess anything: rename the container, not the rule.</p>
