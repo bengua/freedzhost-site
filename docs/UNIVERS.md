@@ -10,6 +10,16 @@
 
 Cette direction prévaut sur toute tentation gadget (référence de retenue : sunmetalon.com).
 
+### Amendement (22/10 soir) : l'énergie manga / jeu vidéo japonais
+
+La retenue est une exigence de craft, PAS une invitation au froid. L'imaginaire de
+l'enseigne est celui du manga et du jeu vidéo japonais (l'écran-titre qui donne envie
+de jouer : encre, lignes de concentration, sceau hanko, braises kitsunebi, présence du
+personnage) — jamais le luxe immobilier versaillais. Le wahou d'entrée est une
+obligation ; la retenue s'applique à l'exécution (détails finis, zéro bruit), pas à
+l'audace de la composition. Inari est un kitsune : le Japon n'est pas un décor, c'est
+sa mythologie.
+
 
 Un seul univers visuel et éditorial pour toutes les surfaces et tous les
 projets de l'enseigne **FreedzHost** (freedzhost.cloud). Toute évolution se
