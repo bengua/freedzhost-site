@@ -48,12 +48,19 @@ def test_every_local_link_resolves(out):
             assert target.exists(), f"{page.relative_to(out)} -> {ref}"
 
 
-def test_home_lists_every_article(out):
-    for home, folder in ((out / "index.html", out), (out / "fr" / "index.html", out / "fr")):
+def test_tutos_page_lists_every_article(out):
+    for home, folder in ((out / "tutos.html", out), (out / "fr" / "tutos.html", out / "fr")):
         text = home.read_text(encoding="utf-8")
         for article in folder.glob("*.html"):
-            if article.name not in ("index.html", "help.html"):
+            if article.name not in ("index.html", "help.html", "tutos.html"):
                 assert article.name in text, f"{home} misses {article.name}"
+
+
+def test_home_has_both_paths_and_search(out):
+    for home in (out / "index.html", out / "fr" / "index.html"):
+        text = home.read_text(encoding="utf-8")
+        assert 'class="cards paths"' in text and "tutos.html" in text and "formation.html" in text
+        assert 'role="search"' in text
 
 
 def test_nothing_internal_leaks_into_the_public_site(out):
@@ -106,7 +113,7 @@ def test_sitemap_and_feeds_list_every_page(out):
     for feed, folder in ((out / "feed.xml", out), (out / "fr" / "feed.xml", out / "fr")):
         links = {e.text for e in ET.parse(feed).getroot().iter("link")}
         for article in folder.glob("*.html"):
-            if article.name not in ("index.html", "help.html"):
+            if article.name not in ("index.html", "help.html", "tutos.html"):
                 assert any(link.endswith("/" + article.name) for link in links), (feed, article.name)
 
 
@@ -119,7 +126,7 @@ def test_every_page_has_canonical_and_description(out):
 
 def test_every_article_has_a_level_and_reaches_the_glossary(out):
     for page in pages(out):
-        if page.name in ("index.html", "glossary.html", "help.html"):
+        if page.name in ("index.html", "glossary.html", "help.html", "tutos.html"):
             continue
         text = page.read_text(encoding="utf-8")
         assert 'class="fiche level-' in text, page

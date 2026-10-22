@@ -35,6 +35,11 @@ LANGS = {
            "revue_title": "Today's briefing", "revue_empty": "The briefing is on its way — the swarm is preparing it.",
            "revue_source": "source", "revue_archive": "All news", "badge_new": "new",
            "tutos": "Tutorials",
+           "path_tutos": ("Tutorials", "Free step-by-step guides: hardware, local AI, agents, homelab."),
+           "path_training": ("Training", "Go further with a structured course and a community of members."),
+           "path_open": "Open", "all_series": "All series", "series_count": "articles",
+           "search_label": "Search the tutorials", "search_placeholder": "Search by keyword…",
+           "search_none": "No result.",
            "news": "News", "training": "Training", "hardware_label": "Hardware", "favorites": "Favorites",
            "members": "Members", "soon": "soon",
            "footer":
@@ -53,6 +58,11 @@ LANGS = {
            "revue_title": "La revue du jour", "revue_empty": "La revue arrive — le swarm la prépare.",
            "revue_source": "source", "revue_archive": "Toutes les actualités", "badge_new": "nouveau",
            "tutos": "Tutos",
+           "path_tutos": ("Tutos", "Des guides gratuits pas à pas : matériel, IA locale, agents, homelab."),
+           "path_training": ("Formation", "Allez plus loin avec un parcours structuré et une communauté de membres."),
+           "path_open": "Ouvrir", "all_series": "Toutes les séries", "series_count": "articles",
+           "search_label": "Rechercher dans les tutos", "search_placeholder": "Rechercher par mot-clé…",
+           "search_none": "Aucun résultat.",
            "news": "Actualités", "training": "Formation", "hardware_label": "Matériel", "favorites": "Coups de cœur",
            "members": "Membres", "soon": "bientôt",
            "footer":
@@ -190,6 +200,47 @@ def coups_de_coeur_html(lang, meta):
     return f'<ul class="cards favorite-cards">\n{items}\n</ul>'
 
 
+def search_form(lang, where):
+    """Keyword search box; works with search.js, inert (but harmless) without."""
+    t = LANGS[lang]
+    return (f'<form class="search" role="search" action="{url(lang, "tutos")}" '
+            f'data-index="/{t["prefix"]}search-index.json" data-none="{html.escape(t["search_none"])}">'
+            f'<label for="q-{where}">{html.escape(t["search_label"])}</label>'
+            f'<input type="search" id="q-{where}" name="q" autocomplete="off" '
+            f'placeholder="{html.escape(t["search_placeholder"])}">'
+            f'<ul class="results" hidden></ul></form>')
+
+
+def paths_html(lang):
+    """The two entry paths of the site: tutorials and training."""
+    t = LANGS[lang]
+    items = "\n".join(
+        f'<li><a href="{url(lang, slug)}"><strong>{html.escape(t[key][0])}</strong>'
+        f'<span>{html.escape(t[key][1])}</span><em>{html.escape(t["path_open"])} →</em></a></li>'
+        for key, slug in (("path_tutos", "tutos"), ("path_training", "formation")))
+    return f'<ul class="cards paths">\n{items}\n</ul>'
+
+
+def series_cards_html(lang, series_members):
+    """One card per series, linking to its section of the tutorials page."""
+    t = LANGS[lang]
+    items = "\n".join(
+        f'<li><a href="{url(lang, "tutos")}#series-{html.escape(key)}">{fox(key, 56)}'
+        f'<strong>{html.escape(heading)}</strong>'
+        f'<span>{len(series_members[key])} {html.escape(t["series_count"])}</span></a></li>'
+        for key, heading in t["series"].items() if series_members.get(key))
+    return f'<ul class="cards series-cards">\n{items}\n</ul>'
+
+
+def search_index(lang, pages, articles):
+    """Flat keyword index of every article, for search.js."""
+    t = LANGS[lang]
+    return json.dumps([
+        {"slug": a, "url": url(lang, a), "title": pages[a][0]["title"], "summary": pages[a][0]["summary"],
+         "series": t["series"].get(pages[a][0].get("series"), "")}
+        for a in articles], ensure_ascii=False)
+
+
 QUICK = ("index", "support", "findings", "workshop", "faq", "inspirations", "help")
 CURRENT = ' aria-current="page"'
 
@@ -200,15 +251,17 @@ def drawer(lang, slug, pages, series_members, revue_date=None):
     is_new = revue_date == TODAY.isoformat()
     badge = f'<span class="badge">{html.escape(t["badge_new"])}</span>' if is_new else ""
     series_links = "".join(
-        f'<li><a href="{url(lang, "index")}#series-{html.escape(key)}">{html.escape(heading)}</a></li>'
+        f'<li><a href="{url(lang, "tutos")}#series-{html.escape(key)}">{html.escape(heading)}</a></li>'
         for key, heading in t["series"].items())
     return (f'<nav id="menu" class="drawer" aria-label="{html.escape(t["drawer"])}">'
             f'<a class="close" href="#">{t["close"]} ✕</a>'
             f'<a class="brand" href="{url(lang, "index")}">freedzhost<span>.cloud</span></a>'
+            f'{search_form(lang, "drawer")}'
             f'<div class="tree">'
             f'<a href="{url(lang, "actualites")}"{CURRENT if slug == "actualites" else ""}>'
             f'{html.escape(t["news"])}{badge}</a>'
-            f'<details open><summary>{html.escape(t["tutos"])}</summary><ul>{series_links}</ul></details>'
+            f'<a href="{url(lang, "tutos")}"{CURRENT if slug == "tutos" else ""}>{html.escape(t["tutos"])}</a>'
+            f'<details><summary>{html.escape(t["all_series"])}</summary><ul>{series_links}</ul></details>'
             f'<a href="{url(lang, "formation")}"{CURRENT if slug == "formation" else ""}>{html.escape(t["training"])}</a>'
             f'<a href="{url(lang, "formation")}#membres"{CURRENT if slug == "formation" else ""}>{html.escape(t["members"])}<span class="badge-soon">{html.escape(t["soon"])}</span></a>'
             f'<a href="{url(lang, "materiel")}"{CURRENT if slug == "materiel" else ""}>{html.escape(t["hardware_label"])}</a>'
@@ -286,6 +339,7 @@ def layout(lang, slug, title, body, description, side=""):
 </main>
 <footer><video class="mascot" src="/media/foxbot-coucou.mp4" autoplay loop muted playsinline aria-hidden="true"></video>
 <p>{t['footer']}</p></footer>
+<script defer src="/search.js"></script>
 </body>
 </html>
 """
@@ -353,6 +407,8 @@ def build(out):
         if orphans:
             raise ValueError(f"{lang}: pages without a known series: {orphans}")
         cards = "\n".join(groups)
+        (out / LANGS[lang]["prefix"]).mkdir(parents=True, exist_ok=True)
+        (out / LANGS[lang]["prefix"] / "search-index.json").write_text(search_index(lang, pages, articles), encoding="utf-8")
         series_members = {key: [a for a in articles if pages[a][0].get("series") == key] for key in LANGS[lang]["series"]}
         for slug, (meta, body) in pages.items():
             body = re.sub(r"\{\{diagram:([a-z0-9]+)\}\}", lambda m, lang=lang: diagrams.render(m.group(1), lang), body)
@@ -360,9 +416,11 @@ def build(out):
             body = body.replace("{{revue-archive}}", revue_archive_html(lang, revues))
             body = body.replace("{{materiel-list}}", materiel_list_html(lang, pages))
             body = body.replace("{{coups-de-coeur}}", coups_de_coeur_html(lang, meta))
-            if slug == "index":
-                body = body.replace("{{articles}}", cards)
-            elif not meta.get("nav"):  # a nav page brings its own layout
+            body = body.replace("{{paths}}", paths_html(lang))
+            body = body.replace("{{series-cards}}", series_cards_html(lang, series_members))
+            body = body.replace("{{search}}", search_form(lang, "page"))
+            body = body.replace("{{articles}}", cards)
+            if slug != "index" and not meta.get("nav"):  # a nav page brings its own layout
                 members = series_members.get(meta.get("series"), [])
                 body = (f'<article>\n{fox(meta.get("series", ""), 88, "guide")}<h1>{html.escape(meta["title"])}</h1>\n{fiche(lang, meta, pages)}{body}'
                         f'{banner(lang, slug)}{pager(lang, slug, pages, members)}</article>')

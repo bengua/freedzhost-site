@@ -1,0 +1,40 @@
+<!-- {"title": "turnstile: one model per card, and a service that never lies about what's running", "summary": "Several local models, one or two GPUs: config files drift and end up describing a machine that doesn't exist. turnstile stops believing files and observes the machine: one slot at a time per card, a clean queue, five facts verified every ten seconds.", "order": 105, "series": "ai", "level": "intermediate", "time": "30 min", "requires": ["docker-gpu"]} -->
+<p class="lead">On a machine running several local models, everything wants the GPU's memory: the chat model, the code assistant, image generation, a game in the evening. You describe "who gets what" in files, and those files drift — they claim a 27B is loaded when a 3B is answering on the port. turnstile is our answer: a small turnstile gate that decides who gets the card, and says so honestly.</p>
+
+<p class="proof"><strong>What you get.</strong> One model at a time per card, requests queued instead of trampling each other, and a <code>turnstile status</code> that shows what's <em>actually</em> running — container alive, port answering, memory consistent, model identity read from the server's log. Zero dependencies: Python 3, Docker, user systemd, no root.</p>
+
+<h2>1. What turnstile is not</h2>
+<p>It is not a model server. <code>llama.cpp</code> (or another engine) serves models in Docker containers — <strong>one container per slot, named like the slot</strong>. turnstile does exactly three things: load the requested slot (stopping whatever held the card), queue requests during a load, and verify in a loop that reality matches what it claims. That modesty is deliberate: when everything breaks, there is only one place to understand.</p>
+
+<h2>2. Install</h2>
+<p>Requirements: Linux with systemd and Docker, Python 3.10+, an NVIDIA card with <code>nvidia-smi</code> (without a card, turnstile still runs and manages CPU slots only).</p>
+<pre><code>git clone https://github.com/bengua/turnstile
+cd turnstile
+./install.sh</code></pre>
+<p>Everything installs <strong>for the current user</strong>: commands in <code>~/.local/bin</code>, services in <code>~/.config/systemd/user</code>, an example config in <code>~/.config/turnstile/</code>. Nothing starts by itself — you decide when.</p>
+
+<h2>3. Describe your slots</h2>
+<p>One line per slot, in <code>~/.config/turnstile/containers.map</code>:</p>
+<pre><code>name|port|card|weight|arguments</code></pre>
+<p><code>card</code> is an index (<code>0</code>, <code>1</code>…), <code>all</code> for a model spread across cards, or <code>cpu</code>. Start from <code>examples/containers.map</code>, rename your containers to match your slots, and that is all turnstile will ever know about your fleet — the rest, it measures.</p>
+
+<h2>4. First run</h2>
+<pre><code>systemctl --user enable --now turnstiled
+turnstile status        # what's ACTUALLY running, verified facts per slot
+turnstile slots         # what could run
+turnstile coder-c1      # load a slot: already_serving / served / queued</code></pre>
+<p>The first <code>status</code> often surprises: that's when you discover that what was running is not what you believed.</p>
+
+<h2>5. The life-changing habit: the card is <em>asked for</em></h2>
+<p>A game or ComfyUI wants the card? It asks instead of taking:</p>
+<pre><code>turnstile free-c0       # release card 0, cleanly
+turnstile restore       # afterwards: puts back exactly what was running</code></pre>
+<p>No more hand-killed sessions and models that never come back. Here, image renders and game sessions go through this, and the 27B takes its seat back on its own afterwards.</p>
+
+<h2>6. For automation</h2>
+<p>The same thing exists over HTTP on port <code>8130</code>: <code>GET /state</code>, <code>GET /slots</code>, <code>GET /counters</code>, <code>POST /slot</code>. That's what our agents use to request a model instead of guessing. And if you put free-quota providers behind the gateway, the warden that greys out an exhausted model is covered in <a href="/quota-warden.html">quota-warden</a>.</p>
+
+<h2>Pitfalls</h2>
+<p class="note">One container = one slot = one name. If your container is called <code>llama-prod</code> and your slot <code>coder-c1</code>, turnstile won't guess anything: rename the container, not the rule.</p>
+<p class="note">By default the API listens on <code>0.0.0.0</code> — handy so other lab machines can request slots, but restrict it with <code>TURNSTILE_BIND=127.0.0.1</code> if the machine is exposed.</p>
+<p class="note">NVIDIA is tested daily; AMD and Intel are written from documentation, untested. The guardrails (30 switches/hour max, 20s of activity before any automatic switch) are tuned via environment variables with <code>systemctl --user edit turnstiled</code>.</p>
