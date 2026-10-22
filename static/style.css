@@ -418,3 +418,18 @@ body.home .top { position: relative; z-index: 4; }
 @media (max-width: 760px) {
   .hero-anchor-tag { top: auto; bottom: 34%; right: 6%; }
 }
+
+/* Series chips: the tutorials page filters itself, no reload. */
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0 26px; }
+.chip { min-height: 44px; padding: 8px 16px; border: 1px solid rgba(224, 122, 47, .35);
+  border-radius: 999px; background: transparent; color: var(--fg); font: inherit;
+  cursor: pointer; transition: background .25s, border-color .25s, transform .15s; }
+.chip:hover { transform: translateY(-2px); border-color: var(--accent); }
+.chip.on { background: var(--accent); color: #12100e; border-color: var(--accent); }
+.hidden { display: none !important; }
+.cards .meta { display: flex; gap: 10px; margin-top: 8px; font-size: .78rem; color: var(--muted); }
+.cards .meta em { font-style: normal; padding: 2px 8px; border-radius: 999px;
+  background: rgba(224, 122, 47, .12); }
+.cards .meta em.lv-intermediate, .cards .meta em.lv-advanced { background: rgba(224, 122, 47, .25); }
+.cards li a { transition: transform .2s cubic-bezier(.2, .8, .2, 1), border-color .25s; }
+.cards li a:hover { transform: translateY(-3px); border-color: var(--accent); }
