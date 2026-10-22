@@ -1,0 +1,40 @@
+<!-- {"title": "turnstile : un seul modèle sur la carte, et un service qui ne ment jamais sur ce qui tourne", "summary": "Plusieurs modèles locaux, une ou deux cartes : les fichiers de configuration dérivent et finissent par décrire une machine qui n'existe pas. turnstile arrête de croire les fichiers et observe la machine : un slot à la fois par carte, une file propre, cinq faits vérifiés toutes les dix secondes.", "order": 105, "series": "ai", "level": "intermediate", "time": "30 min", "requires": ["docker-gpu"]} -->
+<p class="lead">Sur une machine qui fait tourner plusieurs modèles locaux, tout le monde veut la mémoire de la carte : le modèle de discussion, l'assistant de code, la génération d'images, un jeu le soir. On décrit « qui a droit à quoi » dans des fichiers, et ces fichiers dérivent — ils annoncent un 27B chargé alors qu'un 3B répond sur le port. turnstile est notre réponse : un petit tourniquet qui décide qui a la carte, et qui le dit honnêtement.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Un seul modèle à la fois par carte, les demandes mises en file au lieu de se marcher dessus, et un <code>turnstile status</code> qui affiche ce qui tourne <em>vraiment</em> — conteneur vivant, port qui répond, mémoire cohérente, identité du modèle lue dans le journal du serveur. Zéro dépendance : Python 3, Docker, systemd utilisateur, pas de root.</p>
+
+<h2>1. Ce que turnstile n'est pas</h2>
+<p>Ce n'est pas un serveur de modèles. <code>llama.cpp</code> (ou un autre moteur) sert les modèles dans des conteneurs Docker — <strong>un conteneur par slot, nommé comme le slot</strong>. turnstile se contente de trois gestes : charger le slot demandé (et arrêter celui qui occupait la carte), faire patienter les demandes pendant un chargement, vérifier en boucle que la réalité correspond à ce qu'il annonce. Cette modestie est voulue : le jour où tout tombe, il n'y a qu'un seul endroit à comprendre.</p>
+
+<h2>2. Installation</h2>
+<p>Prérequis : Linux avec systemd et Docker, Python 3.10 ou plus, une carte NVIDIA avec <code>nvidia-smi</code> (sans carte, turnstile démarre quand même et ne gère que des slots CPU).</p>
+<pre><code>git clone https://github.com/bengua/turnstile
+cd turnstile
+./install.sh</code></pre>
+<p>Tout est installé <strong>pour l'utilisateur courant</strong> : les commandes dans <code>~/.local/bin</code>, les services dans <code>~/.config/systemd/user</code>, une configuration d'exemple dans <code>~/.config/turnstile/</code>. Rien ne démarre tout seul — c'est vous qui décidez du moment.</p>
+
+<h2>3. Décrire vos slots</h2>
+<p>Une ligne par slot, dans <code>~/.config/turnstile/containers.map</code> :</p>
+<pre><code>nom|port|carte|poids|arguments</code></pre>
+<p><code>carte</code> vaut un index (<code>0</code>, <code>1</code>…), <code>all</code> pour un modèle réparti sur les cartes, ou <code>cpu</code>. Partez de <code>examples/containers.map</code>, renommez vos conteneurs comme vos slots, et c'est tout ce que turnstile saura jamais de votre parc — le reste, il le mesure.</p>
+
+<h2>4. Premier lancement</h2>
+<pre><code>systemctl --user enable --now turnstiled
+turnstile status        # ce qui tourne VRAIMENT, faits vérifiés par slot
+turnstile slots         # ce qui pourrait tourner
+turnstile coder-c1      # charger un slot : already_serving / served / queued</code></pre>
+<p>Le premier <code>status</code> surprend souvent : c'est le moment où l'on découvre que ce qui tournait n'était pas ce qu'on croyait.</p>
+
+<h2>5. Le geste qui change la vie : la carte se <em>demande</em></h2>
+<p>Un jeu ou ComfyUI veut la carte ? Il la demande au lieu de la prendre :</p>
+<pre><code>turnstile free-c0       # rendre la carte 0, proprement
+turnstile restore       # ensuite : remet exactement ce qui tournait avant</code></pre>
+<p>Fini les sessions tuées à la main et les modèles qui ne reviennent jamais. Chez nous, les rendus d'images et les sessions de jeu passent par là, et le 27B reprend sa place tout seul ensuite.</p>
+
+<h2>6. Pour l'automatisation</h2>
+<p>La même chose existe en HTTP sur le port <code>8130</code> : <code>GET /state</code>, <code>GET /slots</code>, <code>GET /counters</code>, <code>POST /slot</code>. C'est ce que nos agents utilisent pour demander un modèle au lieu de deviner. Et si vous ajoutez des fournisseurs gratuits à quota derrière la passerelle, le garde-fou qui grise un modèle épuisé est raconté dans <a href="/fr/quota-warden.html">quota-warden</a>.</p>
+
+<h2>Pièges</h2>
+<p class="note">Un conteneur = un slot = un nom. Si votre conteneur s'appelle <code>llama-prod</code> et votre slot <code>coder-c1</code>, turnstile ne devinera rien : renommez le conteneur, pas la règle.</p>
+<p class="note">Par défaut l'API écoute sur <code>0.0.0.0</code> — pratique pour que les autres machines du labo demandent des slots, mais restreignez avec <code>TURNSTILE_BIND=127.0.0.1</code> si la machine est exposée.</p>
+<p class="note">NVIDIA est testé au quotidien ; AMD et Intel sont écrits d'après la documentation, pas testés. Les garde-fous (30 bascules/heure max, 20 s d'activité avant toute bascule automatique) se règlent par variables d'environnement via <code>systemctl --user edit turnstiled</code>.</p>

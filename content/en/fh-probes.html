@@ -1,0 +1,31 @@
+<!-- {"title": "fh-probes: measure a node without becoming the cause of what you measure", "summary": "GPU, RAM, memory pressure, model servers: one JSON line per second, read straight from NVML and /proc, without a single subprocess. And fh-history, which lays your runs over the same timeline: \"this run failed\" becomes \"this run failed while memory pressure climbed to 91\".", "order": 98, "series": "homelab", "level": "intermediate", "time": "20 min"} -->
+<p class="lead">Every monitoring setup ends up showing itself: an <code>nvidia-smi</code> every second, <code>docker inspect</code> in a loop, and soon the measurement tool tops the consumer list. fh-probes starts from the opposite principle: the measurement must never appear in what it measures. One JSON line per second, zero subprocesses, and an admission when a round is late instead of catching up in a burst.</p>
+
+<p class="proof"><strong>What you get.</strong> The machine's truth, second by second, in a plain <code>.jsonl</code> file — and with <code>fh-history</code>, the cross-reference that changes everything: "this run failed <em>while memory pressure climbed to 91 and prefill dropped to 20 tokens/s</em>". Python 3.10+, standard library only, user systemd unit included (low priority, 128 MiB memory cap).</p>
+
+<h2>1. Zero subprocesses is the whole point</h2>
+<p>GPUs are read through NVML (<code>libnvidia-ml.so.1</code> via ctypes), everything else comes from <code>/proc</code> and two local HTTP requests (<code>/metrics</code> and <code>/slots</code>, llama.cpp format). No <code>nvidia-smi</code>, no <code>docker inspect</code>, no ssh: spawning a process costs more than the measurement itself. Without a GPU or driver, it still works — the <code>gpu</code> field is simply empty.</p>
+
+<h2>2. Install</h2>
+<pre><code>git clone https://github.com/bengua/fh-probes
+cd fh-probes
+mkdir -p ~/.local/bin ~/.config/systemd/user
+cp fh-probes fh-history ~/.local/bin/
+cp fh-probes.service ~/.config/systemd/user/</code></pre>
+
+<h2>3. First run: three rounds, in the foreground</h2>
+<pre><code>FH_PROBES_ROUNDS=3 ~/.local/bin/fh-probes
+tail -1 ~/.local/state/fh-probes/$(date +%F).jsonl</code></pre>
+<p>Each line is a complete JSON object: GPU (utilization, memory, temperature), RAM, PSI pressure, model-server counters. Cumulative counters are stored <strong>raw</strong> — the derivative is computed at read time, so a server restart doesn't produce a lying spike.</p>
+
+<h2>4. As a continuous service</h2>
+<pre><code>systemctl --user daemon-reload
+systemctl --user enable --now fh-probes</code></pre>
+<p>The included unit runs with low CPU/IO priority and a 128 MiB memory cap: if the machine suffers, the probe steps aside first. Single instance only — a second copy exits immediately, cleanly.</p>
+
+<h2>5. fh-history: cross the machine with your runs</h2>
+<p>The probe alone says what the machine was doing. <code>fh-history</code> lays your executions (agent runs, jobs, benchmarks) on the same timeline, and keeps <strong>the extremes, not the averages</strong> — a run that passed through a pressure dip and a run that died in a spike don't tell the same story. It also flags when two runs overlapped: their machine numbers are then shared, and you need to know that before concluding anything.</p>
+
+<h2>Pitfalls</h2>
+<p class="note">The <code>skipped</code> field is not a bug: a late round is admitted, never caught up in a burst. A catch-up burst would distort precisely the pressure measurements you came for.</p>
+<p class="note">One file per day in <code>~/.local/state/fh-probes/</code> — plan rotation if the machine measures for months (lines are small, but days add up).</p>

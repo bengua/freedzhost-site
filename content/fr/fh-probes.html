@@ -1,0 +1,31 @@
+<!-- {"title": "fh-probes : mesurer un nœud sans devenir la cause de ce qu'on mesure", "summary": "GPU, RAM, pression mémoire, serveurs de modèles : une ligne JSON par seconde, lue directement dans NVML et /proc, sans un seul sous-processus. Et fh-history qui croise la machine avec vos runs : « ce run a échoué » devient « ce run a échoué pendant que la pression mémoire montait à 91 ».", "order": 98, "series": "homelab", "level": "intermediate", "time": "20 min"} -->
+<p class="lead">Toute supervision finit par se faire remarquer : un <code>nvidia-smi</code> par seconde, des <code>docker inspect</code> en boucle, et voilà l'outil de mesure en haut de la liste des consommateurs. fh-probes part du principe inverse : la mesure ne doit jamais apparaître dans ce qu'elle mesure. Une ligne JSON par seconde, zéro sous-processus, et un aveu quand un tour est en retard au lieu de le rattraper en rafale.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> La vérité de la machine, seconde par seconde, dans un simple fichier <code>.jsonl</code> — et avec <code>fh-history</code>, le croisement qui change tout : « ce run a échoué <em>pendant que la pression mémoire montait à 91 et que le prefill tombait à 20 tokens/s</em> ». Python 3.10+, bibliothèque standard uniquement, service systemd utilisateur fourni (priorité basse, plafond mémoire 128 Mio).</p>
+
+<h2>1. Zéro sous-processus, c'est le point entier</h2>
+<p>Les GPU sont lus via NVML (<code>libnvidia-ml.so.1</code> par ctypes), le reste vient de <code>/proc</code> et de deux requêtes HTTP locales (<code>/metrics</code> et <code>/slots</code>, au format llama.cpp). Pas de <code>nvidia-smi</code>, pas de <code>docker inspect</code>, pas de ssh : lancer un processus coûte plus cher que la mesure elle-même. Sans GPU ou sans pilote, ça marche quand même — le champ <code>gpu</code> est simplement vide.</p>
+
+<h2>2. Installation</h2>
+<pre><code>git clone https://github.com/bengua/fh-probes
+cd fh-probes
+mkdir -p ~/.local/bin ~/.config/systemd/user
+cp fh-probes fh-history ~/.local/bin/
+cp fh-probes.service ~/.config/systemd/user/</code></pre>
+
+<h2>3. Premier lancement : trois tours, au premier plan</h2>
+<pre><code>FH_PROBES_ROUNDS=3 ~/.local/bin/fh-probes
+tail -1 ~/.local/state/fh-probes/$(date +%F).jsonl</code></pre>
+<p>Chaque ligne est un objet JSON complet : GPU (utilisation, mémoire, température), RAM, pression PSI, compteurs des serveurs de modèles. Les compteurs cumulatifs sont stockés <strong>bruts</strong> — la dérivée se calcule à la lecture, donc un redémarrage de serveur ne produit pas un pic mensonger.</p>
+
+<h2>4. En service continu</h2>
+<pre><code>systemctl --user daemon-reload
+systemctl --user enable --now fh-probes</code></pre>
+<p>L'unité fournie tourne avec priorité CPU/IO basse et un plafond mémoire de 128 Mio : si la machine souffre, la sonde s'efface d'abord. Une seule instance à la fois — une seconde copie sort aussitôt, proprement.</p>
+
+<h2>5. fh-history : croiser la machine avec vos runs</h2>
+<p>La sonde seule dit ce que la machine faisait. <code>fh-history</code> pose vos exécutions (runs d'agents, jobs, benchs) sur le même axe de temps, et garde <strong>les extrêmes, pas les moyennes</strong> — un run qui passe dans un creux de pression et un run qui meurt dans un pic ne racontent pas la même histoire. Il signale aussi quand deux runs se sont chevauchés : leurs chiffres machine sont alors communs, et il faut le savoir avant de conclure.</p>
+
+<h2>Pièges</h2>
+<p class="note">Le champ <code>skipped</code> n'est pas un bug : un tour en retard est avoué, jamais rattrapé en rafale. Une rafale de rattrapage fausserait précisément les mesures de pression qu'on vient chercher.</p>
+<p class="note">Un fichier par jour dans <code>~/.local/state/fh-probes/</code> — pensez à la rotation si la machine mesure pendant des mois (les lignes sont petites, mais les jours s'additionnent).</p>
