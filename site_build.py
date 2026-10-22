@@ -43,6 +43,7 @@ LANGS = {
            "search_none": "No result.",
            "news": "News", "training": "Training", "hardware_label": "Hardware", "favorites": "Favorites",
            "members": "Members", "soon": "soon",
+           "foot_fox": "Found this useful? Tell us what to measure next.",
            "footer":
            "Content under CC BY-SA 4.0. No trackers, no cookies, no third-party fonts."},
     "fr": {"prefix": "fr/", "name": "Français", "home": "Accueil", "read": "Lire",
@@ -67,6 +68,7 @@ LANGS = {
            "search_none": "Aucun résultat.",
            "news": "Actualités", "training": "Formation", "hardware_label": "Matériel", "favorites": "Coups de cœur",
            "members": "Membres", "soon": "bientôt",
+           "foot_fox": "Utile ? Dites-nous ce qu'il faut mesurer ensuite.",
            "footer":
            "Contenu sous licence CC BY-SA 4.0. Ni traceur, ni cookie, ni police externe."},
 }
@@ -184,6 +186,22 @@ def parcours_html(lang, meta, pages):
             f'<p class="progress-line"><progress value="0" max="{len(meta["steps"])}" hidden></progress> '
             f'<span class="count" hidden></span></p>\n<ol class="track">\n{items}\n</ol>\n</div>\n'
             f'<script defer src="/progress.js"></script>\n')
+
+
+def sprite(name, size, cls="sprite"):
+    """A persona sprite frame (decorative): faded into the page background by CSS."""
+    return (f'<img class="{cls}" src="/media/{name}.webp" alt="" width="{size}" height="{size}" '
+            f'loading="lazy" decoding="async">')
+
+
+def foot_fox(lang):
+    """The fox waves at the end of an article."""
+    return f'<p class="foot-fox">{sprite("fox-salue", 112)}<span>{LANGS[lang]["foot_fox"]}</span></p>\n'
+
+
+def frieze():
+    """Three breathing frames, stepped by CSS on the about page."""
+    return '<div class="frieze" aria-hidden="true">' + "".join(sprite(f"fox-respire-{i}", 224) for i in range(3)) + "</div>\n"
 
 
 FOXES = {"start", "ai", "n8n", "agents", "create", "desk", "homelab"}
@@ -385,6 +403,9 @@ def layout(lang, slug, title, body, description, side="", jsonld=None):
     desc = html.escape(description)
     full = html.escape(title) + " · freedzhost.cloud"
     ld = jsonld_script(jsonld) + "\n" if jsonld else ""
+    page_class = {"index": "home", "about": "about"}.get(slug, "")
+    body_class = f' class="{page_class}"' if page_class else ""
+    peek = '<img class="sprite peek" src="/media/fox-respire-0.webp" alt="" width="120" height="120" loading="lazy" decoding="async">\n' if slug == "index" else ""
     return f"""<!doctype html>
 <html lang="{lang}">
 <head>
@@ -406,10 +427,12 @@ def layout(lang, slug, title, body, description, side="", jsonld=None):
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" href="/media/inari-icon.png">
 <link rel="apple-touch-icon" href="/media/inari-icon-180.png">
+<link rel="preload" href="/fonts/fraunces-600.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/style.css">
 {ld}<script defer src="https://analytics.freedzhost.cloud/script.js" data-website-id="23badf50-b8d2-4487-b2ae-f67ab9fd172d"></script>
 </head>
-<body>
+<body{body_class}>
+<div class="den" aria-hidden="true"></div>
 <header class="top">
   <a class="brand" href="{url(lang, 'index')}">freedzhost<span>.cloud</span></a>
   <nav><a class="menu-btn" href="#menu">☰ {t['menu']}</a>
@@ -421,7 +444,8 @@ def layout(lang, slug, title, body, description, side="", jsonld=None):
 </main>
 <footer><video class="mascot" src="/media/foxbot-coucou.mp4" autoplay loop muted playsinline aria-hidden="true"></video>
 <p>{t['footer']}</p></footer>
-<script defer src="/search.js"></script>
+{peek}<script defer src="/search.js"></script>
+<script defer src="/den.js"></script>
 </body>
 </html>
 """
@@ -503,13 +527,15 @@ def build(out):
             body = body.replace("{{series-cards}}", series_cards_html(lang, series_members))
             body = body.replace("{{search}}", search_form(lang, "page"))
             body = body.replace("{{articles}}", cards)
+            if slug == "index":
+                body = f'<div class="hero-fox">{sprite("fox-salue", 176)}</div>\n' + body
             if meta.get("layout") == "parcours":
                 body = (f'<article class="path-page">\n<h1>{html.escape(meta["title"])}</h1>\n{body}'
                         f'{parcours_html(lang, meta, pages)}</article>')
             elif slug != "index" and not meta.get("nav"):  # a nav page brings its own layout
                 members = series_members.get(meta.get("series"), [])
                 body = (f'<article>\n{fox(meta.get("series", ""), 88, "guide")}<h1>{html.escape(meta["title"])}</h1>\n{fiche(lang, meta, pages)}{body}'
-                        f'{banner(lang, slug)}{pager(lang, slug, pages, members)}</article>')
+                        f'{frieze() if slug == "about" else ""}{foot_fox(lang)}{banner(lang, slug)}{pager(lang, slug, pages, members)}</article>')
             target = out / LANGS[lang]["prefix"] / ("index.html" if slug == "index" else f"{slug}.html")
             target.parent.mkdir(parents=True, exist_ok=True)
             description = LANGS[lang]["description"] if slug == "index" else meta["summary"]
