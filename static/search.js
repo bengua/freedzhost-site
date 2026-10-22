@@ -39,6 +39,8 @@
       });
     }
     input.addEventListener("input", run);
+    var q = onTutos && new URLSearchParams(location.search).get("q");
+    if (q) { input.value = q; run(); }
     form.addEventListener("submit", function (e) { if (onTutos) e.preventDefault(); });
   });
 })();

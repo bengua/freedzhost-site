@@ -52,7 +52,7 @@ def test_tutos_page_lists_every_article(out):
     for home, folder in ((out / "tutos.html", out), (out / "fr" / "tutos.html", out / "fr")):
         text = home.read_text(encoding="utf-8")
         for article in folder.glob("*.html"):
-            if article.name not in ("index.html", "help.html", "tutos.html"):
+            if article.name not in ("index.html", "help.html", "tutos.html") and not article.name.startswith("parcours-"):
                 assert article.name in text, f"{home} misses {article.name}"
 
 
@@ -113,7 +113,7 @@ def test_sitemap_and_feeds_list_every_page(out):
     for feed, folder in ((out / "feed.xml", out), (out / "fr" / "feed.xml", out / "fr")):
         links = {e.text for e in ET.parse(feed).getroot().iter("link")}
         for article in folder.glob("*.html"):
-            if article.name not in ("index.html", "help.html", "tutos.html"):
+            if article.name not in ("index.html", "help.html", "tutos.html") and not article.name.startswith("parcours-"):
                 assert any(link.endswith("/" + article.name) for link in links), (feed, article.name)
 
 
@@ -126,7 +126,7 @@ def test_every_page_has_canonical_and_description(out):
 
 def test_every_article_has_a_level_and_reaches_the_glossary(out):
     for page in pages(out):
-        if page.name in ("index.html", "glossary.html", "help.html", "tutos.html"):
+        if page.name in ("index.html", "glossary.html", "help.html", "tutos.html") or page.name.startswith("parcours-"):
             continue
         text = page.read_text(encoding="utf-8")
         assert 'class="fiche level-' in text, page
@@ -160,3 +160,47 @@ def test_drawer_has_the_new_navigation_tree(out):
         assert "formation.html" in text, home
         assert "materiel.html" in text, home
         assert "coups-de-coeur.html" in text, home
+
+
+def jsonld_blocks(path):
+    import json
+    text = path.read_text(encoding="utf-8")
+    return [json.loads(b) for b in re.findall(r'<script type="application/ld\+json">\n(.*?)\n</script>', text, re.DOTALL)]
+
+
+def test_articles_carry_techarticle_jsonld(out):
+    data = jsonld_blocks(out / "fr" / "docker-gpu.html")[0]
+    assert data["@type"] == "TechArticle" and data["inLanguage"] == "fr"
+    assert data["proficiencyLevel"] == "Beginner" and data["dateModified"] == "2026-10-22"
+    assert data["author"]["name"] == "freedzhost"
+    assert jsonld_blocks(out / "first-model.html")[0]["@type"] == "TechArticle"
+
+
+def test_home_pages_carry_organization_and_website(out):
+    for page in (out / "index.html", out / "fr" / "index.html"):
+        types = {n["@type"] for n in jsonld_blocks(page)[0]["@graph"]}
+        assert types == {"Organization", "WebSite"}
+
+
+def test_revision_line_is_visible(out):
+    assert "Dernière révision :" in (out / "fr" / "turnstile.html").read_text(encoding="utf-8")
+    assert "Last reviewed:" in (out / "turnstile.html").read_text(encoding="utf-8")
+
+
+def test_learning_paths_render_steps_and_are_linked(out):
+    for page, link in ((out / "parcours-model-7b.html", "/docker-gpu.html"),
+                       (out / "fr" / "parcours-model-7b.html", "/fr/docker-gpu.html")):
+        text = page.read_text(encoding="utf-8")
+        assert text.count('<input type="checkbox"') == 4 and f'href="{link}"' in text
+    assert "/parcours-cloud-exit.html" in (out / "index.html").read_text(encoding="utf-8")
+    assert "/fr/parcours-cloud-exit.html" in (out / "fr" / "index.html").read_text(encoding="utf-8")
+
+
+def test_paths_stay_out_of_search_index(out):
+    assert "parcours" not in (out / "search-index.json").read_text(encoding="utf-8")
+
+
+def test_every_diagram_figure_has_a_caption(out):
+    for page in pages(out):
+        for fig in re.findall(r'<figure class="diagram".*?</figure>', page.read_text(encoding="utf-8"), re.DOTALL):
+            assert "<figcaption>" in fig, page

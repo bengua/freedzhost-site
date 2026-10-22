@@ -1,0 +1,24 @@
+<!-- {"title": "About: who writes this, on what machines, and how we measure", "summary": "The real homelab behind the tutorials, how we measure, and what we do not promise.", "order": 120, "series": "start", "level": "read", "time": "5 min", "requires": [], "modified": "2026-10-22"} -->
+<p class="lead">freedzhost.cloud is a lab. We break things, we measure them, and we write down what happened.</p>
+
+<h2>The machines</h2>
+<p>Every figure on this site comes from our own hardware. No other machine is quoted as ours.</p>
+<ul>
+<li><strong>Geekom A7</strong>: our main mini-PC.</li>
+<li><strong>NUC 7 i5</strong>: a slim, old mini-PC that runs all our services. Proof that a homelab does not need new hardware.</li>
+<li><strong>Gamer machine</strong>: an RTX 5080 and an external RTX 4070 Ti SUPER. This is where the local models run.</li>
+<li><strong>Laptop and servers</strong>: an EliteBook workstation, plus mindhub and sentinelle for the services around the models.</li>
+<li><strong>Test machines</strong>: an older-generation Dell laptop and a second NUC 7, kept for trials, experiments and things we expect to break.</li>
+</ul>
+
+<h2>How we measure</h2>
+<p>We measure tokens per second on the real cards, with the real server and the real model file, and we say which ones. We do not extrapolate from another card. For choosing a model we use <code>fh-bench</code>: code judges each answer and the models then work for real (<a href="/model-bench.html">the bench</a>). GPU and memory readings come from <a href="/fh-probes.html">fh-probes</a>.</p>
+<p>When something is not measured, the tutorial says so.</p>
+
+<h2>What we do not promise</h2>
+<ul>
+<li>No dressed-up synthetic benchmarks: a number that only exists in a test harness is not a result.</li>
+<li>No income promises: running this at home saves money on subscriptions, it does not make any.</li>
+<li>Versions move. Each tutorial shows when we last reviewed it, and what we tested it with when that matters. Read that date before you copy a command.</li>
+</ul>
+<p>Questions or corrections: <a href="/help.html">write to us</a>.</p>

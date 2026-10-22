@@ -28,7 +28,8 @@ LANGS = {
            "quick": {"index": "Home", "support": "Support the project", "findings": "Our findings", "workshop": "The workshop", "faq": "FAQ", "inspirations": "Inspirations", "help": "Need help?"},
            "levels": {"read": "Reading", "beginner": "Beginner", "intermediate": "Intermediate", "advanced": "Advanced"},
            "fiche": {"level": "Level", "time": "Estimated time", "before": "Read first", "words": "A word you don't know?",
-                     "glossary": "Glossary"},
+                     "glossary": "Glossary", "reviewed": "Last reviewed:", "tested": "Tested with:"},
+           "about": "About", "learning_paths": "Learning paths", "progress": "done", "step": "Step",
            "series": {"start": "Start here", "ai": "Local AI", "n8n": "Local agentic automation with n8n", "agents": "Your agent stack", "create": "Create with local AI", "desk": "Your Linux workstation", "homelab": "Homelab: replace the subscriptions"},
            "description": "Free tutorials to run your own AI agent swarm and homelab at home: hardware, local models, and the services that replace your subscriptions.",
            "locale": "en_US", "feed": "New articles",
@@ -51,7 +52,8 @@ LANGS = {
            "quick": {"index": "Accueil", "support": "Soutenir le projet", "findings": "Nos constats", "workshop": "L'atelier", "faq": "FAQ", "inspirations": "Inspirations", "help": "Besoin d'aide ?"},
            "levels": {"read": "Lecture", "beginner": "Débutant", "intermediate": "Intermédiaire", "advanced": "Avancé"},
            "fiche": {"level": "Niveau", "time": "Temps estimé", "before": "À lire avant", "words": "Un mot inconnu ?",
-                     "glossary": "Lexique"},
+                     "glossary": "Lexique", "reviewed": "Dernière révision :", "tested": "Testé avec :"},
+           "about": "À propos", "learning_paths": "Parcours", "progress": "faites", "step": "Étape",
            "series": {"start": "Commencer ici", "ai": "IA locale", "n8n": "L'agentique locale avec n8n", "agents": "Votre pile d'agents", "create": "Créer avec l'IA locale", "desk": "Votre poste Linux", "homelab": "Homelab : remplacer les abonnements"},
            "description": "Tutos gratuits pour monter votre essaim d'agents IA et votre homelab à la maison : matériel, modèles locaux, et les services qui remplacent vos abonnements.",
            "locale": "fr_FR", "feed": "Nouveaux articles",
@@ -106,6 +108,7 @@ def fiche(lang, meta, pages):
     if "level" not in meta:
         return ""
     f = LANGS[lang]["fiche"]
+    proof = revision_html(lang, meta)
     parts = [f'<span><b>{f["level"]}</b> {LANGS[lang]["levels"][meta["level"]]}</span>']
     if meta.get("time"):
         parts.append(f'<span><b>{f["time"]}</b> {html.escape(meta["time"])}</span>')
@@ -114,7 +117,73 @@ def fiche(lang, meta, pages):
         links = ", ".join(f'<a href="{url(lang, r)}">{html.escape(pages[r][0]["title"])}</a>' for r in before)
         parts.append(f'<span><b>{f["before"]}</b> {links}</span>')
     parts.append(f'<span>{f["words"]} <a href="{url(lang, "glossary")}">{f["glossary"]}</a></span>')
-    return f'<div class="fiche level-{meta["level"]}">' + "".join(parts) + "</div>\n"
+    return f'<div class="fiche level-{meta["level"]}">' + "".join(parts) + "</div>\n" + proof
+
+
+def revision_html(lang, meta):
+    """Freshness of an article: when it was last reviewed and what it was tested with."""
+    f = LANGS[lang]["fiche"]
+    parts = []
+    if meta.get("modified"):
+        parts.append(f'<span>{f["reviewed"]} <time datetime="{html.escape(meta["modified"])}">{html.escape(meta["modified"])}</time></span>')
+    if meta.get("tested"):
+        parts.append(f'<span>{f["tested"]} {html.escape(meta["tested"])}</span>')
+    return f'<p class="proof revision">{" · ".join(parts)}</p>\n' if parts else ""
+
+
+PROFICIENCY = {"beginner": "Beginner", "intermediate": "Intermediate", "advanced": "Expert"}
+
+
+def jsonld_script(data):
+    """A JSON-LD block; '<' is escaped so the data can never close the script tag."""
+    text = json.dumps(data, ensure_ascii=False, indent=1).replace("<", "\\u003c")
+    return f'<script type="application/ld+json">\n{text}\n</script>'
+
+
+def article_jsonld(lang, slug, meta):
+    """TechArticle for a tutorial; None for pages that are not articles."""
+    if "level" not in meta:
+        return None
+    data = {"@context": "https://schema.org", "@type": "TechArticle", "headline": meta["title"],
+            "description": meta["summary"], "inLanguage": lang, "url": SITE + url(lang, slug),
+            "author": {"@type": "Organization", "name": "freedzhost", "url": SITE}}
+    modified = meta.get("modified") or meta.get("date")
+    if modified:
+        data["dateModified"] = modified
+    if meta["level"] in PROFICIENCY:
+        data["proficiencyLevel"] = PROFICIENCY[meta["level"]]
+    if meta.get("duration"):
+        data["timeRequired"] = meta["duration"]
+    return data
+
+
+def site_jsonld(lang):
+    """Organization and WebSite (with a search action) for the home pages."""
+    search = SITE + url(lang, "tutos") + "?q={search_term_string}"
+    return {"@context": "https://schema.org", "@graph": [
+        {"@type": "Organization", "name": "FreedzHost", "url": "https://freedzhost.cloud",
+         "logo": SITE + "/media/inari-icon.png"},
+        {"@type": "WebSite", "name": "FreedzHost", "url": SITE + url(lang, "index"), "inLanguage": lang,
+         "potentialAction": {"@type": "SearchAction", "target": {"@type": "EntryPoint", "urlTemplate": search},
+                             "query-input": "required name=search_term_string"}}]}
+
+
+def parcours_html(lang, meta, pages):
+    """A learning path: a numbered track of step cards, each with a progress checkbox (see progress.js)."""
+    t = LANGS[lang]
+    missing = [s for s in meta["steps"] if s not in pages]
+    if missing or not 3 <= len(meta["steps"]) <= 7:
+        raise ValueError(f"path {meta['title']!r}: 3 to 7 existing steps required, got {meta['steps']} (missing {missing})")
+    items = "\n".join(
+        f'<li data-step="{html.escape(s)}"><span class="num">{i}</span>'
+        f'<a href="{url(lang, s)}"><strong>{html.escape(pages[s][0]["title"])}</strong>'
+        f'<span>{html.escape(pages[s][0]["summary"])}</span></a>'
+        f'<input type="checkbox" aria-label="{html.escape(t["progress"])}: {html.escape(pages[s][0]["title"])}"></li>'
+        for i, s in enumerate(meta["steps"], 1))
+    return (f'<div class="parcours" data-total="{len(meta["steps"])}">\n'
+            f'<p class="progress-line"><progress value="0" max="{len(meta["steps"])}" hidden></progress> '
+            f'<span class="count" hidden></span></p>\n<ol class="track">\n{items}\n</ol>\n</div>\n'
+            f'<script defer src="/progress.js"></script>\n')
 
 
 FOXES = {"start", "ai", "n8n", "agents", "create", "desk", "homelab"}
@@ -221,6 +290,17 @@ def paths_html(lang):
     return f'<ul class="cards paths">\n{items}\n</ul>'
 
 
+def learning_paths_html(lang, pages):
+    """Cards for the learning paths (pages with layout=parcours), in order."""
+    t = LANGS[lang]
+    slugs = sorted((s for s, (m, _) in pages.items() if m.get("layout") == "parcours"), key=lambda s: pages[s][0]["order"])
+    items = "\n".join(
+        f'<li><a href="{url(lang, s)}"><strong>{html.escape(pages[s][0]["title"])}</strong>'
+        f'<span>{html.escape(pages[s][0]["summary"])}</span>'
+        f'<em>{len(pages[s][0]["steps"])} {html.escape(t["step"].lower())}s</em></a></li>' for s in slugs)
+    return f'<h2>{html.escape(t["learning_paths"])}</h2>\n<ul class="cards learning-paths">\n{items}\n</ul>' if items else ""
+
+
 def series_cards_html(lang, series_members):
     """One card per series, linking to its section of the tutorials page."""
     t = LANGS[lang]
@@ -271,6 +351,7 @@ def drawer(lang, slug, pages, series_members, revue_date=None):
             f'<a class="lang" href="{url(OTHER[lang], slug)}" hreflang="{OTHER[lang]}">{LANGS[OTHER[lang]]["name"]}</a>'
             f'<a href="{url(lang, "support")}">{html.escape(t["support"])}</a>'
             f'<a href="{url(lang, "faq")}">{html.escape(t["quick"]["faq"])}</a>'
+            f'<a href="{url(lang, "about")}"{CURRENT if slug == "about" else ""}>{html.escape(t["about"])}</a>'
             f'</div>'
             f'</nav>')
 
@@ -297,12 +378,13 @@ def url(lang, slug):
     return "/" + LANGS[lang]["prefix"] + page
 
 
-def layout(lang, slug, title, body, description, side=""):
+def layout(lang, slug, title, body, description, side="", jsonld=None):
     t = LANGS[lang]
     other = OTHER[lang]
     here = SITE + url(lang, slug)
     desc = html.escape(description)
     full = html.escape(title) + " · freedzhost.cloud"
+    ld = jsonld_script(jsonld) + "\n" if jsonld else ""
     return f"""<!doctype html>
 <html lang="{lang}">
 <head>
@@ -325,7 +407,7 @@ def layout(lang, slug, title, body, description, side=""):
 <link rel="icon" type="image/png" href="/media/inari-icon.png">
 <link rel="apple-touch-icon" href="/media/inari-icon-180.png">
 <link rel="stylesheet" href="/style.css">
-<script defer src="https://analytics.freedzhost.cloud/script.js" data-website-id="23badf50-b8d2-4487-b2ae-f67ab9fd172d"></script>
+{ld}<script defer src="https://analytics.freedzhost.cloud/script.js" data-website-id="23badf50-b8d2-4487-b2ae-f67ab9fd172d"></script>
 </head>
 <body>
 <header class="top">
@@ -362,7 +444,7 @@ def write_feeds_and_sitemap(out, catalogue):
         encoding="utf-8")
     for lang, pages in catalogue.items():
         t = LANGS[lang]
-        newest = sorted((s for s in pages if s != "index" and not pages[s].get("nav")), key=lambda s: -pages[s]["order"])
+        newest = sorted((s for s in pages if s != "index" and not pages[s].get("nav") and pages[s].get("layout") != "parcours"), key=lambda s: -pages[s]["order"])
         items = "".join(
             f"<item><title>{html.escape(pages[s]['title'])}</title>"
             f"<link>{SITE}{url(lang, s)}</link><guid>{SITE}{url(lang, s)}</guid>"
@@ -391,7 +473,7 @@ def build(out):
         pages = {p.stem: read_page(p) for p in sorted((ROOT / "content" / lang).glob("*.html"))}
         slugs[lang] = set(pages)
         catalogue[lang] = {slug: meta for slug, (meta, _) in pages.items()}
-        articles = sorted((s for s in pages if s != "index" and not pages[s][0].get("nav")), key=lambda s: pages[s][0]["order"])
+        articles = sorted((s for s in pages if s != "index" and not pages[s][0].get("nav") and pages[s][0].get("layout") != "parcours"), key=lambda s: pages[s][0]["order"])
         groups = []
         for key, heading in LANGS[lang]["series"].items():
             members = [a for a in articles if pages[a][0].get("series") == key]
@@ -417,17 +499,22 @@ def build(out):
             body = body.replace("{{materiel-list}}", materiel_list_html(lang, pages))
             body = body.replace("{{coups-de-coeur}}", coups_de_coeur_html(lang, meta))
             body = body.replace("{{paths}}", paths_html(lang))
+            body = body.replace("{{learning-paths}}", learning_paths_html(lang, pages))
             body = body.replace("{{series-cards}}", series_cards_html(lang, series_members))
             body = body.replace("{{search}}", search_form(lang, "page"))
             body = body.replace("{{articles}}", cards)
-            if slug != "index" and not meta.get("nav"):  # a nav page brings its own layout
+            if meta.get("layout") == "parcours":
+                body = (f'<article class="path-page">\n<h1>{html.escape(meta["title"])}</h1>\n{body}'
+                        f'{parcours_html(lang, meta, pages)}</article>')
+            elif slug != "index" and not meta.get("nav"):  # a nav page brings its own layout
                 members = series_members.get(meta.get("series"), [])
                 body = (f'<article>\n{fox(meta.get("series", ""), 88, "guide")}<h1>{html.escape(meta["title"])}</h1>\n{fiche(lang, meta, pages)}{body}'
                         f'{banner(lang, slug)}{pager(lang, slug, pages, members)}</article>')
             target = out / LANGS[lang]["prefix"] / ("index.html" if slug == "index" else f"{slug}.html")
             target.parent.mkdir(parents=True, exist_ok=True)
             description = LANGS[lang]["description"] if slug == "index" else meta["summary"]
-            target.write_text(layout(lang, slug, meta["title"], body, description, drawer(lang, slug, pages, series_members, latest_revue_date)),
+            target.write_text(layout(lang, slug, meta["title"], body, description, drawer(lang, slug, pages, series_members, latest_revue_date),
+                                     site_jsonld(lang) if slug == "index" else article_jsonld(lang, slug, meta)),
                               encoding="utf-8")
     if slugs["en"] != slugs["fr"]:
         raise ValueError(f"pages without translation: {sorted(slugs['en'] ^ slugs['fr'])}")
