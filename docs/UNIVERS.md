@@ -1,8 +1,27 @@
-# Univers FreedzHost Inari — constitution transversale
+# Univers FreedzHost — constitution transversale
 
-Un seul univers visuel et éditorial pour les trois surfaces : **site**
-(freedzhost.cloud), **webapp foxroom**, **APK Inari**. Toute évolution de
-l'une se mesure à cette constitution. Nom de code : « le terrier ».
+Un seul univers visuel et éditorial pour toutes les surfaces et tous les
+projets de l'enseigne **FreedzHost** (freedzhost.cloud). Toute évolution se
+mesure à cette constitution. Nom de code : « le terrier ».
+
+## 0. Architecture de marque
+
+**FreedzHost** est l'enseigne parapluie — le nom du site, de l'activité et
+de la communauté. Elle porte plusieurs projets, dont :
+
+- **Inari** — l'essaim agentique (webapp foxroom, APK, personas). Un projet
+  parmi d'autres, pas le nom du site.
+- **Les tutos** — contenus gratuits en chapitres.
+- **Le campus** — formations en ligne (espace membres).
+- **Les services** — mise en place d'IA en entreprise ou chez les
+  particuliers, selon besoins et ressources matérielles ; conseil.
+- **Les briques open source** — les dépôts publics (turnstile, fh-bench,
+  fh-probes, inframagotchi, purrd, et Inari à sa publication) : on offre
+  toutes les briques, pas le mur. Chaque dépôt renvoie à son tuto et vit
+  sous la même enseigne.
+
+Tous partagent la même constitution visuelle et éditoriale. Inari le renard
+reste la mascotte de l'enseigne entière, pas seulement du projet éponyme.
 
 ## 1. Couleurs
 
@@ -63,7 +82,8 @@ opacité ≤ 0.08. Le fond de la mascotte est toujours le fond de la surface
 ## 6. Iconographie et logo
 
 - Logo : silhouette d'Inari (renard aux sept queues), une seule forme,
-  déclinée en monochrome cream ou copper. Nom public : **FreedzHost Inari**.
+  déclinée en monochrome cream ou copper. Nom public de l'enseigne :
+  **FreedzHost**. « Inari » désigne le projet agentique et la mascotte.
 
 ## 7. Application par surface
 
