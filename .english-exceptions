@@ -9,3 +9,4 @@ docs/CONVENTIONS.md # project conventions written in French
 tools/mockup/mockup.html # French UI mockup for the Inari app, not shipped to the public site
 tools/revue-jour.py # French-language internal tool for drafting the daily briefing
 docs/STRATEGIE.md # internal lab reference notes written in French, same category as docs/CONVENTIONS.md
+docs/UNIVERS.md # transversal design constitution written in French, same category as docs/CONVENTIONS.md
