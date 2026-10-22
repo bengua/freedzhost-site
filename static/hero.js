@@ -70,6 +70,7 @@
   ];
 
   var W = 0, H = 0, DPR = 1;
+  var foxZone = null; // the fox's aura: a third of the embers rise around Inari
   function resize() {
     DPR = Math.min(devicePixelRatio || 1, 2);
     W = hero.clientWidth;
@@ -77,6 +78,8 @@
     canvas.width = Math.round(W * DPR);
     canvas.height = Math.round(H * DPR);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    var cr = canvas.getBoundingClientRect(), fr = svg.getBoundingClientRect();
+    foxZone = { x: fr.left - cr.left - 30, y: fr.top - cr.top - 30, w: fr.width + 60, h: fr.height + 60 };
   }
   resize();
   addEventListener("resize", resize);
@@ -85,8 +88,13 @@
   var COUNT = coarse ? 50 : 150;
   var embers = [];
   function spawn(e, first) {
-    e.x = Math.random() * W;
-    e.y = first ? Math.random() * H : H + 12;
+    if (foxZone && Math.random() < 0.33) {
+      e.x = foxZone.x + Math.random() * foxZone.w;
+      e.y = first ? foxZone.y + Math.random() * foxZone.h : foxZone.y + foxZone.h * (0.5 + Math.random() * 0.5);
+    } else {
+      e.x = Math.random() * W;
+      e.y = first ? Math.random() * H : H + 12;
+    }
     e.vx = 0;
     e.vy = -(0.18 + Math.random() * 0.35);
     e.size = 3 + Math.random() * 9;
