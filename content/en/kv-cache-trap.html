@@ -1,5 +1,6 @@
 <!-- {"title": "Slow for no reason? It is re-reading: the KV cache trap", "summary": "A local model that generates fast but takes ten minutes to answer is not slow: it is reading the prompt badly. One flag made it 21 times slower, silently. How to measure it in two minutes, and the two settings to use instead.", "order": 54, "series": "ai", "level": "intermediate", "time": "20 min", "requires": ["first-model"]} -->
 <p class="lead">Your model writes at 54 tokens per second, the benchmark is happy, and yet a coding agent waits minutes before its first word. The culprit is almost never the model. It is the first phase of every answer, reading the prompt, and one cache setting that quietly breaks it.</p>
+<p class="note"><strong>How these figures were obtained.</strong> Measured on our own machines (see <a href="/about.html">the protocol</a>), usually a single run, with speeds as reported by the server itself; we do not publish raw logs. Treat them as orders of magnitude on this hardware, not as guarantees on yours. Figures from outside are labelled with their source.</p>
 
 <p class="proof"><strong>What you get.</strong> The answer to "why is my local agent so slow" in two minutes of measurement, and a fix of one flag: on our card, a 23,400-token agent prompt went from 18 minutes to 17 seconds.</p>
 

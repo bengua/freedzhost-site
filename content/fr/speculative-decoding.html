@@ -1,5 +1,6 @@
 <!-- {"title": "Le décodage spéculatif (MTP) : jusqu'à deux fois plus vite sur la même carte", "summary": "Une petite tête devine les jetons suivants, le modèle les vérifie en une passe. Les bons réglages, la valeur à mesurer vous-même, le vrai gain en production, et le plantage à surveiller.", "order": 17, "series": "ai", "level": "intermediate", "time": "1 h", "requires": ["first-model"]} -->
 <p class="lead">Un modèle écrit un jeton à la fois, et chaque jeton coûte une passe complète dans le modèle. Le décodage spéculatif devine plusieurs jetons à l'avance avec quelque chose de bon marché, puis les vérifie tous en une seule passe : chaque bonne devinette est un jeton gratuit. Certains modèles récents embarquent leur propre tête de devinette (multi-token prediction, MTP) dans le fichier du modèle.</p>
+<p class="note"><strong>Comment ces chiffres ont été obtenus.</strong> Mesurés sur nos propres machines (voir <a href="/fr/about.html">le protocole</a>), en général en un seul passage, vitesses relevées par le serveur lui-même ; nous ne publions pas les journaux bruts. Ce sont des ordres de grandeur sur ce matériel, pas des garanties sur le vôtre. Les chiffres extérieurs sont accompagnés de leur source.</p>
 
 {{diagram:mtp}}
 

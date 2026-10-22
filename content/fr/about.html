@@ -13,6 +13,14 @@
 
 <h2>Comment nous mesurons</h2>
 <p>Nous mesurons les tokens par seconde sur les vraies cartes, avec le vrai serveur et le vrai fichier de modèle, et nous disons lesquels. Nous n'extrapolons pas depuis une autre carte. Pour choisir un modèle, nous utilisons <code>fh-bench</code> : du code juge chaque réponse, puis les modèles travaillent pour de vrai (<a href="/fr/model-bench.html">le bench</a>). Les mesures GPU et mémoire viennent de <a href="/fr/fh-probes.html">fh-probes</a>.</p>
+<h3>Le protocole, en bref</h3>
+<ul>
+<li><strong>Vitesse</strong> (tokens par seconde) : le chiffre que le serveur llama.cpp rapporte lui-même pour chaque requête (<code>predicted_per_second</code> pour la génération, <code>prompt_per_second</code> pour la lecture du prompt). Nous ne chronométrons pas de l'extérieur.</li>
+<li><strong>Qualité</strong> (<code>fh-bench</code>) : température 0, et chaque réponse est jugée par du code, jamais par un autre modèle : un outil réellement appelé, un JSON qui valide, une réponse qui correspond, un programme dont les tests passent. Le test de long contexte cache une aiguille dans un texte généré, à des tailles croissantes (de 4k à 128k tokens), toujours le même texte.</li>
+<li><strong>Répétitions</strong> : sauf mention contraire dans l'article, un chiffre est une seule exécution sur une seule machine, pas une moyenne. Quand nous avons répété une mesure, l'article dit combien de fois et donne la médiane et l'étendue.</li>
+<li><strong>Versions et dates</strong> : modèles, quantifications et serveurs changent toutes les quelques semaines. La date de relecture en tête d'article est la dernière fois où nous avons revu le texte, pas forcément la date de chaque mesure ; un chiffre n'est valable que pour le matériel et le fichier de modèle cités à côté.</li>
+<li><strong>Chiffres extérieurs</strong> (un papier, un constructeur, une autre équipe) : toujours étiquetés comme tels, avec la source en lien. Sans étiquette, le chiffre est le nôtre.</li>
+</ul>
 <p>Quand une chose n'est pas mesurée, le tuto le dit.</p>
 
 <h2>Ce que nous ne promettons pas</h2>

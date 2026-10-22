@@ -1,5 +1,6 @@
 <!-- {"title": "The context floor: where an agent's tokens really go", "summary": "We measured an agent run token by token. The conversation was 1 % of the bill; the rest was the same 30,939 tokens of instructions and tool descriptions, sent again at every turn. How to measure your own floor, and which levers actually move it.", "order": 55, "series": "agents", "level": "intermediate", "time": "1 h", "requires": ["agent-claude-code"]} -->
 <p class="lead">Everyone tries to save tokens by trimming what the agent reads: shorter files, smaller tool outputs. We measured before cutting. Those savings act on about 1 % of the bill. The other 99 % is a floor you pay at every turn, and you can measure it in five minutes.</p>
+<p class="note"><strong>How these figures were obtained.</strong> Measured on our own machines (see <a href="/about.html">the protocol</a>), usually a single run, with speeds as reported by the server itself; we do not publish raw logs. Treat them as orders of magnitude on this hardware, not as guarantees on yours. Figures from outside are labelled with their source.</p>
 
 <p class="proof"><strong>What you get.</strong> A clear map of where your context goes, a method you can reuse on any agent, and the one lever that counts: on our setup, a single tool server cost 17.6 % of every run, and removing it cost nothing.</p>
 
