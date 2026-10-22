@@ -10,6 +10,12 @@ than "modified fh-suivre".
 ## [Unreleased]
 
 ### Added
+- Every article now carries a Schema.org JSON-LD block: TechArticle with the
+  level as proficiencyLevel, the estimated time as an ISO 8601 timeRequired,
+  and datePublished/dateModified taken from the file's git history; the About
+  page carries AboutPage and the news archive CollectionPage, each naming
+  FreedzHost as author and publisher. `tools/validate-jsonld.py` checks every
+  built page against its source header.
 
 ### Changed
 - The Android console is now called Inari (FreedzHost Inari): articles say

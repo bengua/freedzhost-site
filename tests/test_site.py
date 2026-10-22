@@ -171,11 +171,35 @@ def jsonld_blocks(path):
 
 
 def test_articles_carry_techarticle_jsonld(out):
+    import subprocess
+
+    def git_date(args, path):
+        return subprocess.run(["git", "log", *args, "--format=%cI", "--", path],
+                              capture_output=True, text=True, check=True).stdout.splitlines()[0]
+
     data = jsonld_blocks(out / "fr" / "docker-gpu.html")[0]
     assert data["@type"] == "TechArticle" and data["inLanguage"] == "fr"
-    assert data["proficiencyLevel"] == "Beginner" and data["dateModified"] == "2026-10-22"
-    assert data["author"]["name"] == "freedzhost"
+    assert data["proficiencyLevel"] == "Beginner" and data["timeRequired"] == "PT30M"
+    assert data["dateModified"] == git_date(["-1"], "content/fr/docker-gpu.html")
+    assert data["datePublished"] == git_date(["--reverse"], "content/fr/docker-gpu.html")
+    assert data["author"]["@type"] == "Organization" and data["author"]["name"] == "FreedzHost"
+    assert data["publisher"]["name"] == "FreedzHost"
     assert jsonld_blocks(out / "first-model.html")[0]["@type"] == "TechArticle"
+
+
+def test_non_article_pages_carry_their_own_type(out):
+    assert jsonld_blocks(out / "fr" / "about.html")[0]["@type"] == "AboutPage"
+    assert jsonld_blocks(out / "actualites.html")[0]["@type"] == "CollectionPage"
+    assert jsonld_blocks(out / "tutos.html") == []
+
+
+def test_human_durations_become_iso8601():
+    assert site_build.iso_duration("30 min") == "PT30M"
+    assert site_build.iso_duration("1 h") == "PT1H"
+    assert site_build.iso_duration("1 h 30") == "PT1H30M"
+    assert site_build.iso_duration("1–2 h") == "PT2H"  # a range counts by its upper bound
+    assert site_build.iso_duration("1 h + compilation") == "PT1H"
+    assert site_build.iso_duration("an evening") is None  # fuzzy text carries no duration
 
 
 def test_home_pages_carry_organization_and_website(out):

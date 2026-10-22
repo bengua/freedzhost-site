@@ -12,6 +12,7 @@ import json
 import pathlib
 import re
 import shutil
+import subprocess
 import sys
 
 import diagrams
@@ -142,26 +143,70 @@ def revision_html(lang, meta):
 PROFICIENCY = {"beginner": "Beginner", "intermediate": "Intermediate", "advanced": "Expert"}
 
 
+def iso_duration(text):
+    """ISO 8601 duration from the human "time" field; None when the text is fuzzy."""
+    if not text:
+        return None
+    m = re.fullmatch(r"(\d+)(?:[–-](\d+))?\s*h(?:\s*(\d+))?(?:\s*\+.*)?", text.strip())
+    if m:
+        hours = int(m.group(2) or m.group(1))  # a range counts by its upper bound
+        minutes = int(m.group(3) or 0)
+        return f"PT{hours}H" + (f"{minutes}M" if minutes else "")
+    m = re.fullmatch(r"(\d+)\s*min(?:\s*\+.*)?", text.strip())
+    return f"PT{m.group(1)}M" if m else None
+
+
+def git_file_dates():
+    """For each content file, its (last, first) commit dates in ISO 8601.
+
+    One `git log` pass, newest commit first: the first time a file appears is
+    its last modification, and every later appearance pushes its publication
+    date back. Empty when git cannot answer (a build outside a checkout)."""
+    try:
+        log = subprocess.run(["git", "log", "--format=%cI", "--name-only", "--", "content"],
+                             cwd=ROOT, capture_output=True, text=True, check=True).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return {}
+    dates = {}
+    current = None
+    for line in log.splitlines():
+        if re.match(r"\d{4}-\d{2}-\d{2}T", line):
+            current = line
+        elif line.strip() and current:
+            modified, _ = dates.get(line, (current, current))
+            dates[line] = (modified, current)
+    return dates
+
+
 def jsonld_script(data):
     """A JSON-LD block; '<' is escaped so the data can never close the script tag."""
     text = json.dumps(data, ensure_ascii=False, indent=1).replace("<", "\\u003c")
     return f'<script type="application/ld+json">\n{text}\n</script>'
 
 
-def article_jsonld(lang, slug, meta):
-    """TechArticle for a tutorial; None for pages that are not articles."""
+NON_ARTICLE_TYPES = {"about": "AboutPage", "actualites": "CollectionPage"}
+ORGANIZATION = {"@type": "Organization", "name": "FreedzHost", "url": "https://freedzhost.cloud"}
+
+
+def article_jsonld(lang, slug, meta, dates):
+    """Structured data for a page; None for pages that are not content pages."""
     if "level" not in meta:
         return None
-    data = {"@context": "https://schema.org", "@type": "TechArticle", "headline": meta["title"],
+    kind = NON_ARTICLE_TYPES.get(slug, "TechArticle")
+    data = {"@context": "https://schema.org", "@type": kind, "headline": meta["title"],
             "description": meta["summary"], "inLanguage": lang, "url": SITE + url(lang, slug),
-            "author": {"@type": "Organization", "name": "freedzhost", "url": SITE}}
-    modified = meta.get("modified") or meta.get("date")
+            "author": ORGANIZATION, "publisher": ORGANIZATION}
+    git_modified, git_published = dates.get(f"content/{lang}/{slug}.html", (None, None))
+    if git_published:
+        data["datePublished"] = git_published
+    modified = git_modified or meta.get("modified") or meta.get("date")
     if modified:
         data["dateModified"] = modified
-    if meta["level"] in PROFICIENCY:
+    if kind == "TechArticle" and meta["level"] in PROFICIENCY:
         data["proficiencyLevel"] = PROFICIENCY[meta["level"]]
-    if meta.get("duration"):
-        data["timeRequired"] = meta["duration"]
+    duration = meta.get("duration") or iso_duration(meta.get("time"))
+    if duration:
+        data["timeRequired"] = duration
     return data
 
 
@@ -542,6 +587,7 @@ def build(out):
     if out.exists():
         shutil.rmtree(out)
     shutil.copytree(ROOT / "static", out)
+    dates = git_file_dates()
     revues = load_revue()
     latest_revue = revues[0] if revues else None
     latest_revue_date = latest_revue["date"] if latest_revue else None
@@ -594,7 +640,7 @@ def build(out):
             target.parent.mkdir(parents=True, exist_ok=True)
             description = LANGS[lang]["description"] if slug == "index" else meta["summary"]
             target.write_text(layout(lang, slug, meta["title"], body, description, drawer(lang, slug, pages, series_members, latest_revue_date),
-                                     site_jsonld(lang) if slug == "index" else article_jsonld(lang, slug, meta)),
+                                     site_jsonld(lang) if slug == "index" else article_jsonld(lang, slug, meta, dates)),
                               encoding="utf-8")
     if slugs["en"] != slugs["fr"]:
         raise ValueError(f"pages without translation: {sorted(slugs['en'] ^ slugs['fr'])}")
