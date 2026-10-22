@@ -1,0 +1,40 @@
+<!-- {"title": "SSH pour un poste agentique : instantané, sûr, et quatre pièges", "summary": "Quand des agents lancent des centaines de commandes SSH par jour, les détails comptent. Des connexions partagées qui font passer chaque appel de 300 ms à 12, du texte libre qui ne doit jamais voyager dans une ligne de commande, la bonne façon d'ouvrir une fenêtre sur une autre machine, et le kill qui emporte votre propre shell.", "order": 58, "series": "desk", "level": "intermediate", "time": "30 min", "requires": ["linux-laptop"]} -->
+<p class="lead">Depuis le portable, tout passe par SSH : vers le serveur, la machine de garde, les machines virtuelles. Vous tapez quelques commandes par heure ; un agent en envoie des centaines. À ce rythme, chaque poignée de main lente et chaque erreur de guillemets s'additionnent, et certaines erreurs exécutent du code que vous n'aviez jamais voulu lancer. Quatre réglages et règles, chacun payé une fois.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Des commandes vers vos machines qui répondent en 12 ms environ au lieu de 130 à 340, du texte qui ne peut jamais être exécuté par accident, des fenêtres ouvertes à distance qui n'emportent pas votre jeu en se fermant.</p>
+
+<h2>1. Partager une connexion par machine</h2>
+<pre><code># ~/.ssh/config
+Host serveur
+    HostName serveur.lan
+    ControlMaster auto
+    ControlPath ~/.ssh/cm-%r@%h:%p
+    ControlPersist 10m</code></pre>
+<p>La première connexion ouvre un maître ; les suivantes passent par lui pendant dix minutes. Mesuré ici : premier appel de 130 à 340 ms, les suivants environ 12 ms.</p>
+<p class="note">Mettez-le sur vos alias seulement. Les tunnels de longue durée (autossh) doivent se connecter par adresse, pour ne jamais devenir le maître partagé dont tout le reste dépend.</p>
+
+<h2>2. Le texte libre voyage par l'entrée standard, jamais dans la ligne de commande</h2>
+<p>La commande passée à <code>ssh</code> est relue par le shell distant. Mettez-y le corps d'une demande de fusion ou la sortie d'un agent, et ses backticks et ses <code>$( )</code> sont <strong>exécutés</strong> de l'autre côté. C'est arrivé chez nous : les backticks d'une description de PR ont été lancés comme des commandes. Elles n'existaient pas, par chance.</p>
+<pre><code># non
+ssh serveur "open-pr --body '$CORPS'"
+# oui : le texte sur stdin, un script de l'autre côté construit lui-même les arguments
+printf '%s' "$CORPS" | ssh serveur 'python3 ~/bin/open_pr_stdin.py'</code></pre>
+
+<h2>3. Ouvrir une fenêtre sur une autre machine, proprement</h2>
+<p>Une appli graphique lancée par SSH a besoin de tout l'environnement de la session, relu sur un programme qui tourne déjà dans cette session :</p>
+<pre><code>tr '\0' '\n' &lt; /proc/$(pgrep -u "$USER" -x steam | head -1)/environ \
+  | grep -E '^(WAYLAND_DISPLAY|DISPLAY|XDG_RUNTIME_DIR|DBUS_SESSION_BUS_ADDRESS|XAUTHORITY)='</code></pre>
+<p>Puis lancez-la détachée, avec cet environnement :</p>
+<pre><code>setsid nohup env WAYLAND_DISPLAY=... DISPLAY=... XDG_RUNTIME_DIR=... \
+  DBUS_SESSION_BUS_ADDRESS=... XAUTHORITY=... lutris &gt;/tmp/lutris.log 2&gt;&amp;1 &lt;/dev/null &amp; disown</code></pre>
+<p class="note"><code>XAUTHORITY</code> n'est pas facultatif : sans lui, tout ce qui passe par XWayland (jeux Wine compris) plante au démarrage. Le nom de son fichier change à chaque session : relisez-le, ne le codez jamais en dur.</p>
+<p class="note">N'utilisez pas <code>systemd-run --user --collect</code> pour ça. À la fermeture de l'appli, systemd nettoie tout son groupe de processus : nous y avons perdu un lanceur de jeux, un jeu en cours et un téléchargement de 84 Go à mi-chemin.</p>
+
+<h2>4. Ne jamais tuer par motif de nom</h2>
+<p><code>pkill -f quelquechose</code> attrape tout processus dont la ligne de commande contient « quelquechose ». Par SSH, cela inclut le shell distant qui lance votre commande, et le processus du serveur SSH qui la porte : votre session meurt en plein travail. C'est arrivé deux fois dans la même journée ici ; nous le bloquons désormais mécaniquement dans les crochets de l'agent.</p>
+<pre><code>pgrep -f "[m]on-serveur"      # les crochets : le motif ne correspond plus à sa propre ligne de commande
+kill $(pgrep -f "[m]on-serveur")</code></pre>
+
+<h2>Pièges</h2>
+<p class="note">Un service utilisateur n'a pas <code>~/.local/bin</code> dans son PATH. Donnez des chemins complets dans vos unités.</p>
+<p class="note">Une connexion partagée survit mal à un changement de réseau. Si les commandes se figent après un changement de Wi-Fi, fermez le maître : <code>ssh -O exit serveur</code>.</p>

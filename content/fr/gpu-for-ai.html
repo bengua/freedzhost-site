@@ -1,0 +1,31 @@
+<!-- {"title": "Libérer vos cartes graphiques pour l'IA, et jouer quand même", "summary": "Mettre le bureau sur le GPU intégré, donner chaque octet de VRAM aux modèles, et laisser Steam emprunter une carte seulement le temps de jouer.", "order": 9, "series": "ai", "level": "intermediate", "time": "1 h", "requires": ["first-model"]} -->
+<p class="lead">Une carte graphique qui pilote votre écran garde une partie de sa mémoire pour le bureau, le navigateur, le compositeur. Sur une machine IA, chaque gigaoctet compte. La solution ne coûte rien : laisser le GPU intégré du processeur dessiner le bureau, et garder les cartes NVIDIA pour le calcul. Les jeux tournent toujours sur la grosse carte, par PRIME offload ou par un second câble.</p>
+
+{{diagram:gpu}}
+
+<h2>Ce que fait la nôtre</h2>
+<p>Un processeur Ryzen avec GPU intégré, deux cartes NVIDIA (RTX 5080 et RTX 4070 Ti SUPER). L'écran est branché sur la carte mère. Les deux cartes NVIDIA affichent <code>Display Disabled</code> : leur mémoire ne contient que des modèles.</p>
+<pre><code>nvidia-smi --query-gpu=name,display_active,memory.used --format=csv</code></pre>
+
+<h2>1. Mettre le bureau sur le GPU intégré</h2>
+<ol>
+<li>Dans le firmware (BIOS), gardez le GPU intégré actif même en présence d'une carte. L'option s'appelle souvent <em>iGPU Multi-Monitor</em> ou <em>Integrated Graphics : Force</em>.</li>
+<li>Branchez l'écran sur la sortie de la <strong>carte mère</strong>, pas sur une carte graphique.</li>
+<li>Redémarrez et vérifiez avec la commande ci-dessus : <code>display_active</code> doit valoir <code>Disabled</code> sur chaque carte NVIDIA.</li>
+</ol>
+
+<h2>2. Jouer : deux façons</h2>
+<p><strong>Option A, PRIME render offload.</strong> Le jeu est calculé sur la carte NVIDIA, et ses images sont copiées vers le GPU intégré qui pilote l'écran. Un seul câble, rien à basculer. Dans Steam, clic droit sur le jeu → Propriétés → Options de lancement :</p>
+<pre><code>__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia __VK_LAYER_NV_optimus=NVIDIA_only %command%</code></pre>
+<p>Les deux premières variables envoient OpenGL vers NVIDIA ; la troisième ne laisse voir que les cartes NVIDIA à Vulkan, qu'utilise Proton. Certaines distributions fournissent un raccourci <code>prime-run</code> qui pose les mêmes variables. Avec deux cartes NVIDIA, vous pouvez imposer celle que choisit DXVK : <code>DXVK_FILTER_DEVICE_NAME="RTX 5080"</code>.</p>
+<p><strong>Option B, un second câble.</strong> Branchez aussi la carte NVIDIA sur une seconde entrée du même écran, et changez d'entrée pour jouer. Pas de copie d'images : pleine performance et taux de rafraîchissement variable (VRR), au prix d'un bouton à presser sur l'écran.</p>
+<p class="note">Nous avons pesé les deux : la copie de l'option A coûte quelques images par seconde et peut casser le VRR. Pour les jeux rapides, l'option B ; pour le reste, l'option A est plus simple.</p>
+
+<h2>3. Rendre la carte au jeu, automatiquement</h2>
+<p>Si les modèles remplissent la carte, le jeu n'y tiendra pas. Chez nous, un petit veilleur tourne : toutes les 5 secondes, il cherche le processus <code>reaper</code> de Steam, qui existe exactement pendant qu'un jeu tourne. Quand il apparaît, le veilleur lance un service qui décharge les modèles de la 5080 ; quand il disparaît, le service s'arrête et les modèles reviennent.</p>
+<pre><code>pgrep -x reaper   # nom exact : un motif large attraperait le veilleur lui-même</code></pre>
+
+<h2>Pièges que nous avons payés</h2>
+<p class="note">Un chemin automatique que personne ne surveille casse en silence. Notre veilleur a un jour appelé une commande supprimée quatre jours plus tôt : il échouait à chaque partie, la carte n'était jamais rendue, et personne ne le savait. Versionnez ces scripts, testez-les, et faites-les signaler leurs échecs.</p>
+<p class="note">Souvenez-vous d'où vous venez. Notre première version rechargeait toujours les modèles par défaut après une partie, même quand la carte avait été libérée exprès pour autre chose. Le veilleur mémorise maintenant l'état d'avant et restaure exactement celui-là.</p>
+<p class="note">N'arrêtez jamais un modèle sous un travail en cours pour faire de la place à un jeu : vérifiez d'abord que la carte est au repos.</p>

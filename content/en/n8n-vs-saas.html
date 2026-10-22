@@ -1,0 +1,35 @@
+<!-- {"title": "n8n against Zapier, Make, IFTTT and Power Automate: why self-host your automations", "summary": "The hosted services bill every step and carry your data through their cloud. Self-hosted n8n runs at home, calls your local models, and costs nothing per run. And when the SaaS is still the better choice.", "order": 30, "series": "n8n", "level": "read", "time": "10 min", "requires": []} -->
+<p class="lead">Zapier, Make, IFTTT and Power Automate made automation easy: connect two apps, and something happens by itself. They all share one design: your data goes through their cloud, and you pay by the step. For an agent network that runs every minute and calls models on private data, both are deal-breakers. n8n runs the same kind of workflows at home.</p>
+
+{{diagram:saas}}
+
+<h2>The field</h2>
+<div class="table"><table>
+<tr><th>Tool</th><th>Where it runs</th><th>How you pay</th><th>Licence</th></tr>
+<tr><td>Zapier</td><td>their cloud only</td><td>per task</td><td>proprietary</td></tr>
+<tr><td>Make (ex-Integromat)</td><td>their cloud only</td><td>per operation</td><td>proprietary</td></tr>
+<tr><td>IFTTT</td><td>their cloud only</td><td>subscription tiers</td><td>proprietary</td></tr>
+<tr><td>Power Automate</td><td>Microsoft cloud (plus a Windows desktop agent)</td><td>per user or per flow</td><td>proprietary</td></tr>
+<tr><td><strong>n8n</strong></td><td><strong>your server</strong> (or their cloud)</td><td><strong>self-hosted: nothing per run</strong></td><td>fair-code (source available, Sustainable Use License)</td></tr>
+<tr><td>Node-RED</td><td>your server</td><td>free</td><td>open source (Apache-2.0)</td></tr>
+<tr><td>Activepieces</td><td>your server or theirs</td><td>self-hosted community edition free</td><td>open source core (MIT)</td></tr>
+<tr><td>Windmill</td><td>your server or theirs</td><td>self-hosted free tier</td><td>open source (AGPL)</td></tr>
+<tr><td>Huginn</td><td>your server</td><td>free</td><td>open source (MIT)</td></tr>
+</table></div>
+<p>Prices and plans change often: check the vendors' pages for current numbers. The models of payment above are what matter for an agent network.</p>
+
+<h2>Why n8n for local agents</h2>
+<ul>
+<li><strong>The runs stay home.</strong> Your mail, your files, your home sensors never cross a third party.</li>
+<li><strong>No meter.</strong> A clock that ticks every minute is more than 40,000 runs a month. Billed per step, that is a budget; self-hosted, it is a few hundred MB of RAM.</li>
+<li><strong>Your models.</strong> An HTTP node reaches your local model gateway like any API; nothing forces you towards a hosted AI.</li>
+<li><strong>Your database.</strong> Workflows read and write PostgreSQL directly: events, registries, queues become plain tables you can query.</li>
+<li><strong>Code when you need it.</strong> A Code node runs JavaScript; the workflows themselves are JSON, so they can be generated and versioned (see the third article of this series).</li>
+</ul>
+
+<h2>When the SaaS is still the better choice</h2>
+<p>If you need one of thousands of ready-made connectors to commercial apps, no server to maintain, and someone to call when it breaks, a hosted service does that better. n8n at home means you are the operator: updates, backups, the encryption key. This series is for those who want that control.</p>
+<p class="note">Honesty about n8n's licence: it is free to self-host for your own use, but it is not open source in the strict sense. If that matters to you, Node-RED, Activepieces or Windmill are truly open alternatives; the patterns of this series apply to them too.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://n8n.io/" rel="noopener">n8n, official site</a></li></ul>

@@ -1,0 +1,33 @@
+<!-- {"title": "Un juge 100 % local en deux passes : Tev1 d'abord, Nimble en cas de doute", "summary": "Un modèle de 0,8B répond en un vingtième de seconde ; un 9B est plus lent mais plus sûr. Le code envoie chaque question au petit, garde sa réponse quand il est confiant, et ne réveille le gros que pour le reste. Sur de vrais mails, le duo égale le juge hébergé, sans que rien ne sorte de la maison.", "order": 66, "series": "ai", "level": "intermediate", "time": "45 min", "requires": ["local-judge"]} -->
+<p class="lead">Un petit juge est rapide et honnête sur ses doutes. Un plus gros est plus sûr mais coûte de la mémoire et du temps. Plutôt que choisir, enchaînez-les, et laissez le code décider qui répond. Notre service de juge parle la même API qu'un juge hébergé : les appelants ont changé une adresse et cessé d'envoyer leurs questions dehors.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Des décisions sur vos propres données sans rien envoyer dehors : 0,87 à 0,91 sur 77 vrais mails, contre 0,86 à 0,95 pour le service hébergé. Au repos, la mémoire est vide : chaque modèle se charge à la demande et repart.</p>
+
+<h2>1. Les deux passes, décidées par le code</h2>
+<ol>
+<li>Chaque question part chez le modèle rapide : Tev1, 0,8B, environ 1 Go, 0,05 s par décision sur le processeur.</li>
+<li>Sa réponse est gardée quand sa confiance atteint 0,8. À ce niveau, il ne s'est jamais trompé sur nos mails, et en a tranché 38 % seul.</li>
+<li>Le reste part chez le modèle lent : Nimble, 9B, environ 10 Go, 0,8 s par décision, chargé à la demande et libéré 60 s après, pour qu'une rafale partage un seul chargement.</li>
+<li>Si le modèle lent ne peut pas répondre (sa machine dort), la réponse rapide revient marquée <code>"confirmed": false</code>. L'appelant décide. Rien n'est deviné.</li>
+</ol>
+<p>Chaque réponse dit qui a décidé (<code>decided_by</code>) et si elle est confirmée.</p>
+
+<h2>2. Servir les deux modèles avec Ollama, sur le processeur</h2>
+<pre><code>OLLAMA_HOST=127.0.0.1:11435 OLLAMA_KEEP_ALIVE=0 ollama serve
+fh-judge serve      # http://127.0.0.1:8475/v1/systemone, GET /health
+fh-judge ask &lt; question.json</code></pre>
+<p>Aucune carte graphique en jeu : les cartes restent aux agents et aux images.</p>
+
+<h2>3. Mesuré</h2>
+<table>
+<tr><th>Montage</th><th>Critères lexicaux</th><th>Critères conceptuels</th></tr>
+<tr><td>Tev1 seul, meilleur réglage</td><td>0,87</td><td>0,81</td></tr>
+<tr><td>Nimble seul</td><td>0,91</td><td>0,84</td></tr>
+<tr><td>Tev1 puis Nimble</td><td>0,91</td><td>0,87</td></tr>
+<tr><td>Juge hébergé, pour référence</td><td>0,95</td><td>0,86</td></tr>
+</table>
+<p>Le duo local égale le juge hébergé sur les questions conceptuelles et reste à quatre points sur les lexicales. C'était notre condition avant de laisser un juge lire des documents personnels.</p>
+
+<h2>Pièges</h2>
+<p class="note">La question va dans <code>instructions</code>, pas dans <code>question</code> : le mauvais champ renvoie une erreur 400. Et le petit modèle lit 2 000 jetons au plus : envoyez les faits, pas le fichier.</p>
+<p class="note">Placez le petit juge là où rien ne dort. Le gros peut rester sur la grosse machine ; le petit doit répondre la nuit aussi, pour les automatisations.</p>

@@ -1,0 +1,37 @@
+<!-- {"title": "Homelab 14: automate without a Zapier subscription, with n8n and a decision cascade", "summary": "Workflows that connect your services, and the pattern that keeps them cheap and private: rules first, a small local judge, a hosted model only for public data, you for the rest.", "order": 22, "series": "homelab", "level": "intermediate", "time": "1 h", "requires": ["homelab-proxy"]} -->
+<p class="lead">n8n connects your services with visual workflows: a webhook arrives, a schedule fires, a few nodes later a task is filed, a model is loaded, a notification rings. It replaces Zapier or IFTTT at home. One honest note: n8n is "fair-code", its source is available and free for your own use, but it is not open source in the strict sense. We use it because nothing open matches it yet.</p>
+
+{{diagram:cascade}}
+
+<h2>A bit of history</h2>
+<p>n8n ("nodemation") was started in 2019 in Berlin by Jan Oberhauser, as a self-hostable alternative to automation services such as Zapier and Make. Its licence is "fair-code": the source is open and you may host it for yourself or your company for free, but not resell it as a service. Workflows are drawn as nodes, and any node can be replaced by code when drawing is not enough.</p>
+
+<h2>1. Give it its own small VM</h2>
+<p>n8n runs arbitrary JavaScript and holds the credentials of every service it talks to. Do not put it next to your personal data (photos, papers): a small VM of its own (Homelab 1), with n8n and its PostgreSQL database, version pinned. Ours uses a few hundred MB of RAM.</p>
+<pre><code>N8N_ENCRYPTION_KEY=&lt;a long random value&gt;
+N8N_DIAGNOSTICS_ENABLED=false
+EXECUTIONS_DATA_PRUNE=true
+EXECUTIONS_DATA_MAX_AGE=336        # hours: keep two weeks of runs
+WEBHOOK_URL=https://n8n.yourdomain.tld/</code></pre>
+<p class="note"><code>N8N_ENCRYPTION_KEY</code> encrypts every stored credential. Lose it and they are all unrecoverable. Keep a copy in your password manager (Homelab 3) the day you create it.</p>
+
+<h2>2. The decision cascade</h2>
+<p>The expensive mistake with automation is calling a large model for every small decision. Ours goes down a cascade, and stops at the first step that can settle it:</p>
+<ol>
+<li><strong>Rules</strong>: fixed, deterministic conditions. Many decisions end here, in milliseconds.</li>
+<li><strong>A small local judge</strong>: a model under 1B parameters on the processor, asked a typed question (yes/no, a choice, a score), not a free text.</li>
+<li><strong>A hosted model</strong>, only if the data is public.</li>
+<li><strong>You</strong>, for anything private and still ambiguous: a task in your list (Homelab 13) and a notification (Homelab 10). Nothing leaves home.</li>
+</ol>
+<p>Every decision writes an event (who asked, which step decided), never the content itself: you can audit the cascade without storing private text.</p>
+
+<h2>3. Let it repair, within limits</h2>
+<p>A workflow can fix things by itself, for example reload a model that crashed. Give it limits that come from the action, not from its confidence: a short list of allowed actions, at most three repairs per hour for the same thing, nothing while a game holds the card, and a check after each repair.</p>
+
+<h2>Traps</h2>
+<p class="note">Workflows cannot read environment variables by default (<code>N8N_BLOCK_ENV_ACCESS_IN_NODE</code>). Keep it that way: unblocking it would hand every node the database password and the encryption key. Put secrets in n8n credentials.</p>
+<p class="note">Sign the webhooks that trigger actions (an HMAC header checked in the workflow): a webhook URL alone is a door anyone who finds it can push.</p>
+<p class="note">Restarting n8n can make watchdog workflows raise false alarms (a job seen "silent" during the restart). Warn whoever reads the alerts before you restart.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://n8n.io/" rel="noopener">n8n, official site</a></li><li><a href="https://github.com/n8n-io/n8n" rel="noopener">n8n, official repository and licence</a></li></ul>

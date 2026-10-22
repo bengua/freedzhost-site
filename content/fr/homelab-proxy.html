@@ -1,0 +1,50 @@
+<!-- {"title": "Homelab 2 : une seule entrée HTTPS pour tous vos services", "summary": "Un proxy inverse avec des certificats gratuits : comment ce site même a été mis en ligne, en quinze minutes.", "order": 7, "series": "homelab", "level": "beginner", "time": "1 h", "requires": ["homelab-proxmox"]} -->
+<p class="lead">Chaque service que vous hébergez a besoin d'une adresse et d'un cadenas. Plutôt que d'ouvrir une porte par service, ouvrez-en une : un proxy inverse. Il reçoit chaque visiteur, garde les certificats HTTPS, et passe chaque requête au bon service à l'intérieur de votre réseau. Le nôtre, c'est Nginx Proxy Manager (NPM) : open source, avec une interface web, et il renouvelle seul les certificats Let's Encrypt.</p>
+
+{{diagram:proxy}}
+
+<h2>Un peu d'histoire</h2>
+<p>Igor Sysoev a publié nginx en 2004 pour servir de nombreuses connexions simultanées avec peu de mémoire ; il est devenu l'un des serveurs web les plus utilisés au monde. Let's Encrypt, ouvert au public fin 2015, a rendu les certificats HTTPS gratuits et automatiques. Nginx Proxy Manager emballe les deux dans une interface web : un formulaire par site, et un certificat qui se renouvelle tout seul.</p>
+
+<h2>La preuve que c'est simple</h2>
+<p>Ce site a été mis en ligne exactement ainsi : un conteneur qui sert les pages, une entrée de proxy, un certificat, environ quinze minutes. Une petite VM suffit pour tout un homelab.</p>
+
+<h2>1. Le nom</h2>
+<p>Chez votre registraire de domaine, créez un enregistrement <code>A</code> pour votre domaine et un pour chaque sous-domaine (ou un joker <code>*</code>), qui pointe vers votre adresse IP publique. Vérifiez depuis l'extérieur de votre réseau que le nom répond avant d'aller plus loin.</p>
+
+<h2>2. La box</h2>
+<p>Dans votre box, redirigez les ports <strong>80</strong> et <strong>443</strong> vers la machine qui fait tourner le proxy. Rien d'autre.</p>
+<p class="note">Ne redirigez jamais le port 81 : c'est la page d'administration de NPM. Elle reste joignable depuis votre réseau domestique uniquement.</p>
+
+<h2>3. Le proxy</h2>
+<p>Sur une VM ou un conteneur avec Docker (voir Homelab 1), le fichier compose officiel, version épinglée :</p>
+<pre><code>services:
+  npm:
+    image: jc21/nginx-proxy-manager:2.16.0
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "81:81"
+      - "443:443"
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt</code></pre>
+<pre><code>docker compose up -d</code></pre>
+<p>Ouvrez <code>http://&lt;adresse-du-proxy&gt;:81</code> depuis votre réseau. Un compte administrateur par défaut est créé au premier démarrage (voir la page d'installation de la documentation officielle) : connectez-vous, puis changez tout de suite son e-mail et son mot de passe.</p>
+
+<h2>4. Publier un service</h2>
+<ol>
+<li><strong>Hosts → Proxy Hosts → Add Proxy Host.</strong></li>
+<li>Noms de domaine : <code>votredomaine.tld</code>, <code>www.votredomaine.tld</code>.</li>
+<li>Redirigez vers l'adresse et le port du service sur votre réseau, par exemple <code>192.0.2.10</code> et <code>8000</code>.</li>
+<li>Onglet <strong>SSL</strong> : demandez un nouveau certificat Let's Encrypt, cochez <strong>Force SSL</strong>.</li>
+</ol>
+<p>Enregistrez : Let's Encrypt vérifie par le port 80 que le nom est bien à vous, délivre le certificat, et NPM le renouvelle avant qu'il n'expire.</p>
+
+<h2>Pièges</h2>
+<p class="note">Épinglez une version plutôt que <code>:latest</code> : sinon une mise à jour arrive le jour où vous redémarrez, sans prévenir. Et n'ajoutez jamais <code>privileged: true</code> par habitude : un proxy n'a pas besoin du contrôle total de l'hôte.</p>
+<p class="note">Si les demandes de certificat échouent en boucle, arrêtez de réessayer : Let's Encrypt limite le nombre de certificats identiques par semaine. Corrigez d'abord la cause, en général le port 80 non redirigé ou un nom qui ne répond pas encore.</p>
+<p class="note">Vous testez depuis chez vous et le site ne répond pas ? Certaines box ne savent pas reboucler vers leur propre adresse publique. Testez depuis un téléphone en données mobiles avant de soupçonner le proxy.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://nginx.org/" rel="noopener">nginx</a></li><li><a href="https://nginxproxymanager.com/" rel="noopener">Nginx Proxy Manager</a></li><li><a href="https://letsencrypt.org/" rel="noopener">Let&#x27;s Encrypt</a></li></ul>

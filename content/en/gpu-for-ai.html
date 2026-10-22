@@ -1,0 +1,31 @@
+<!-- {"title": "Free your graphics cards for AI, and still play", "summary": "Put the desktop on the integrated GPU, give every byte of VRAM to the models, and let Steam borrow a card only while you play.", "order": 9, "series": "ai", "level": "intermediate", "time": "1 h", "requires": ["first-model"]} -->
+<p class="lead">A graphics card that drives your screen keeps part of its memory for the desktop, the browser, the compositor. On an AI machine every gigabyte counts. The fix costs nothing: let the processor's integrated GPU draw the desktop, and keep the NVIDIA cards for computing. Games still run on the big card, through PRIME offload or a second cable.</p>
+
+{{diagram:gpu}}
+
+<h2>What ours does</h2>
+<p>A Ryzen processor with an integrated GPU, two NVIDIA cards (RTX 5080 and RTX 4070 Ti SUPER). The screen is plugged into the motherboard. Both NVIDIA cards report <code>Display Disabled</code>: their memory holds models and nothing else.</p>
+<pre><code>nvidia-smi --query-gpu=name,display_active,memory.used --format=csv</code></pre>
+
+<h2>1. Put the desktop on the integrated GPU</h2>
+<ol>
+<li>In the firmware (BIOS), keep the integrated graphics enabled even when a card is present. The option is often called <em>iGPU Multi-Monitor</em> or <em>Integrated Graphics: Force</em>.</li>
+<li>Plug the screen into the <strong>motherboard</strong> output, not into a card.</li>
+<li>Reboot and check with the command above: <code>display_active</code> must say <code>Disabled</code> on every NVIDIA card.</li>
+</ol>
+
+<h2>2. Play: two ways</h2>
+<p><strong>Option A, PRIME render offload.</strong> The game is computed on the NVIDIA card, and its frames are copied to the integrated GPU that drives the screen. One cable, nothing to switch. In Steam, right-click the game → Properties → Launch options:</p>
+<pre><code>__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia __VK_LAYER_NV_optimus=NVIDIA_only %command%</code></pre>
+<p>The first two variables route OpenGL to NVIDIA; the third keeps only NVIDIA cards visible to Vulkan, which Proton uses. Some distributions ship a <code>prime-run</code> helper that sets the same variables. With two NVIDIA cards, you can pin the one DXVK picks: <code>DXVK_FILTER_DEVICE_NAME="RTX 5080"</code>.</p>
+<p><strong>Option B, a second cable.</strong> Also connect the NVIDIA card to a second input of the same screen, and switch input to play. No frame copy, so full performance and variable refresh rate (VRR), at the cost of pressing a button on the screen.</p>
+<p class="note">We weighed both: the copy in option A costs some frames per second and can break VRR. For fast games, option B; for everything else, option A is simpler.</p>
+
+<h2>3. Hand the card to the game, automatically</h2>
+<p>If models fill the card, the game will not fit. Ours runs a small watcher: every 5 seconds it looks for Steam's <code>reaper</code> process, which exists exactly while a game runs. When it appears, the watcher starts a service that unloads the models from the 5080; when it disappears, the service stops and the models come back.</p>
+<pre><code>pgrep -x reaper   # exact process name: a loose pattern would match the watcher itself</code></pre>
+
+<h2>Traps we paid for</h2>
+<p class="note">An automatic path nobody watches breaks silently. Our watcher once called a command that had been removed four days earlier: it failed at every game and the card was never handed over, and nobody knew. Keep such scripts in version control, test them, and make them report failures.</p>
+<p class="note">Remember where you came from. Our first version always reloaded the default models after a game, even when the card had been freed for something else on purpose. The watcher now stores the previous state and restores exactly that.</p>
+<p class="note">Never stop a model under a running job to make room for a game: check that the card is idle first.</p>

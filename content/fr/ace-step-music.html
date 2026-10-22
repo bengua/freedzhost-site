@@ -1,0 +1,30 @@
+<!-- {"title": "ACE-Step : trois minutes de musique en 27 secondes, sur votre propre carte", "summary": "Un modèle de musique libre assez rapide pour devenir un outil : des morceaux entiers à partir de quelques étiquettes de style, la reprise d'un passage, des variations. Comment nous l'utilisons pour une banque d'ambiances, une bande-son de vidéos automatiques, et pourquoi il ne tourne jamais pendant que la musique joue.", "order": 77, "series": "create", "level": "intermediate", "time": "1 h + téléchargements", "requires": ["comfyui-studio"]} -->
+<p class="lead">ACE-Step est un modèle libre qui écrit de la musique à partir d'étiquettes de style et, si vous voulez, de paroles. Sa force, c'est la vitesse : sur notre carte, trois minutes de musique en 27 secondes. Assez rapide pour générer vingt candidats, écouter, et en garder trois. Il sait aussi retravailler un passage sans toucher au reste.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> De la musique libre de droits faite à la maison : des ambiances pour se concentrer, des bandes-son de vidéos, des esquisses de chansons. Sans abonnement, sans envoi en ligne, et une banque de morceaux finis qui joue ensuite sans aucun modèle.</p>
+
+<h2>1. Ce qu'il fait</h2>
+<ul>
+<li><strong>Générer</strong> : un morceau entier à partir d'étiquettes (<code>soft piano and warm pads, meditative, no drums, no vocals</code>).</li>
+<li><strong>Reprendre</strong> : refaire une plage de temps, le reste reste identique.</li>
+<li><strong>Varier</strong> : une variation de l'ensemble, même idée, autre prise.</li>
+</ul>
+<p>Faites-le tourner dans son propre environnement Python : ses versions de PyTorch et de CUDA collent rarement à celles de vos autres outils. Nous l'appelons par un petit pont, le seul endroit qui s'adapte à son interface quand elle change (voir <a href="/fr/fh-seq-music.html">fh-seq</a>).</p>
+
+<h2>2. Trois usages ici</h2>
+<ol>
+<li><strong>Une banque d'ambiances.</strong> Vingt morceaux instrumentaux par style en un appel, écoutés, triés, les meilleurs gardés. <a href="/fr/purrd.html">Purrd</a> les joue ensuite pendant qu'un agent travaille, sans aucun modèle en marche.</li>
+<li><strong>Des bandes-son de vidéos.</strong> Dans notre chaîne vidéo automatique, la musique d'un film de trois minutes prend 27 secondes, à côté de minutes par plan vidéo.</li>
+<li><strong>Des esquisses de chansons</strong>, retravaillées passage par passage.</li>
+</ol>
+
+<h2>3. Générer avant, jouer sans IA</h2>
+<p>Le choix qui structure tout : le modèle ne tourne qu'<em>en amont</em>. Le programme qui joue la musique lit des fichiers, au hasard, avec zéro mémoire graphique et zéro dépendance à un modèle. L'IA fabrique la banque ; rien sur le chemin de lecture n'a besoin d'elle.</p>
+
+<h2>Pièges</h2>
+<p class="note">Prévoyez la place : en WAV stéréo 32 bits à 48 kHz, trois minutes pèsent 69 Mo. Converties en Opus à 128 kbit/s : environ 3 Mo, sans perte audible pour de l'ambiance.</p>
+<p class="note">Sachez sur quelle carte il rend. Nous pensions qu'il ne partageait rien avec nos modèles de langage ; il rendait sur la même carte, et un modèle lancé pendant un rendu est resté sur le processeur une heure après.</p>
+<p class="note">Les étiquettes font le travail. Pour un morceau de « fin de tâche », des mots comme <code>resolving to silence, decaying piano notes</code> ont donné ce que nous voulions ; des étiquettes vagues donnent une musique vague.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/ace-step/ACE-Step" rel="noopener">ACE-Step, official repository</a></li></ul>

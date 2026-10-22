@@ -1,0 +1,29 @@
+<!-- {"title": "Inframagotchi: a cat whose health is your homelab's", "summary": "Monitoring you actually look at. A manga stray cat lives in a window on your desktop: bright-eyed when everything runs, sweating, bandaged, then knocked out as services fail. Real probes underneath, a drawing that only knows one number, all drawn in code.", "order": 62, "series": "desk", "level": "intermediate", "time": "45 min", "requires": ["homelab-ntfy"]} -->
+<p class="lead">Dashboards are honest and nobody opens them. A small creature on the corner of your screen gets looked at fifty times a day. Inframagotchi is a tamagotchi for your infrastructure: a manga stray cat whose health is your lab's health. Fun on the surface, real monitoring underneath.</p>
+
+<p class="proof"><strong>What you get.</strong> A glance tells you how the lab is doing, without opening anything: bright eyes, a sweat drop, a stress vein, a bandage, X-eyes. Open source, drawn entirely in code, no third-party image, on one machine or with the engine on your server and the cat on your laptop.</p>
+
+<h2>1. The cat knows one number</h2>
+<p>The drawing never reads your systems. It receives one value, health from 100 to 0, and a second one, activity, which only sets the tempo of its animation:</p>
+<pre><code>probes → scheduler → health state → render(health, activity)</code></pre>
+<p>A rule keeps it believable: <code>movement = activity × gate(health)</code>. A cat in bad shape does not run around, and everything freezes when it is knocked out. When the engine itself stops answering, a tombstone and a little ghost appear, with the reason: connection lost, timeout, engine down.</p>
+
+<h2>2. Why a native window, not a browser tab</h2>
+<p>A browser cannot read <code>systemctl</code>, a certificate's expiry or a disk's usage. A small local runtime can. Inframagotchi is a Python app that draws through the system's own web view (pywebview), and pushes the health to the cat.</p>
+<pre><code>sudo pacman -S --needed webkit2gtk-4.1 python-gobject python-cairo   # Arch; equivalents elsewhere
+uv venv --system-site-packages     # the environment must see the system's GTK bindings
+uv sync
+uv run python app.py</code></pre>
+
+<h2>3. Engine on the server, cat on the laptop</h2>
+<pre><code>uv run python app.py --serve                          # on the server: engine only
+uv run python app.py --connect http://localhost:8080  # on the laptop, through an SSH tunnel
+uv run python app.py --connect ... --pet --pet-size 180   # frameless, always on top</code></pre>
+<p>Keep the engine bound to the machine itself and reach it by an SSH tunnel: your health data stays off the network. Our launcher checks <code>/health</code> first, starts the tunnel if needed, and says where to look instead of opening an empty window.</p>
+
+<h2>4. A bestiary</h2>
+<p>Five creatures share the same contract: the cat (the hero), a dog that pants, a goldfish whose bowl clouds over, a hamster, a llama that chews with disdain. Each one degrades in its own way, with the manga codes everyone reads: stars, a drop, a vein, eye-bags, a spiral.</p>
+
+<h2>Traps</h2>
+<p class="note">Only one pet at a time: stop the previous one by its PID file, never by searching for its name (see <a href="/ssh-for-agents.html">SSH for an agent workstation</a>).</p>
+<p class="note">Keep it fun or it dies. We tried public-domain artwork: it was ugly and not funny, and was dropped. The rule is drawn in code, original, and the motion carries the joke.</p>

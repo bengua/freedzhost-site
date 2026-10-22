@@ -1,0 +1,27 @@
+<!-- {"title": "Before you start: hardware, honestly", "summary": "What fits on which card, with measured numbers, and what to buy first.", "order": 2, "series": "start", "level": "read", "time": "10 min", "requires": []} -->
+<p class="lead">The question everyone asks first: what do I need? Here is what we measured on our own machine, two 16 GB NVIDIA cards (an RTX 5080 and an RTX 4070 Ti SUPER).</p>
+
+<h2>The rule: video memory decides</h2>
+<p>A model runs fast when it fits entirely in the card's video memory (VRAM). The file size of the model is a good first estimate of what it needs, plus room for the context (the "KV cache") and a margin.</p>
+
+{{diagram:hardware}}
+
+<div class="table"><table>
+<tr><th>Model</th><th>File / VRAM</th><th>Fits on</th></tr>
+<tr><td>Qwen3 8B, Q4_K_M</td><td>5.0 GB file</td><td>an 8 GB card</td></tr>
+<tr><td>A 9B model, Q8, long context</td><td>9.4 GB used, measured</td><td>a 12 GB card</td></tr>
+<tr><td>A 27B model, IQ3_XXS, 64k context</td><td>14.2 GB used, measured</td><td>a 16 GB card, just</td></tr>
+<tr><td>Qwen3.6 35B-A3B (mixture of experts), Q4_K_M</td><td>22.1 GB file</td><td>16 GB card + the experts in system RAM</td></tr>
+</table></div>
+
+<h2>System RAM matters too</h2>
+<p>"Mixture of experts" models only use a small part of their weights for each word, so their experts can live in system RAM while the rest stays on the card. That trades VRAM for RAM: count 20 GB of free RAM for the 35B above.</p>
+
+<h2>What to buy first</h2>
+<ul>
+<li><strong>An NVIDIA card with as much VRAM as you can afford.</strong> VRAM matters more than raw speed. 12 GB is a comfortable start, 16 GB opens the 27B class.</li>
+<li><strong>32 GB of RAM or more</strong> if you want mixture-of-experts models.</li>
+<li><strong>A fast SSD with room</strong>: a few models take 50 to 100 GB.</li>
+<li><strong>Linux.</strong> Everything in this series runs on Linux; it is where the tools are first.</li>
+</ul>
+<p class="note">Prices change every month, so we do not quote them. Compare VRAM per euro, not benchmark scores.</p>

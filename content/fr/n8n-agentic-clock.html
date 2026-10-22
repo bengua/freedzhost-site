@@ -1,0 +1,29 @@
+<!-- {"title": "n8n : une horloge agentique qui remarque ce qui s'est arrêté", "summary": "Chaque tâche déclare sa cadence ; un tick compare chaque minute son dernier signe de vie ; un chien de garde hors de n8n surveille le tick lui-même. Comment un réseau d'agents apprend que quelque chose s'est tu.", "order": 31, "series": "n8n", "level": "advanced", "time": "1 h", "requires": ["homelab-n8n"]} -->
+<p class="lead">Les automatisations échouent en silence. Une sauvegarde qui ne tourne plus, un tri de mails qui a planté, une file d'agents figée : rien ne casse bruyamment, la tâche s'arrête, c'est tout. Un réseau d'agents a besoin d'une horloge qui sait ce qui aurait dû se passer, et le dit quand ce n'est pas arrivé. La nôtre tient en trois petites pièces.</p>
+
+{{diagram:clock}}
+
+<h2>1. Un registre : ce qui doit arriver, et à quelle fréquence</h2>
+<p>Une table PostgreSQL liste chaque tâche avec sa période attendue, une marge, et la gravité d'un raté, par exemple :</p>
+<pre><code>create table clock_registry (
+  job       text primary key,
+  kind      text,      -- 'cadence' ou 'on_demand'
+  period_s  int,       -- intervalle attendu entre deux signes de vie
+  slack_s   int,       -- tolérance avant de compter comme en retard
+  severity  text,      -- 'warning' ou 'critical'
+  note      text
+);</code></pre>
+<p>Mettre une tâche sous surveillance, c'est une ligne, pas un nouveau workflow.</p>
+
+<h2>2. Le tick : une fois par minute, comparer</h2>
+<p>Un workflow déclenché chaque minute lit le registre et le dernier signe de vie de chaque tâche (les statistiques de workflow de n8n lui-même, ou le dernier événement de la tâche), et calcule un état : <em>ok</em>, <em>en retard</em>, <em>bloqué</em>. Il écrit un événement par tâche dans une table d'événements, avec la gravité du registre. Un autre workflow transforme les événements <em>critical</em> en notification sur le téléphone (Homelab 10).</p>
+<p>Deux comptes de base, pas un : le tick lit avec un compte en lecture seule et écrit avec un compte qui ne sait qu'insérer des événements. Un bug dans un nœud Code ne peut pas vider une table qu'il ne peut pas toucher.</p>
+
+<h2>3. Le chien de garde : hors de n8n</h2>
+<p>Si n8n s'arrête, le tick s'arrête avec lui, et rien à l'intérieur de n8n ne peut le signaler. Alors un minuscule script sur <strong>une autre machine</strong> demande toutes les deux minutes l'âge du dernier tick (un webhook qui le renvoie), et envoie lui-même une alerte quand il est trop vieux. Qui surveille le surveillant : quelque chose qui ne dépend pas de lui.</p>
+
+<h2>Pièges que nous avons payés</h2>
+<p class="note">Une tâche qui ne parle que quand quelque chose ne va pas (un contrôle de certificat qui se tait tant que tout va bien) doit être déclarée <code>on_demand</code>, pas sur une cadence. Sinon son silence ressemble à une mort et votre téléphone sonne pour rien.</p>
+<p class="note">« Tourne depuis longtemps » n'est pas « bloqué ». Les workflows qui ne gardent pas leurs exécutions réussies peuvent laisser des lignes marquées en cours. N'appelez une tâche bloquée que si elle a aussi cessé de réussir dans deux fois sa période.</p>
+<p class="note">Lisez les statistiques de workflow de n8n pour les signes de vie, pas la table complète des exécutions : plusieurs workflows ne gardent aucune exécution réussie, et vous concluriez qu'ils ne tournent jamais.</p>
+<p class="note">Redémarrer n8n a fait lever deux fausses alarmes critiques à notre horloge. Prévenez qui lit les alertes avant de le redémarrer.</p>

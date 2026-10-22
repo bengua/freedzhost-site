@@ -1,0 +1,30 @@
+<!-- {"title": "Lent sans raison ? Il relit : le piège du cache KV", "summary": "Un modèle local qui génère vite mais met dix minutes à répondre n'est pas lent : il lit mal le prompt. Un seul réglage l'a rendu 21 fois plus lent, en silence. Comment le mesurer en deux minutes, et les deux réglages à mettre à la place.", "order": 54, "series": "ai", "level": "intermediate", "time": "20 min", "requires": ["first-model"]} -->
+<p class="lead">Votre modèle écrit à 54 jetons par seconde, le banc est content, et pourtant un agent de code attend des minutes avant son premier mot. Le coupable n'est presque jamais le modèle. C'est la première phase de chaque réponse, la lecture du prompt, et un réglage de cache qui la casse sans bruit.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> La réponse à « pourquoi mon agent local est si lent » en deux minutes de mesure, et un correctif d'un seul réglage : sur notre carte, un prompt d'agent de 23 400 jetons est passé de 18 minutes à 17 secondes.</p>
+
+{{diagram:kvtrap}}
+
+<h2>1. Deux vitesses, pas une</h2>
+<p>Un modèle répond en deux phases. D'abord il <strong>lit</strong> tout le prompt (le traitement du prompt, ou prefill), puis il <strong>écrit</strong> la réponse jeton par jeton (la génération). La plupart des bancs et des démos de chat ne mesurent que la seconde. Un agent envoie un long prompt à chaque tour : c'est la première phase que vous attendez.</p>
+
+<h2>2. Mesurer la lecture, sur un long prompt</h2>
+<p>llama.cpp affiche les deux vitesses à la fin de chaque requête. Envoyez un long prompt (quelques milliers de jetons : collez un gros fichier et demandez un résumé), puis lisez le journal du serveur :</p>
+<pre><code>prompt eval time = 5830 ms / 7758 tokens (1330 tokens per second)
+       eval time = 3700 ms /  200 tokens (  54 tokens per second)</code></pre>
+<p>La première ligne, c'est la lecture. Sur une carte récente avec flash attention, attendez des centaines à des milliers de jetons par seconde. Quelques dizaines, c'est un problème.</p>
+
+<h2>3. Le réglage qui casse tout</h2>
+<p>Pour gagner de la mémoire, llama.cpp peut compresser son cache clé/valeur : <code>-ctk</code> pour les clés, <code>-ctv</code> pour les valeurs. Compresser les valeurs en <code>q4_0</code> ressemble à un gain gratuit. Ce n'en est pas un : flash attention se désarme en silence. Le serveur accepte <code>-fa on</code>, ne dit rien dans son journal, même en verbosité maximale, et lit 21 fois plus lentement.</p>
+<p>Le gain était d'environ 33 Ko par jeton au lieu de 50 : 1,8 Go sur une fenêtre de 106k. Payé vingt et une fois le temps de lecture, c'est une mauvaise affaire dans tous les cas.</p>
+<pre><code>llama-server -m modele.gguf -fa on -ctk q8_0 -ctv q8_0   # ceci, et rien de plus bas pour V</code></pre>
+
+<h2>4. Reconnaître la signature</h2>
+<p>Sans flash attention, la lecture ralentit à mesure qu'elle avance : chez nous 212 jetons par seconde sur les 2 048 premiers jetons, puis 82, 51, 37. Une vitesse qui chute avec la position dans le prompt, c'est une attention non optimisée. Une vitesse plate mais basse, c'est autre chose (mémoire, déchargement sur le processeur).</p>
+
+<h2>Pièges</h2>
+<p class="note">L'autre cause de relecture, c'est un cache de prompt coupé. Avec <code>--cache-ram 0</code>, le serveur oublie le début de la conversation et le relit à chaque tour (voir <a href="/fr/big-moe-two-cards.html">le 177B sur deux cartes</a>).</p>
+<p class="note">Claude Code sur un modèle local ? Pour un nom de modèle qu'il ne connaît pas, il suppose une fenêtre de 200 000 jetons et compacte trop tard ; et la compaction automatique ne s'arme qu'au-delà de 100 000. Donnez-lui <code>CLAUDE_CODE_MAX_CONTEXT_TOKENS</code> égal à la vraie fenêtre de votre serveur (voir <a href="/fr/agent-claude-code.html">Claude Code, deux façons</a>).</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://arxiv.org/abs/1706.03762" rel="noopener">Vaswani et al. (2017), Attention Is All You Need</a></li><li><a href="https://github.com/ggml-org/llama.cpp/tree/master/tools/server" rel="noopener">llama.cpp server documentation</a></li></ul>

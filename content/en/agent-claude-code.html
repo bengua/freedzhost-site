@@ -1,0 +1,39 @@
+<!-- {"title": "Claude Code, two ways: on the subscription and on your own models", "summary": "The same agent in two roles: the operations agent on the subscription, with rules and hooks that refuse dangerous commands, and an isolated junior on local models through three environment variables.", "order": 47, "series": "agents", "level": "intermediate", "time": "45 min", "requires": ["model-gateway", "agent-openfox"]} -->
+<p class="lead">Claude Code is Anthropic's coding agent in the terminal. Most people use it one way: with a subscription, on Anthropic's models. It can also run on your own models, as long as something on your side speaks its protocol. We use both: the subscription for operations work, local models for an isolated junior that writes small patches all day.</p>
+
+<p class="proof"><strong>What you get.</strong> The best of both worlds with one program: the frontier model when it matters, your own models for the hundred small patches of the day. Three variables switch between them.</p>
+
+<h2>1. On the subscription: the operations agent</h2>
+<pre><code>npm install -g @anthropic-ai/claude-code
+claude          # first run: sign in with your account</code></pre>
+<p>Give it a rules file at the root of the work folder, <code>CLAUDE.md</code>. It is read at every start. Write there what a newcomer must know: which machine is which, what never to do, how to hand work to the local agents. Keep it short and current: a rule superseded but left in place will be applied with full confidence.</p>
+
+<h2>2. Rules that are enforced, not read</h2>
+<p>A rule written in a file is advice. A hook is a program that Claude Code runs before each command, and that can refuse it. We turned three rules into hooks after each was broken once:</p>
+<ul>
+<li>no kill by name pattern (<code>pkill -f</code>): the pattern also matches the agent's own shell;</li>
+<li>no login password written in a command or a file: secrets go through a pipe from the vault (see <a href="/secrets-pipe.html">secrets by pipe</a>);</li>
+<li>no edit of the distribution's own files, only of your extensions.</li>
+</ul>
+<p class="note">A hook is a small script that reads the planned command as JSON on its input and exits non-zero to refuse it, with a message the agent reads. Twenty lines of Python are enough.</p>
+
+<h2>3. Hooks beyond safety</h2>
+<p>Hooks fire at six moments: session start and end, each prompt you send, each tool about to run, each notification, and the end of each answer. Besides refusing dangerous commands, ours start and stop the music of <a href="/purrd.html">Purrd</a> while the agent works, and declare the agent's state to a console page that plays the sound in the browser. Settings also turn off telemetry and error reporting (<code>DISABLE_TELEMETRY</code>, <code>DISABLE_ERROR_REPORTING</code>).</p>
+
+<h2>4. On your own models: the junior</h2>
+<p>Claude Code speaks the Anthropic Messages API. A gateway such as LiteLLM translates it to your local models. Three variables are enough:</p>
+<pre><code>export ANTHROPIC_BASE_URL=http://your-gateway:4000
+export ANTHROPIC_MODEL=coder-local            # the model name in the gateway
+export ANTHROPIC_SMALL_FAST_MODEL=coder-local # otherwise it asks for a cloud model for small tasks
+claude -p "Fix the failing test in tests/test_parse.py. Change only src/parse.py."</code></pre>
+<p>Before launching, check the model answers on <code>$ANTHROPIC_BASE_URL/v1/messages</code>: an agent started on a card that holds nothing fails after minutes, not seconds.</p>
+
+<h2>5. Isolate the junior</h2>
+<p>A local agent works without you watching. Give it a disposable copy of the repository, a closed list of files, the commit message, and a test to run. It opens a pull request; the CI runs; a human, or the operations agent, reads before merging. Short tasks come back clean; long ones break from fatigue, not difficulty.</p>
+
+<h2>Traps</h2>
+<p class="note">Forget <code>ANTHROPIC_SMALL_FAST_MODEL</code> and the agent sends its small background tasks to a cloud model name the gateway does not know: errors that look like an outage.</p>
+<p class="note">Never paste your subscription credentials into the junior's environment. The two roles share a program, not an identity.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.anthropic.com/en/docs/claude-code/overview" rel="noopener">Claude Code documentation</a></li></ul>

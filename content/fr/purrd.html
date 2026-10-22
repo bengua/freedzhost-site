@@ -1,0 +1,32 @@
+<!-- {"title": "Purrd : de la musique pendant que l'agent travaille, le silence quand il a fini", "summary": "Arrêtez de fixer un terminal. Un petit programme libre joue une musique lo-fi générée pendant qu'une longue tâche tourne ; le retour du silence vous dit qu'elle est finie. Il enveloppe n'importe quelle commande, suit Claude Code par ses crochets, et peut dire une phrase quand l'agent a besoin de vous.", "order": 61, "series": "desk", "level": "beginner", "time": "15 min", "requires": []} -->
+<p class="lead">Vous lancez une compilation ou confiez une tâche à un agent, puis vous regardez le terminal. Ou vous détournez les yeux, vous oubliez, et vous revenez une heure trop tard. Purrd transforme l'attente en son : la musique joue pendant que le travail tourne, et le silence revient quand il s'arrête. Un bip se rate facilement ; la fin d'une musique, non.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Vos oreilles veillent pour vous. Du son, ça travaille ; le silence, c'est fini ; une courte phrase, « l'agent vous attend ». Cinq commandes pour l'installer, licence GPL, ni modèle, ni réseau.</p>
+
+<h2>1. Installer et essayer</h2>
+<pre><code>git clone https://votre-forge/purrd.git &amp;&amp; cd purrd
+uv sync
+uv run purrd demo          # écouter la boucle, Ctrl+C pour arrêter
+uv run purrd make -j8      # de la musique pendant la compilation ; silence = fini</code></pre>
+<p>Il lui faut un lecteur audio système, et il prend celui qui est présent : PipeWire (<code>pw-cat</code>), ALSA (<code>aplay</code>) ou ffmpeg (<code>ffplay</code>).</p>
+
+<h2>2. Envelopper n'importe quelle commande</h2>
+<pre><code>purrd ./long-script.sh               # n'importe quelle commande
+purrd --seed 3 ./run.sh              # une autre graine, une autre mélodie
+purrd --style noir pytest            # classic, chill, drive, noir, minimal</code></pre>
+<p>La musique est générée, pas une playlist : un style choisit ses motifs de batterie, ses riffs de basse et sa gamme, et la graine fait varier la mélodie. Deux sessions ne sonnent jamais pareil, donc elle ne devient jamais un tic qu'on n'entend plus.</p>
+
+<h2>3. Suivre un agent de code</h2>
+<p>Pour Claude Code, purrd tourne en petit démon piloté par les crochets de l'agent : le début d'une tâche lance la musique, la fin l'arrête.</p>
+<pre><code>purrd start     # dans le crochet qui se déclenche quand l'agent se met au travail
+purrd stop      # dans celui qui se déclenche quand il s'arrête</code></pre>
+<p>Des voix, en option, disent de courtes phrases sur quatre événements : début, fini, autorisation demandée, erreur. Elles viennent de packs sonores communautaires au format CESP ; purrd choisit une phrase par la catégorie de l'événement et au hasard, pour que la même ne revienne pas à chaque fois.</p>
+<pre><code>purrd import-pack ~/Téléchargements/peon
+purrd say permission</code></pre>
+
+<h2>4. Vos propres morceaux</h2>
+<p>Vous préférez de la musique toute faite ? Déposez des fichiers audio dans un dossier « banque d'ambiance » et réglez le mélange : <code>purrd bank ratio 0.5</code> joue moitié banque, moitié généré. Une banque vide retombe sans bruit sur le générateur.</p>
+
+<h2>Pièges</h2>
+<p class="note">Le son sort là où tourne purrd. Notre agent tournait sur un serveur sans écran : pendant des jours, purrd a joué pour une pièce vide, et nous pensions que le crochet ne partait pas. Quand vous pilotez l'agent depuis un navigateur, faites <em>déclarer</em> l'état à la page par les crochets, et laissez la page jouer.</p>
+<p class="note">Une page laissée ouverte des heures ne recharge pas son script après un déploiement. Forcez un rechargement avant de chercher un bug.</p>

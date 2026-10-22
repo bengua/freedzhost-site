@@ -1,0 +1,34 @@
+<!-- {"title": "Homelab 11: your files and office suite instead of Google Drive and Docs", "summary": "Nextcloud for files, calendars and contacts, OnlyOffice to edit documents in the browser. The three-party mechanism that explains every setup error.", "order": 19, "series": "homelab", "level": "intermediate", "time": "2 h", "requires": ["homelab-proxy"]} -->
+<p class="lead">Nextcloud keeps your files, syncs them to every device, and adds calendars, contacts and sharing links. Paired with OnlyOffice, it edits Word, Excel and PowerPoint files in the browser, several people at once. It is the heaviest replacement in this series, and the one where understanding the mechanism saves the most time.</p>
+
+{{diagram:office}}
+
+<h2>A bit of history</h2>
+<p>Nextcloud was founded in 2016 by Frank Karlitschek and most of the developers of ownCloud, the project he had started in 2010, after a disagreement over its direction. It covers files, calendars, contacts and more. For documents edited in the browser, it plugs in an office suite such as OnlyOffice, so a spreadsheet opens and saves without leaving your server.</p>
+
+<h2>1. Nextcloud</h2>
+<p>Run the official Nextcloud image with a PostgreSQL database and Redis for caching, pin the major version, and publish it through your HTTPS proxy (Homelab 2). Behind a proxy, tell Nextcloud how it is reached, in <code>config/config.php</code>:</p>
+<pre><code>'trusted_domains' =&gt; ['cloud.yourdomain.tld'],
+'trusted_proxies' =&gt; ['&lt;your proxy's local address&gt;'],
+'overwriteprotocol' =&gt; 'https',</code></pre>
+<p>Without <code>overwriteprotocol</code>, Nextcloud believes it is served over plain HTTP and builds broken links and redirect loops.</p>
+<p>Background jobs: in <strong>Administration → Basic settings</strong>, choose <em>Cron</em>, and run it every five minutes from the host:</p>
+<pre><code>*/5 * * * * docker exec -u www-data nextcloud php -f /var/www/html/cron.php</code></pre>
+
+<h2>2. OnlyOffice</h2>
+<p>Run the OnlyOffice Document Server image, version pinned, with a shared secret so that only your Nextcloud can use it:</p>
+<pre><code>environment:
+  - JWT_ENABLED=true
+  - JWT_SECRET=&lt;a long random value&gt;</code></pre>
+<p>Publish it through the proxy under its own name (for example <code>office.yourdomain.tld</code>). In Nextcloud, install the <strong>ONLYOFFICE</strong> app, then give it the document server's HTTPS address and the same secret.</p>
+
+<h2>Why it fails, and where to look</h2>
+<p>The diagram above is the whole debugging guide. If the editor stays blank, your <strong>browser</strong> cannot reach the document server's address. If the editor opens but the file does not load or save, the <strong>document server</strong> cannot reach Nextcloud's address, or the secrets differ. Check each arrow from the place it starts.</p>
+
+<h2>Traps</h2>
+<p class="note">On its first start, the document server downloads its default plugins from the internet. If that download hangs, the server loops in its initialisation and never becomes healthy. If the first start never ends, look at the plugin manager process first.</p>
+<p class="note">Both services must be HTTPS if the page is HTTPS: a browser refuses to load an HTTP editor inside an HTTPS page, without a clear message.</p>
+<p class="note">Do not test the document server's internal port over HTTPS if it serves plain HTTP behind the proxy: you will get no answer at all and suspect the wrong component.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://nextcloud.com/" rel="noopener">Nextcloud</a></li><li><a href="https://www.onlyoffice.com/" rel="noopener">ONLYOFFICE</a></li></ul>

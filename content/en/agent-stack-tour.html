@@ -1,0 +1,27 @@
+<!-- {"title": "One client, your whole lab: the tour", "summary": "From a single app on your phone or desktop: coding agents on every machine, images and video on your cards, the guard machine's alerts, your workflows and your house. The concept sounds big. Each brick is small, readable, and already running here.", "order": 45, "series": "agents", "level": "read", "time": "10 min", "requires": []} -->
+<p class="lead">Picture this. You are on the sofa. On your phone you open one app. You ask a coding agent to fix a test on the server, you watch it work line by line, you approve its command with a tap. A notification tells you the image render you ordered an hour ago is ready. Another says the guard machine banned an address scanning your proxy. All of it on your hardware, with no monthly bill per token.</p>
+
+{{diagram:wiring}}
+
+<p class="proof"><strong>Proven here, every day.</strong> Not a mock-up: this is the setup this site was built with. Each piece below has its own step-by-step tutorial, with the commands, the numbers we measured and the traps that cost us an evening.</p>
+
+<h2>What one client lets you do</h2>
+<ul>
+<li><strong>Code on every machine.</strong> Open a session with <a href="/agent-openfox.html">OpenFox</a> on any of your machines, follow it live, step in, approve. Long tasks go to <a href="/agent-kimi-code.html">Kimi Code</a>, delicate ones to <a href="/agent-claude-code.html">Claude Code</a>, everyday ones stay local and free.</li>
+<li><strong>Keep the thread.</strong> <a href="/agent-rooms-foxdesk.html">Rooms</a> survive a closed app, a lost signal or a change of screen: start on the laptop, finish on the phone.</li>
+<li><strong>Create.</strong> Images, video shots, 3D objects with <a href="/comfyui-studio.html">ComfyUI</a> on your own cards, ordered by an agent that fills in a tested workflow.</li>
+<li><strong>Watch over the lab.</strong> The guard machine (<a href="/homelab-proxy.html">proxy</a>, <a href="/homelab-fail2ban.html">fail2ban</a>), errors, backups, which model sits on which card: all in one summary, alerts pushed by <a href="/homelab-ntfy.html">ntfy</a>.</li>
+<li><strong>Decide, in one tap.</strong> The local orchestrator reads everything by itself and proposes; nothing acts without your tap on a card (see <a href="/agent-swarmfox.html">SwarmFox</a>).</li>
+</ul>
+
+<h2>Why it stays simple</h2>
+<p>The concept is ambitious; the building blocks are not. Three rules keep it that way:</p>
+<ol>
+<li><strong>Small pieces, one job each.</strong> An API that reads, a controller that keeps conversations, agents that code. Each fits in your head, each can be replaced.</li>
+<li><strong>The model proposes, code decides.</strong> Verdicts, merges and actions are plain programs or your tap, never a model's mood (see <a href="/agent-bmad.html">BMAD with small models</a>).</li>
+<li><strong>One gateway to every model.</strong> Change the model, the card or the vendor; nothing else moves (see <a href="/model-gateway.html">the model gateway</a>).</li>
+</ol>
+
+<h2>Where to start</h2>
+<p>You do not build it in one go. Start with the <a href="/model-gateway.html">gateway</a> and <a href="/agent-openfox.html">OpenFox</a>: one evening, and you already have a local coding agent. Every next tutorial adds one brick that works on its own.</p>
+<p class="note">Want it set up for you, or adapted to your own lab? <a href="/help.html">Get in touch</a>.</p>

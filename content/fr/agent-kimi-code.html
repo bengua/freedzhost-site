@@ -1,0 +1,37 @@
+<!-- {"title": "Kimi Code : les tâches longues, sur un serveur, depuis partout", "summary": "Un second agent hébergé avec un contexte d'un million de jetons, laissé tourner sur le serveur dans un multiplexeur de terminal et atteint depuis le portable ou le téléphone. Plus les deux pièges qui nous ont coûté une soirée : la limite de taille de la liste d'outils et une reprise liée au dossier.", "order": 48, "series": "agents", "level": "intermediate", "time": "30 min", "requires": ["agent-claude-code"]} -->
+<p class="lead">Kimi Code est l'agent de code de Moonshot, sur son propre abonnement, avec un contexte d'un million de jetons. Nous lui confions ce qui est long plutôt que difficile : lire un dépôt entier, une migration sur de nombreux fichiers, une tâche sur laquelle l'agent d'exploitation dépenserait son quota. Avoir deux agents hébergés, c'est aussi en garder un quand l'autre a épuisé son quota.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Un second cerveau pour les gros chantiers : un dépôt entier dans son contexte, une session qui continue quand vous fermez le portable, et que vous reprenez depuis le téléphone.</p>
+
+<h2>1. L'installer sur le serveur, pas sur le portable</h2>
+<pre><code>npm install -g @moonshot-ai/kimi-code
+kimi            # premier lancement : connexion au fournisseur géré</code></pre>
+<p>Lancez-le dans un multiplexeur de terminal sur la machine qui porte les dépôts, pour que la session survive au portable fermé :</p>
+<pre><code>tmux new -s kimi 'kimi'              # sur le serveur, une fois
+ssh -t serveur tmux attach -t kimi   # depuis le portable, à tout moment</code></pre>
+<p>Un alias d'une ligne sur le portable en fait un seul mot. Depuis un téléphone, la même commande marche dans n'importe quelle appli SSH, par votre réseau privé.</p>
+
+<h2>2. Trois entrées : terminal, web, contrôle à distance</h2>
+<ul>
+<li><strong>Le terminal</strong> : la session dans tmux ci-dessus, attachée de partout.</li>
+<li><strong>L'interface web</strong> : <code>kimi web --host &lt;adresse privée&gt; --port &lt;port&gt; --no-open</code> en service utilisateur, joignable par le seul réseau privé.</li>
+<li><strong>Le contrôle à distance</strong> : <code>kimi rc --no-open</code> permet de suivre et de piloter une session depuis un autre appareil.</li>
+</ul>
+<p>L'abonnement propose plusieurs modèles ; le nôtre liste un modèle de code, une variante plus rapide, et un modèle à long contexte de 256k jetons. Prenez le rapide pour les petites modifications, le long pour lire toute une base de code.</p>
+
+<h2>3. Votre abonnement derrière la passerelle</h2>
+<p>C'est Kimi Code lui-même qui nous a câblé celui-ci : un petit pont, environ 180 lignes de Python sans dépendance, qui permet à chaque outil du labo d'utiliser l'abonnement Kimi par la <a href="/fr/model-gateway.html">passerelle de modèles</a>, comme n'importe quel autre modèle.</p>
+<ul>
+<li>Il n'écoute que sur la machine elle-même, et parle le format OpenAI (liste des modèles, discussion, flux) qu'attend la passerelle.</li>
+<li>Il <strong>réutilise la connexion du client officiel</strong> : il lit le même fichier d'identifiants au lieu de copier le jeton.</li>
+<li>Il rafraîchit le jeton quelques minutes avant son expiration, le réécrit de façon atomique dans ce même fichier, et relit le fichier dès que le client officiel l'a modifié. Les deux partagent une seule connexion, donc aucun n'invalide l'autre.</li>
+<li>Il n'affiche jamais un jeton, pas même dans son propre journal.</li>
+</ul>
+<p class="note">Lisez les conditions de votre abonnement avant d'en faire autant : les fournisseurs diffèrent sur l'usage permis de leurs abonnements de code. Celui de Kimi est fait pour les agents de code ; si votre fournisseur propose une clé d'API officielle pour son offre, préférez-la.</p>
+
+<h2>4. Dans un bac à sable quand il travaille seul</h2>
+<p>Quand une file confie une tâche à Kimi sans que vous regardiez (voir <a href="/fr/hybrid-escalation.html">l'hybride par escalade</a>), faites-le tourner dans un bac à sable comme <code>bwrap</code> : le dépôt en lecture-écriture, le reste du système en lecture seule, aucun accès à vos clés. Il ne peut pas casser ce qu'il ne voit pas.</p>
+
+<h2>Pièges</h2>
+<p class="note">La liste d'outils a une limite de taille côté fournisseur. Avec un serveur d'outils qui exposait 170 outils, chaque requête revenait en <code>400 schema exceeds maximum allowed size</code>, ce qui ressemblait à « modèle injoignable ». Exposez moins d'outils, ou découpez le serveur.</p>
+<p class="note"><code>kimi --continue</code> reprend la dernière session du dossier courant. Lancé depuis un autre dossier, il ouvre une session neuve et vide, et vous croyez l'historique perdu. Reprenez toujours depuis le dossier où le travail a commencé.</p>

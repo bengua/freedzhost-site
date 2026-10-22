@@ -1,0 +1,45 @@
+<!-- {"title": "fh-tools : quatorze outils déterministes pour les agents de code", "summary": "Chacun répond à une question par un fait, toujours de la même façon : ce correctif s'applique-t-il, quelles lignes ajoutées aucun test n'exerce, ce texte contient-il un identifiant secret, avons-nous déjà vu cette panne. Du JSON en entrée, du JSON en sortie, des codes de sortie qui ont un sens, et un vérificateur qui rejoue chaque cas trois fois.", "order": 90, "series": "agents", "level": "intermediate", "time": "1 h", "requires": ["deterministic-doctrine"]} -->
+<p class="lead">fh-tools, c'est là où la <a href="/fr/deterministic-doctrine.html">doctrine déterministe</a> devient concrète : quatorze petits outils que les agents de code appellent au lieu de deviner. Chacun répond à une question, chacun y répond pareil à chaque fois, et chacun dit clairement s'il a rendu un verdict ou buté sur un problème technique.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Des faits à la demande pour vos agents, dans le langage que vous aimez pour écrire des outils, sans serveur ni environnement partagé, et un vérificateur de conformité qui refuse tout outil dont la sortie varie.</p>
+
+<h2>1. Les quatorze outils</h2>
+<table>
+<tr><th>Outil</th><th>Répond à</th></tr>
+<tr><td>fh-toolgate</td><td>ce dépôt respecte-t-il le contrat des outils ?</td></tr>
+<tr><td>fh-envlint</td><td><code>.env</code> et <code>.env.example</code> sont-ils d'accord ?</td></tr>
+<tr><td>fh-testgap</td><td>quelles lignes ajoutées aucun test n'exerce ?</td></tr>
+<tr><td>fh-edit-apply</td><td>appliquer ce correctif à ce contenu</td></tr>
+<tr><td>fh-edit-diagnose</td><td>pourquoi ce correctif ne s'est-il pas appliqué ?</td></tr>
+<tr><td>fh-bench-score</td><td>ce changement est-il une amélioration ?</td></tr>
+<tr><td>fh-repomap</td><td>à quoi ressemble ce dépôt ?</td></tr>
+<tr><td>fh-secret-scan</td><td>ce texte contient-il un identifiant secret ?</td></tr>
+<tr><td>fh-changelog</td><td>qu'est-ce qui a changé sur cette plage ?</td></tr>
+<tr><td>fh-deps</td><td>cet ensemble de dépendances est-il reproductible ?</td></tr>
+<tr><td>fh-trace-query</td><td>avons-nous déjà vu cette panne ?</td></tr>
+<tr><td>fh-pr</td><td>que dit cette demande de fusion ?</td></tr>
+<tr><td>fh-story-lint</td><td>ce découpage en stories est-il conforme ?</td></tr>
+<tr><td>fh-spec-lint</td><td>cette spécification énonce-t-elle un contrat ?</td></tr>
+</table>
+
+<h2>2. Le contrat</h2>
+<p><strong>Un outil est un exécutable qui lit un objet JSON sur l'entrée standard et écrit un objet JSON sur la sortie standard.</strong> Pas une bibliothèque, pas un serveur, pas un greffon. N'importe quel langage convient ; il n'y a ni port ni démon ; et le déterminisme se teste de l'extérieur : rejouer l'entrée, comparer les octets.</p>
+<p>Chaque outil porte un <code>tool.json</code> : nom, version, une description de 120 caractères au plus (elle se trouve dans le contexte du modèle à chaque tour où l'outil est chargé), point d'entrée, schémas d'entrée et de sortie, codes de sortie, programmes système requis, <code>deterministic: true</code>, et un coût de contexte estimé.</p>
+<table>
+<tr><th>Code de sortie</th><th>Sens</th></tr>
+<tr><td>0</td><td>succès</td></tr>
+<tr><td>1</td><td>une réponse valide avec un verdict négatif</td></tr>
+<tr><td>2</td><td>refus : l'opération n'est pas permise</td></tr>
+<tr><td>3 et plus</td><td>erreur technique, <strong>jamais</strong> un verdict</td></tr>
+</table>
+<p class="note">La différence entre 1 et 3 porte toute la charge. Un vérificateur absent du PATH a un jour produit un rouge qui ressemblait à un défaut du code, et coûté une journée de fausse piste.</p>
+
+<h2>3. La conformité : trois rejeux, des octets identiques</h2>
+<pre><code>echo '{"repo": "fh-tools/fh-envlint"}' | python3 fh-tools/fh-toolgate/src/fh_tool_verify.py</code></pre>
+<p>Le vérificateur lit le manifeste, lance le point d'entrée, et rejoue chaque cas déclaré trois fois en exigeant une sortie identique à l'octet près. Un outil dont la sortie varie ne part pas. Un petit lanceur, <code>fh-tool &lt;nom&gt;</code>, exécute n'importe quel outil d'après son manifeste pour que les appelants n'aient jamais à gérer des chemins, et un serveur d'outils les expose à n'importe quel agent.</p>
+
+<h2>4. La paire d'édition, séparée exprès</h2>
+<p><code>fh-edit-apply</code> applique un correctif ; <code>fh-edit-diagnose</code> explique pourquoi l'un ne s'est pas appliqué. C'est le second qui a de la valeur : ce qui revient après une modification ratée décide si le modèle répare son travail ou recommence de zéro.</p>
+
+<h2>Pièges</h2>
+<p class="note">Un exécutant qui appelle un modèle n'est pas un outil, même s'il vit dans le même dépôt. Le nôtre le dit ; il produit des runs bruts, et un vrai outil les note, si bien que chacun peut renoter des runs publiés sans posséder le matériel.</p>

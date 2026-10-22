@@ -1,0 +1,42 @@
+<!-- {"title": "Let an agent see and drive your desktop, under your eyes", "summary": "Some tasks have no command line: a settings page, a checkbox, a form. An agent that takes screenshots and moves the mouse can do them while you watch. Two open-source tool servers, four constants that make it work, and a referee that says whether a click actually did something.", "order": 59, "series": "agents", "level": "advanced", "time": "1 h", "requires": ["agent-claude-code"]} -->
+<p class="lead">Agents are good with commands and files. But changing a password in a web interface with no API, ticking a box in an admin page, filling a form: those needed you at the keyboard. With a tool server that captures the screen and drives mouse and keyboard, the agent does them, and you only watch.</p>
+
+<p class="proof"><strong>What you get.</strong> The last manual chores handed over: password changes and settings in web apps that offer no command line, the agent clicking, you supervising. Plus the four constants without which it fails silently.</p>
+
+<h2>1. One tool server per desktop</h2>
+<table>
+<tr><th></th><th>wlroots desktop (Hyprland, Sway)</th><th>GNOME</th></tr>
+<tr><td>Tool server</td><td>wayland-mcp</td><td>screen-mcp</td></tr>
+<tr><td>Capture</td><td><code>grim</code></td><td>PipeWire</td></tr>
+<tr><td>Keyboard and mouse</td><td><code>wtype</code> + <code>ydotool</code></td><td>the RemoteDesktop portal</td></tr>
+</table>
+<p>This is not a matter of taste: <code>grim</code> captures nothing under GNOME. Register both under the same name on their own machine, so the agent's instructions stay identical.</p>
+<pre><code>uvx --from wayland-mcp-kurojs wayland-mcp     # on the Hyprland laptop</code></pre>
+
+<h2>2. Two conditions to switch it on</h2>
+<ul>
+<li><strong><code>/dev/uinput</code></strong> belongs to root. Add a udev rule giving it to the <code>input</code> group, put your account in that group, and <strong>log out and back in</strong>: the group only applies to a new session. Before that, <code>ydotoold</code> stays "activating" forever.</li>
+<li><strong>GNOME asks for consent</strong> through its portal on first use, on the machine's own screen. Approve it once; the token is kept.</li>
+</ul>
+<p class="note">Run <code>ydotoold</code> as a user service, not a system one. It can type into any open window, including a root terminal: keep it inside your session at least.</p>
+
+<h2>3. The four constants</h2>
+<p>Without them, nothing works and nothing says so. Clicks land in a corner, a field empties, a button stays silent.</p>
+<ol>
+<li><strong>The mouse grid is not the screen.</strong> On our laptop, <code>ydotool mousemove --absolute</code> works on a grid of 768×432 for a 1920×1080 screen scaled at 125 %: send the pixel read on the capture × 0.4. Check with the compositor's cursor position after a move (<code>hyprctl cursorpos</code>): it is the only proof.</li>
+<li><strong>Typed text loses characters.</strong> <code>outlook.com</code> became <code>outloocom</code>, and the <code>=</code> of a link vanished. Put everything through the clipboard (<code>wl-copy</code>, then Ctrl+V), links and passwords alike.</li>
+<li><strong>Escape leaves full screen.</strong> To close a dialog, click its button.</li>
+<li><strong>Focus is lost when you type elsewhere.</strong> Check which window has the focus before each burst of keys, and compute positions from the window list, never hard-coded.</li>
+</ol>
+
+<h2>4. A referee for each gesture</h2>
+<p>A model looking at a screenshot will happily say "done". We added a tiny tool that compares the capture before and after a gesture and returns a fact:</p>
+<ul>
+<li><strong>NO_OP</strong>: nothing moved, the gesture missed;</li>
+<li><strong>CONFIRMED</strong>: a small, local change, the signature of an interface that reacted;</li>
+<li><strong>DIVERGED</strong>: almost everything changed, another window took over.</li>
+</ul>
+<p class="note">Read the window title before taking a picture. It is text, it costs nothing, and a title like "My orders" proves a login as well as a 200 KB image.</p>
+
+<h2>Traps</h2>
+<p class="note">Stay in the room. An agent with your keyboard can type in any window: supervise each session, and never leave it running alone on a desktop where a root terminal is open.</p>

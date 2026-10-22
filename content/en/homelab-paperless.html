@@ -1,0 +1,31 @@
+<!-- {"title": "Homelab 12: every paper you own, scanned, read and searchable with Paperless-ngx", "summary": "Drop a scan or a photo in a folder; it is read, tagged and filed. Search a word on any invoice of the last ten years.", "order": 20, "series": "homelab", "level": "intermediate", "time": "1 h", "requires": ["homelab-proxy", "homelab-backups"]} -->
+<p class="lead">Paperless-ngx turns paper into a searchable archive. A scan, a phone photo, an Office file or an e-mail lands in a folder; Paperless reads it with OCR, guesses the correspondent and the type, tags it, and files it. Then a search for a word finds it on any page of any document, years later.</p>
+
+{{diagram:paper}}
+
+<h2>A bit of history</h2>
+<p>Paperless started in 2015 as one developer's way to scan, OCR and forget his paper mail. The community carried it through two forks, paperless-ng and then paperless-ngx in 2022, adding machine-learning classification: documents file themselves by correspondent, type and tag once it has seen a few examples.</p>
+
+<h2>1. Run it</h2>
+<p>The project publishes Docker Compose files: Paperless with PostgreSQL and Redis, and a variant with Tika and Gotenberg to read Office documents and e-mails as well. Take that variant, pin the version, and set at least:</p>
+<pre><code>PAPERLESS_SECRET_KEY=&lt;a long random value&gt;    # required: it refuses to start without it
+PAPERLESS_URL=https://paperless.yourdomain.tld  # behind a proxy: allowed hosts and CSRF in one setting
+PAPERLESS_OCR_LANGUAGE=fra                       # the language of most of your papers
+PAPERLESS_TIKA_ENABLED=1</code></pre>
+<p>Publish it through your HTTPS proxy (Homelab 2), or keep it on your private network (Homelab 6): these are your most personal documents.</p>
+
+<h2>2. Feed it</h2>
+<p>Share the consume folder on your network and point your scanner at it, or upload from the web page and the mobile apps. Paperless picks a file up, processes it, and removes it from the folder. Teach it once: correct the correspondent and the tags on a few documents, and the automatic matching learns.</p>
+
+<h2>3. Back it up the way it expects</h2>
+<p>The exporter writes every document and all the metadata (tags, correspondents, notes) into a folder you can back up and import anywhere:</p>
+<pre><code>docker compose exec -T webserver document_exporter ../export</code></pre>
+<p>Run it every night before your copy (Homelab 5). To restore: <code>document_importer</code> on that folder, in a fresh instance.</p>
+
+<h2>Traps</h2>
+<p class="note">The OCR language defaults to English. French papers read as English come out full of errors and searches miss. French is included in the image: set <code>fra</code>. Combinations such as <code>fra+eng</code> work, at the cost of much more processor time.</p>
+<p class="note">A consume folder on a network share does not notify Paperless of new files. Turn on polling (<code>PAPERLESS_CONSUMER_POLLING_INTERVAL</code>), or files wait forever.</p>
+<p class="note">Copying the database alone is not a backup of Paperless: the files and the database must match. Use the exporter, which writes both consistently.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/paperless-ngx/paperless-ngx" rel="noopener">Paperless-ngx, official repository</a></li></ul>

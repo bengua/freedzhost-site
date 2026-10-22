@@ -1,0 +1,29 @@
+<!-- {"title": "n8n: an agentic clock that notices what stopped", "summary": "Every job declares its cadence; a tick compares each one's last sign of life every minute; a watchdog outside n8n watches the tick itself. How an agent network learns that something went silent.", "order": 31, "series": "n8n", "level": "advanced", "time": "1 h", "requires": ["homelab-n8n"]} -->
+<p class="lead">Automations fail quietly. A backup that stops running, a mail sorter that crashed, an agent queue that froze: nothing breaks loudly, the job just stops. An agent network needs a clock that knows what should have happened, and says so when it did not. Ours is three small pieces.</p>
+
+{{diagram:clock}}
+
+<h2>1. A registry: what should happen, and how often</h2>
+<p>A table in PostgreSQL lists every job with its expected period, a slack, and the severity of a miss, for example:</p>
+<pre><code>create table clock_registry (
+  job       text primary key,
+  kind      text,      -- 'cadence' or 'on_demand'
+  period_s  int,       -- expected interval between two signs of life
+  slack_s   int,       -- tolerance before it counts as late
+  severity  text,      -- 'warning' or 'critical'
+  note      text
+);</code></pre>
+<p>Adding a job to the watch is one row, not a new workflow.</p>
+
+<h2>2. The tick: once a minute, compare</h2>
+<p>A workflow triggered every minute reads the registry and each job's last sign of life (n8n's own workflow statistics, or the job's last event), and computes a status: <em>ok</em>, <em>late</em>, <em>stuck</em>. It writes one event per job into an events table, with the severity from the registry. A separate workflow turns <em>critical</em> events into a phone notification (Homelab 10).</p>
+<p>Two database accounts, not one: the tick reads with a read-only account and writes with an account that can only insert events. A bug in a Code node cannot wipe a table it cannot touch.</p>
+
+<h2>3. The watchdog: outside n8n</h2>
+<p>If n8n itself stops, the tick stops with it, and nothing inside n8n can report it. So a tiny script on <strong>another machine</strong> asks every two minutes for the age of the last tick (a webhook that returns it), and sends an alert itself when it is too old. Who watches the watcher: something that does not depend on it.</p>
+
+<h2>Traps we paid for</h2>
+<p class="note">A job that only speaks when something is wrong (a certificate check that stays silent while all is fine) must be declared <code>on_demand</code>, not on a cadence. Otherwise its silence looks like death and your phone rings for nothing.</p>
+<p class="note">"Running for a long time" is not "stuck". Workflows that do not keep their successful runs can leave rows marked running. Only call a job stuck if it also stopped succeeding within twice its period.</p>
+<p class="note">Read n8n's workflow statistics for signs of life, not the full execution table: several workflows keep no successful executions at all, and you would conclude they never run.</p>
+<p class="note">Restarting n8n made our clock raise two false critical alarms. Warn whoever reads the alerts before you restart it.</p>

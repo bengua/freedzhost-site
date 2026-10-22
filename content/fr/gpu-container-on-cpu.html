@@ -1,0 +1,51 @@
+<!-- {"title": "Votre conteneur GPU tourne sur le processeur : trois pièges après une mise à jour ou un redémarrage", "summary": "Le modèle se dit en bonne santé en sept secondes, puis se traîne : il tourne sur le processeur. La carte est visible, CUDA non. Une description de périphériques périmée, un numéro de périphérique qui change à chaque démarrage, et la bissection qui les a trouvés.", "order": 56, "series": "ai", "level": "intermediate", "time": "30 min", "requires": ["docker-gpu"]} -->
+<p class="lead">Ça marchait hier. Aujourd'hui, après une mise à jour du pilote ou un simple redémarrage, vos conteneurs de modèles refusent de démarrer ou, pire, démarrent et tournent sur le processeur sans rien dire. Les deux venaient du même fichier, et les deux se règlent pour de bon avec un petit service.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Une vérification de deux minutes qui dit si votre carte sert vraiment, le correctif des deux pannes que nous avons eues, et un service de démarrage qui les empêche de revenir. Le nôtre tourne à chaque démarrage depuis.</p>
+
+<h2>1. La carte sert-elle vraiment ?</h2>
+<p>Un modèle qui passe en bonne santé en sept secondes et répond à quelques jetons par seconde tourne sur le processeur. Vérifiez trois choses :</p>
+<pre><code>docker exec modele nvidia-smi -L        # la carte est visible...
+docker logs modele 2>&amp;1 | grep -i -E "cuda|offloaded"   # ...mais CUDA est-il vivant ?</code></pre>
+<p>Si la deuxième ligne dit <code>failed to initialize CUDA: unknown error</code>, ou <code>offloaded 0/..</code> couches, la carte est vue mais pas utilisée. Voir la carte ne prouve rien : <code>nvidia-smi</code> n'a besoin que des fichiers du pilote, CUDA a aussi besoin des nœuds de périphériques.</p>
+
+<h2>2. Premier piège : la description est plus vieille que le pilote</h2>
+<p>Avec CDI, Docker lit <code>/etc/cdi/nvidia.yaml</code>, une liste des fichiers et périphériques du pilote écrite au moment de sa génération. Mettez le pilote à jour sans la régénérer, et la liste nomme des fichiers qui n'existent plus :</p>
+<pre><code>failed to fulfil mount request: open /usr/lib/libnvidia-egl-wayland.so.1.1.21: no such file or directory</code></pre>
+<p>Recréer le conteneur ne change rien : la description est la source, pas le conteneur. Régénérez-la :</p>
+<pre><code>sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml</code></pre>
+
+<h2>3. Deuxième piège : un numéro de périphérique qui change à chaque démarrage</h2>
+<p>Le plus coriace. Après un redémarrage, CUDA échouait avec « unknown error » alors que l'hôte, lui, marchait. Nous avons coupé en deux les options du conteneur, une à une :</p>
+<ul>
+<li><code>--privileged</code> : marche ;</li>
+<li>seulement <code>--device-cgroup-rule "c 235:* rwm"</code> : marche ;</li>
+<li>seccomp, capacités, <code>/dev/dri</code>, <code>/sys</code> : aucun effet.</li>
+</ul>
+<p>La cause : le périphérique <code>nvidia-uvm</code> reçoit son numéro au démarrage, dynamiquement. Il valait 234 quand la description a été écrite, 235 après le redémarrage. Le périphérique était monté avec le nouveau numéro, mais le conteneur n'avait droit qu'à l'ancien.</p>
+<pre><code>grep nvidia-uvm /proc/devices     # le numéro du jour</code></pre>
+
+<h2>4. Le correctif définitif : régénérer à chaque démarrage</h2>
+<p>Un petit service, lancé avant Docker, règle les deux pièges d'un coup :</p>
+<pre><code># /etc/systemd/system/nvidia-cdi-generate.service
+[Unit]
+Description=Regenerate the NVIDIA CDI spec (nvidia-uvm major changes each boot)
+After=systemd-modules-load.service
+Before=docker.service
+
+[Service]
+Type=oneshot
+ExecStartPre=/usr/bin/nvidia-modprobe -u -c=0
+ExecStart=/usr/bin/nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<pre><code>sudo systemctl enable nvidia-cdi-generate.service</code></pre>
+<p class="note"><code>nvidia-modprobe -u</code> charge d'abord le module <code>nvidia-uvm</code>, pour que la description soit écrite avec le numéro de ce démarrage.</p>
+
+<h2>Pièges</h2>
+<p class="note">Une mise à jour du pilote sans redémarrage cache le premier piège : les conteneurs en cours gardent leurs anciens fichiers ouverts. Il surgit des jours plus tard, au premier vrai démarrage. Régénérez juste après la mise à jour.</p>
+<p class="note">Quand plus rien n'a de sens, coupez en deux : retirez une option à la fois et gardez celle qui change le résultat.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/NVIDIA/nvidia-container-toolkit" rel="noopener">NVIDIA Container Toolkit</a></li><li><a href="https://github.com/cncf-tags/container-device-interface" rel="noopener">Container Device Interface (CDI) specification</a></li></ul>

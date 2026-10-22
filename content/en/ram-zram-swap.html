@@ -1,0 +1,32 @@
+<!-- {"title": "RAM, zram and swap on an AI machine: the three thieves that cost us a factor of ten", "summary": "Before suspecting the GPU, measure the RAM. Three settings were eating it; fixing them took a model from 1.9 to about 20 tokens per second.", "order": 15, "series": "ai", "level": "intermediate", "time": "45 min", "requires": ["hardware"]} -->
+<p class="lead">A model that does not fit entirely in VRAM keeps part of itself in system RAM (see <a href="/hardware.html">Hardware, honestly</a>). Then RAM speed is model speed. Ours crawled at 1.9 tokens per second; the card, the PCIe link and the quantisation were all fine. Three things were stealing the RAM.</p>
+
+{{diagram:ram}}
+
+<h2>A bit of history</h2>
+<p>Swap, writing memory pages to disk when RAM runs out, is as old as virtual memory. zram, merged into the Linux kernel in 2014, offers another way: a compressed block of RAM used as swap, so pages are squeezed rather than written to a slow disk. It is fast and free, but it is still RAM: sized too large, it steals from the very models it was meant to help.</p>
+
+<h2>Thief 1: zram sized to all the RAM</h2>
+<p>zram is swap compressed into RAM. Some distributions size it to the whole RAM by default. On a normal desktop it compresses about three to one and it is a good deal. On an AI machine, what gets swapped are the pages of the model file, already compressed by quantisation: ours compressed at 1.14 to one. zram held 35.8 GB of real RAM to save 5, and those pages were exactly the cache that kept the model fast.</p>
+<p>Check it, then cap it in <code>/etc/systemd/zram-generator.conf</code> (which overrides the distribution's file):</p>
+<pre><code>cat /sys/block/zram0/mm_stat     # stored bytes vs bytes really used
+# /etc/systemd/zram-generator.conf
+[zram0]
+zram-size = 16384</code></pre>
+<pre><code>sudo swapoff /dev/zram0
+sudo systemctl restart systemd-zram-setup@zram0.service</code></pre>
+
+<h2>Thief 2: an application that leaks</h2>
+<p>One of our image-generation apps grew by about 30 GB in 25 hours with an empty queue. That is not a useful cache, it is a leak: watch the resident memory of your long-running apps as a counter that rises, and restart the ones that leak on a schedule.</p>
+<pre><code>ps -eo rss,etime,comm --sort=-rss | head</code></pre>
+
+<h2>Thief 3: the out-of-memory killer aimed at the model</h2>
+<p>Tools like <code>earlyoom</code> kill a process before the system freezes. Ours had been configured to prefer killing the model server, and to protect everything else. Read your settings (<code>/etc/default/earlyoom</code>): the model should be the last thing to die, not the first.</p>
+
+<h2>Two more things worth knowing</h2>
+<p class="note">Stopping a model container that loaded its file with mmap does not give the RAM back: the file stays in the page cache (<code>buff/cache</code> in <code>free</code>). <code>sync; echo 3 | sudo tee /proc/sys/vm/drop_caches</code> releases it, which we measured at 46 GB.</p>
+<p class="note">Four RAM sticks from two different kits ran at 3,600 MT/s instead of 6,000 on our board: about 40 % less bandwidth for a model that reads its experts from RAM at every token. Two matched sticks are often faster than four mixed ones.</p>
+<p class="note">Swap is not one rule for every machine. A database VM wants a low swappiness (keep its hot pages in RAM, swap is only a safety valve); a small VM with bursts wants the default. And <code>swapon --show</code> run without privileges prints nothing instead of an error: read <code>/proc/swaps</code>, which tells the truth. Test an <code>fstab</code> change with <code>swapoff -a &amp;&amp; swapon -a</code> instead of rebooting.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.kernel.org/admin-guide/blockdev/zram.html" rel="noopener">zram, Linux kernel documentation</a></li></ul>

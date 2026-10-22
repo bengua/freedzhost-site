@@ -1,0 +1,35 @@
+<!-- {"title": "Homelab 6: reach home from anywhere without opening a port", "summary": "Only the public sites go through the box. Administration, models and private services go through an encrypted private network.", "order": 14, "series": "homelab", "level": "beginner", "time": "30 min", "requires": ["homelab-proxy"]} -->
+<p class="lead">Every port you open to the internet is scanned within hours. So open as few as possible: 80 and 443, to the HTTPS proxy, for the sites that really are public (Homelab 2). For everything else, administration pages, AI models, your notes, build a private network between your own devices. From a café or a train, your phone reaches home as if it were on your sofa, and the internet sees nothing.</p>
+
+{{diagram:remote}}
+
+<h2>Two ways to build it</h2>
+<ul>
+<li><strong>WireGuard</strong>, alone: the modern, fast, audited VPN protocol, built into the Linux kernel. One UDP port forwarded to an always-on machine, one key pair per device. Fully self-hosted, a little more manual.</li>
+<li><strong>Tailscale</strong>: WireGuard plus automatic key exchange and NAT traversal, so no port to open at all. The coordination service is hosted by Tailscale; if you want that part at home too, <strong>Headscale</strong> is an open-source replacement for it. Your traffic itself goes device to device, encrypted.</li>
+</ul>
+<p>We use Tailscale for the convenience; the steps below use it. The principles are the same with WireGuard alone.</p>
+
+<h2>1. Join your devices</h2>
+<pre><code>curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up</code></pre>
+<p>Do it on each server, then install the app on your phone and laptop with the same account. Each device gets a private address and a name.</p>
+<p class="note">On servers, disable key expiry in the admin console. Otherwise, months later, a server silently drops off your private network, usually the day you are away.</p>
+
+<h2>2. Publish a service to your private network only</h2>
+<p>Let the service listen on the machine itself (<code>127.0.0.1</code>), then publish it over HTTPS, to your devices only:</p>
+<pre><code>tailscale serve --bg 8765</code></pre>
+<p>The service is now at <code>https://&lt;machine&gt;.&lt;your-tailnet&gt;.ts.net</code>, with a real certificate, reachable from your devices and nowhere else. HTTPS matters more than it seems: browsers refuse the microphone, the camera and some APIs on plain HTTP, which is how we serve our voice console to the phone.</p>
+
+<h2>3. Or open a port on the private side only</h2>
+<p>For a service that must listen on the network (an API for your other machines), let the firewall accept it from the private interface only:</p>
+<pre><code>sudo ufw allow in on tailscale0 to any port 4000 proto tcp</code></pre>
+<p>That is how our model gateway is reachable by every machine of the private network and by nothing on the home network or the internet.</p>
+
+<h2>Traps</h2>
+<p class="note"><code>tailscale serve</code> stays private; <code>tailscale funnel</code> publishes to the whole internet. One word apart: read twice before pressing enter.</p>
+<p class="note">A service that listens on <code>0.0.0.0</code> is reachable from every network the machine is on, including your home Wi-Fi and its guests. Bind to <code>127.0.0.1</code>, or filter by interface.</p>
+<p class="note">A private network is not a reason to skip passwords: a stolen, unlocked phone is inside it. Keep authentication on every service.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://tailscale.com/kb" rel="noopener">Tailscale documentation</a></li><li><a href="https://www.wireguard.com/" rel="noopener">WireGuard</a></li></ul>

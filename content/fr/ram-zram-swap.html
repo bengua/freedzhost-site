@@ -1,0 +1,32 @@
+<!-- {"title": "RAM, zram et swap sur une machine IA : les trois voleurs qui nous coûtaient un facteur dix", "summary": "Avant de soupçonner le GPU, mesurez la RAM. Trois réglages la mangeaient ; les corriger a fait passer un modèle de 1,9 à environ 20 jetons par seconde.", "order": 15, "series": "ai", "level": "intermediate", "time": "45 min", "requires": ["hardware"]} -->
+<p class="lead">Un modèle qui ne tient pas entièrement en VRAM garde une partie de lui-même en RAM (voir <a href="/fr/hardware.html">Le matériel, honnêtement</a>). Alors la vitesse de la RAM, c'est la vitesse du modèle. Le nôtre se traînait à 1,9 jeton par seconde ; la carte, le lien PCIe et la quantification allaient bien. Trois choses volaient la RAM.</p>
+
+{{diagram:ram}}
+
+<h2>Un peu d'histoire</h2>
+<p>Le swap, écrire des pages de mémoire sur le disque quand la RAM manque, est aussi vieux que la mémoire virtuelle. zram, intégré au noyau Linux en 2014, propose une autre voie : un bloc de RAM compressé utilisé comme swap, si bien que les pages sont tassées plutôt qu'écrites sur un disque lent. C'est rapide et gratuit, mais c'est toujours de la RAM : trop grand, il vole les modèles mêmes qu'il devait aider.</p>
+
+<h2>Voleur 1 : un zram à la taille de toute la RAM</h2>
+<p>zram, c'est du swap compressé en RAM. Certaines distributions le dimensionnent par défaut à toute la RAM. Sur un bureau normal, il compresse environ trois pour un et c'est une bonne affaire. Sur une machine IA, ce qui part en swap, ce sont les pages du fichier du modèle, déjà compressées par la quantification : le nôtre compressait à 1,14 pour un. zram occupait 35,8 Go de vraie RAM pour en économiser 5, et ces pages étaient justement le cache qui gardait le modèle rapide.</p>
+<p>Vérifiez, puis plafonnez-le dans <code>/etc/systemd/zram-generator.conf</code> (qui prime sur le fichier de la distribution) :</p>
+<pre><code>cat /sys/block/zram0/mm_stat     # octets stockés contre octets réellement occupés
+# /etc/systemd/zram-generator.conf
+[zram0]
+zram-size = 16384</code></pre>
+<pre><code>sudo swapoff /dev/zram0
+sudo systemctl restart systemd-zram-setup@zram0.service</code></pre>
+
+<h2>Voleur 2 : une application qui fuit</h2>
+<p>Une de nos apps de génération d'images grossissait d'environ 30 Go en 25 heures, file vide. Ce n'est pas un cache utile, c'est une fuite : surveillez la mémoire résidente de vos applications qui tournent longtemps comme un compteur qui monte, et redémarrez à heure fixe celles qui fuient.</p>
+<pre><code>ps -eo rss,etime,comm --sort=-rss | head</code></pre>
+
+<h2>Voleur 3 : le tueur de mémoire pointé sur le modèle</h2>
+<p>Des outils comme <code>earlyoom</code> tuent un processus avant que le système ne gèle. Le nôtre avait été réglé pour tuer de préférence le serveur du modèle, et protéger tout le reste. Lisez vos réglages (<code>/etc/default/earlyoom</code>) : le modèle devrait être le dernier à mourir, pas le premier.</p>
+
+<h2>Deux choses de plus à savoir</h2>
+<p class="note">Arrêter un conteneur de modèle qui a chargé son fichier par mmap ne rend pas la RAM : le fichier reste dans le cache de pages (<code>buff/cache</code> dans <code>free</code>). <code>sync; echo 3 | sudo tee /proc/sys/vm/drop_caches</code> le libère, ce que nous avons mesuré à 46 Go.</p>
+<p class="note">Quatre barrettes de deux kits différents tournaient à 3 600 MT/s au lieu de 6 000 sur notre carte mère : environ 40 % de bande passante en moins pour un modèle qui lit ses experts en RAM à chaque jeton. Deux barrettes appairées sont souvent plus rapides que quatre mélangées.</p>
+<p class="note">Le swap n'est pas une règle unique pour toutes les machines. Une VM qui porte une base de données veut une swappiness basse (garder ses pages chaudes en RAM, le swap n'est qu'une soupape) ; une petite VM avec des pics veut la valeur par défaut. Et <code>swapon --show</code> lancé sans privilèges n'affiche rien au lieu d'une erreur : lisez <code>/proc/swaps</code>, qui dit la vérité. Testez un changement de <code>fstab</code> avec <code>swapoff -a &amp;&amp; swapon -a</code> plutôt qu'en redémarrant.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.kernel.org/admin-guide/blockdev/zram.html" rel="noopener">zram, Linux kernel documentation</a></li></ul>

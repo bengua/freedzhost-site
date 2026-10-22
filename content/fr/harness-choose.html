@@ -1,0 +1,43 @@
+<!-- {"title": "Ce qu'est un harness d'agent, et comment choisir le sien", "summary": "Le modèle écrit du texte ; le harness en fait du travail : il lit des fichiers, lance des commandes, demande la permission, gère le contexte et décide quand s'arrêter. Six harness tournent ici, chacun pour une raison. Ce qui les distingue, et cinq questions pour choisir le bon pour chaque travail.", "order": 45.5, "series": "agents", "level": "beginner", "time": "15 min", "requires": []} -->
+<p class="lead">Un modèle de langage, seul, ne produit que du texte. Ce qui en fait un agent de code, c'est le programme autour de lui : le <strong>harness</strong>. Il donne au modèle des outils (lire un fichier, lancer une commande, chercher), vérifie les permissions, décide ce qui entre dans le contexte et ce qui est compacté, se connecte à un fournisseur de modèles, et vous montre ce qui se passe. Le même modèle dans deux harness peut être brillant dans l'un et inutile dans l'autre.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Une carte claire des harness que nous utilisons chaque jour et de leurs raisons, et cinq questions qui disent lequel convient à un travail donné. Chacun a son tutoriel d'installation.</p>
+
+<h2>Un peu d'histoire</h2>
+<p>Les premiers assistants de code (à partir de 2021) complétaient des lignes dans un éditeur. En 2023, des projets ouverts ont commencé à laisser un modèle appeler des outils en boucle jusqu'à ce qu'une tâche soit finie. En 2025, les grands laboratoires ont sorti leurs propres agents de terminal, et les agents libres se sont multipliés. La leçon était alors claire : la boucle, les outils et la gestion du contexte comptent autant que le modèle. C'est pourquoi un même modèle peut sembler très différent d'un harness à l'autre.</p>
+
+<h2>1. Ce qu'un harness décide pour vous</h2>
+<ul>
+<li><strong>Les outils</strong> : quelles actions existent, et comment elles sont décrites au modèle (chaque description coûte du contexte à chaque tour).</li>
+<li><strong>Les permissions</strong> : ce qui tourne sans demander, ce qui attend votre oui, ce qui est refusé.</li>
+<li><strong>Le contexte</strong> : ce que voit le modèle, quand les anciens tours sont compactés, quelle taille de fenêtre est déclarée.</li>
+<li><strong>Le fournisseur</strong> : un abonnement, une clé d'API, ou vos propres modèles par une passerelle.</li>
+<li><strong>L'interface</strong> : un terminal, une page web, un téléphone, ou aucune (une file qui travaille seule).</li>
+</ul>
+
+<h2>2. Les six que nous utilisons, et pourquoi</h2>
+<table>
+<tr><th>Harness</th><th>Ce qui le distingue</th><th>Pourquoi nous l'utilisons</th></tr>
+<tr><td><a href="/fr/agent-openfox.html">OpenFox</a></td><td>fait pour les modèles locaux ; critères d'acceptation en guise de contrat ; interface web ; agents, workflows, skills</td><td>le code de tous les jours sur nos propres cartes, depuis n'importe quel appareil, avec notre propre agent « fh-coder »</td></tr>
+<tr><td><a href="/fr/agent-claude-code.html">Claude Code</a></td><td>la boucle la plus mûre ; des crochets qui peuvent refuser une commande ; des skills ; tourne sur abonnement ou sur modèles locaux</td><td>l'exploitation de tout le labo, et le moteur du junior qui travaille seul</td></tr>
+<tr><td><a href="/fr/agent-kimi-code.html">Kimi Code</a></td><td>un million de jetons de contexte ; terminal, interface web et contrôle à distance ; son propre abonnement</td><td>les tâches longues qui lisent beaucoup, et un second agent hébergé quand le quota du premier est épuisé</td></tr>
+<tr><td><a href="/fr/fh-coder.html">FH Coder</a></td><td>pas interactif : une file, un exécutant, une barrière de vérification, une demande de fusion, un compte rendu</td><td>le travail fait pendant que personne ne regarde, sans rien fusionner sans l'avoir lu</td></tr>
+<tr><td>OpenCode</td><td>un agent de terminal libre, indépendant de tout fournisseur, avec greffons et skills</td><td>installé sur les deux machines ; notre console vocale peut le piloter comme agent de code</td></tr>
+<tr><td><a href="/fr/agent-rooms-foxdesk.html">Cœur cloudroom</a></td><td>héberge plusieurs harness derrière un seul protocole ; des sessions qui passent d'une machine à l'autre</td><td>la base de nos salles, pour que le téléphone et le bureau voient les mêmes conversations</td></tr>
+</table>
+
+<h2>3. Cinq questions pour choisir</h2>
+<ol>
+<li><strong>Quel modèle ?</strong> Vos propres cartes favorisent un harness pensé pour les modèles locaux ; un modèle de pointe favorise le harness de son laboratoire.</li>
+<li><strong>Allez-vous regarder, ou déléguer ?</strong> Regarder : un harness interactif. Déléguer : une file avec une barrière de vérification.</li>
+<li><strong>Combien doit-il lire ?</strong> Un dépôt entier ou un long historique : la plus grande fenêtre que vous puissiez obtenir.</li>
+<li><strong>À quoi a-t-il le droit de toucher ?</strong> Le travail sans surveillance demande un bac à sable, une liste fermée de fichiers, et aucun identifiant à portée (voir <a href="/fr/agent-authority.html">agents et autorité</a>).</li>
+<li><strong>Où serez-vous ?</strong> Sur le canapé ou en déplacement : un harness avec une interface web ou un client sur téléphone.</li>
+</ol>
+
+<h2>Pièges</h2>
+<p class="note">Déclarez la vraie fenêtre de contexte dans chaque harness qui parle à un modèle local. Chacun suppose une grande valeur par défaut ; quand elle est fausse, les réponses s'arrêtent en pleine phrase et le message accuse la limite de sortie.</p>
+<p class="note">Ne jugez pas un modèle dans le mauvais harness. Un modèle qui semble incapable d'appeler des outils dans l'un peut être excellent dans un autre qui décrit les outils dans son style.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.anthropic.com/en/docs/claude-code/overview" rel="noopener">Claude Code documentation</a></li><li><a href="https://github.com/co-l/openfox" rel="noopener">OpenFox, official repository</a></li><li><a href="https://opencode.ai/" rel="noopener">OpenCode</a></li><li><a href="https://www.kimi.com/" rel="noopener">Kimi</a></li><li><a href="https://github.com/davidondrej/cloudroom-core" rel="noopener">Cloudroom core</a></li></ul>

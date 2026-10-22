@@ -1,0 +1,34 @@
+<!-- {"title": "ntfy everywhere: the voice of the whole lab", "summary": "One small self-hosted notification server, and every part of the lab can reach your phone: failed services, an agent waiting for your approval, a new message on the contact form. How we use topics, priorities and links that open the exact screen you need, without Google.", "order": 96, "series": "homelab", "level": "beginner", "time": "45 min", "requires": ["homelab-ntfy"]} -->
+<p class="lead">Once ntfy runs (see <a href="/homelab-ntfy.html">Homelab: ntfy</a>), any script can reach your phone with a single HTTP request. The interesting part comes after: deciding what deserves to ring, and making every notification lead somewhere useful. Here is how ntfy became the voice of our whole lab.</p>
+
+<p class="proof"><strong>What you get.</strong> A phone that tells you what matters and nothing else: an agent waiting for your yes, a service that failed, a new message from a visitor. Tap the notification and you land on the exact screen. No Google services involved.</p>
+
+<h2>A bit of history</h2>
+<p>Phones get their notifications through a push service run by the platform: Google's on Android, Apple's on iOS. Every app that wants to wake your phone goes through it. ntfy, an open-source project by Philipp Heckel first released in 2021, turned that around: a tiny server you host yourself, where publishing is a plain HTTP request and subscribing is an app that keeps its own connection. In parallel, the UnifiedPush project defined an open standard so that any Android app can receive pushes through a distributor of your choice, ntfy included.</p>
+
+<h2>1. One topic per purpose</h2>
+<ul>
+<li><strong>Fleet alerts</strong>: only events of severity <em>error</em> or <em>critical</em>, from the lab's <a href="/fleet-events.html">event table</a>.</li>
+<li><strong>Agents</strong>: a coding session asking for permission, a task finished, a pull request ready to read.</li>
+<li><strong>Contact</strong>: a new message on the site's form that the triage could not answer alone.</li>
+</ul>
+<p>Separate topics let you mute one without losing the others, and give each its own sound on the phone.</p>
+
+<h2>2. Severity decides whether it rings</h2>
+<p>Every event carries a severity. <em>Info</em> never rings: it is there when you look. <em>Warning</em> arrives quietly. <em>Error</em> and <em>critical</em> ring. A daily "I am alive" from each machine is info; the silence of a machine for too long is an error (see <a href="/failures-that-call.html">failures that call you</a>).</p>
+<pre><code>curl -H "Priority: high" -H "Tags: warning" \
+     -d "backup.service failed on the server" https://ntfy.your-lab.example/fleet-alerts</code></pre>
+
+<h2>3. Links that open the right screen</h2>
+<p>A notification can carry a click action: a web address, or an address that opens your own app. Our phone console registers its own scheme, so a "session waiting for approval" notification opens that exact session in the app, one tap away from approving it (see <a href="/agent-swarmfox.html">SwarmFox</a>).</p>
+<pre><code>curl -H "Click: swarmfox://session/4182" -d "The agent asks to run the tests" https://ntfy.your-lab.example/agents</code></pre>
+
+<h2>4. Without Google</h2>
+<p>On Android, the ntfy app keeps its own connection to your server, and can act as a <strong>UnifiedPush</strong> distributor: other apps (ours included) receive their notifications through it instead of Google's push service. Nothing about your lab passes through a third party.</p>
+
+<h2>Traps</h2>
+<p class="note">Notification fatigue is real: one week of noisy alerts and you stop reading them. Report a failure once and its recovery once; never repeat every minute.</p>
+<p class="note">Keep the server reachable from your phone through your private network, and close publishing to strangers: an open topic lets anyone send you notifications.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.ntfy.sh/" rel="noopener">ntfy documentation</a></li><li><a href="https://unifiedpush.org/" rel="noopener">UnifiedPush</a></li></ul>

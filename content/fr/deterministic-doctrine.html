@@ -1,0 +1,51 @@
+<!-- {"title": "La doctrine déterministe : le modèle propose, le code décide", "summary": "L'idée qui traverse chaque couche de cette pile : laisser aux modèles ce qui a plusieurs bonnes réponses, et confier à du simple code tout ce qui n'en a qu'une. Pourquoi cela rend fiables de petits modèles locaux, pourquoi un bon outil vaut souvent mieux qu'une skill, et les chiffres qui nous ont convaincus, couche par couche.", "order": 89, "series": "agents", "level": "read", "time": "20 min", "requires": []} -->
+<p class="lead">Posez deux fois la même question à un modèle de langage et vous aurez peut-être deux réponses. C'est un cadeau quand vous voulez des idées, une formulation, un plan. C'est une catastrophe quand vous voulez un verdict : ce test passe-t-il, ce fichier est-il valide, cette commande a-t-elle le droit de tourner. Toute notre pile repose sur une séparation : <strong>le modèle propose, le code décide.</strong> Tout ce qui n'a qu'une bonne réponse est fait par un programme qui répond pareil à chaque fois.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> De petits modèles locaux qui livrent du vrai travail, parce qu'on ne leur demande jamais ce que le code fait mieux. Des verdicts qu'on peut rejouer, auditer et croire. Et une facture qui baisse, parce qu'un outil déterministe ne coûte aucune réflexion et presque pas de contexte.</p>
+
+<h2>1. Deux sortes de questions</h2>
+<table>
+<tr><th>Plusieurs bonnes réponses : un modèle</th><th>Une seule bonne réponse : du code</th></tr>
+<tr><td>découper un projet en stories</td><td>ce découpage respecte-t-il le schéma ?</td></tr>
+<tr><td>écrire la liste des plans d'un film</td><td>chaque plan utilise-t-il un cadrage de la liste ?</td></tr>
+<tr><td>choisir l'outil qui convient à une demande</td><td>les arguments de cet appel sont-ils valides ?</td></tr>
+<tr><td>formuler la réponse à un client</td><td>la réponse contient-elle un identifiant secret ?</td></tr>
+<tr><td>proposer un correctif</td><td>les tests passent-ils maintenant ?</td></tr>
+</table>
+<p>La colonne de gauche est créative : un modèle est le bon outil. Celle de droite est une vérification : un modèle est le mauvais outil, il répondrait « probablement » là où il faut « oui » ou « non ».</p>
+
+<h2>2. La doctrine, couche par couche</h2>
+<ul>
+<li><strong>Les outils</strong> : un outil lit du JSON, écrit du JSON, et son code de sortie porte le sens : 0 succès, 1 un verdict négatif, 2 un refus, 3 et plus une erreur technique, jamais un verdict. Rejoué trois fois, il doit rendre trois fois les mêmes octets (voir <a href="/fr/fh-tools.html">fh-tools</a>).</li>
+<li><strong>Les agents</strong> : le modèle désigne une fonction dans une table fermée ; le code vérifie les arguments et l'exécute (voir <a href="/fr/workstation-assistant.html">l'assistant de poste</a>).</li>
+<li><strong>Les projets</strong> : le modèle propose le découpage, un vérificateur le juge, vous approuvez ; les scénarios tournent comme de simples tests (voir <a href="/fr/agent-bmad.html">BMAD</a>).</li>
+<li><strong>L'aiguillage</strong> : décider quel modèle répond, c'est du code, pas une phrase dans un prompt (voir <a href="/fr/local-judge.html">le juge local</a>).</li>
+<li><strong>L'autorité</strong> : le compte qui raisonne ne détient aucun secret ; un démon n'accepte qu'un nom tiré d'une liste fermée (voir <a href="/fr/agent-authority.html">agents et autorité</a>).</li>
+<li><strong>La création</strong> : le modèle écrit la liste des plans, le code la refuse avant qu'une carte ne s'allume (voir <a href="/fr/studio-film.html">une phrase devient un film</a>).</li>
+</ul>
+
+<h2>3. Les chiffres qui nous ont convaincus</h2>
+<ul>
+<li>Invité par ses consignes à consulter le juge, un agent l'a fait <strong>0 fois sur 3</strong>. Aiguillé par le code : à chaque fois.</li>
+<li>Interrogé sur « pourquoi ça échoue ? », un modèle de 27B a obtenu <strong>2,75/5 en 9 minutes</strong> ; muni des faits par un outil, <strong>5/5 en 72 secondes</strong>.</li>
+<li>Des listes de plans vérifiées par le code avant le rendu : <strong>4 valides sur 4</strong> du premier coup ; une mauvaise liste découverte après le rendu coûte deux heures.</li>
+<li>Les agents de code livrent des demandes de fusion acceptées avec <strong>six outils, 2 182 jetons</strong>, là où un catalogue de 58 outils pesait 19 157 jetons à chaque tour.</li>
+</ul>
+
+<h2>4. Un bon outil vaut souvent mieux qu'une skill</h2>
+<p>Une <a href="/fr/agent-skills.html">skill</a> apprend une procédure au modèle ; le modèle doit encore la lire, la comprendre et l'appliquer, avec sa variabilité habituelle. Un outil <em>est</em> la procédure : le modèle n'a qu'à l'appeler.</p>
+<table>
+<tr><th></th><th>Skill</th><th>Outil</th></tr>
+<tr><td>coût au repos</td><td>sa description</td><td>sa description (120 caractères au plus ici)</td></tr>
+<tr><td>coût à l'usage</td><td>toute la procédure, lue dans le contexte</td><td>un appel, une réponse JSON</td></tr>
+<tr><td>résultat</td><td>aussi bon que la lecture du modèle</td><td>le même à chaque fois, testable de l'extérieur</td></tr>
+<tr><td>marche avec un petit modèle</td><td>parfois</td><td>oui : il n'a qu'à choisir et remplir les arguments</td></tr>
+</table>
+<p>Donc : quand une procédure a un seul bon résultat, écrivez l'outil. Gardez les skills pour ce qui demande du jugement : formulation, conception, découpage, relecture. Plus votre modèle est petit, plus ça compte.</p>
+
+<h2>5. Un bug devient du code, jamais une note</h2>
+<p>Une règle écrite dans un guide le matin a été enfreinte le soir par la personne qui l'avait écrite. Les notes se lisent et s'oublient ; le code s'exécute à chaque fois. Quand quelque chose échoue une fois, le correctif est une vérification, un verrou, un refus, un test, idéalement un test que vous avez vu passer au rouge (voir <a href="/fr/mutation-testing.html">les tests validés par mutation</a>). Ce qui ne peut pas devenir du code devient une entrée de journal qu'on peut chercher.</p>
+
+<h2>Pièges</h2>
+<p class="note">Un score de confiance mesure à quel point un modèle est sûr de lui, jamais s'il a raison. Deux options à moins de 0,05 l'une de l'autre sont en concurrence : demandez, ne choisissez pas en silence.</p>
+<p class="note">Ne pliez pas le contrat par commodité. Un « outil » qui appelle un modèle n'est pas déterministe ; dites-le dans son nom, sinon toutes les autres garanties valent moins.</p>

@@ -1,0 +1,36 @@
+<!-- {"title": "Homelab 7 : remplacer Google Photos par Immich", "summary": "Sauvegarde automatique du téléphone, visages, carte et recherche, à la maison. Et les deux choses à sauvegarder, pas une.", "order": 15, "series": "homelab", "level": "beginner", "time": "1 h", "requires": ["homelab-proxy", "homelab-backups"]} -->
+<p class="lead">Immich est la photothèque open source la plus proche de Google Photos : une app de téléphone qui sauvegarde en arrière-plan, des albums, des liens de partage, une carte, la reconnaissance des visages et la recherche par contenu, le tout calculé sur votre propre machine. C'est aussi le service où une installation négligée perd le plus : des années de photos.</p>
+
+{{diagram:photos}}
+
+<h2>Un peu d'histoire</h2>
+<p>Immich a été lancé en 2022 par Alex Tran, qui voulait sortir les photos de sa famille d'un cloud commercial sans renoncer à son confort : sauvegarde automatique depuis le téléphone, visages, lieux, recherche par contenu. Il est devenu l'un des projets auto-hébergés les plus actifs, et son développement est financé depuis 2024 pour qu'il reste libre et gratuit.</p>
+
+<h2>1. Installer, à la manière officielle</h2>
+<p>Immich publie son propre fichier compose et son modèle d'environnement à chaque version. Sur une VM avec Docker (Homelab 1), dans un dossier vide :</p>
+<pre><code>wget -O docker-compose.yml https://github.com/immich-app/immich/releases/latest/download/docker-compose.yml
+wget -O .env https://github.com/immich-app/immich/releases/latest/download/example.env</code></pre>
+<p>Puis modifiez <code>.env</code> :</p>
+<ul>
+<li><code>UPLOAD_LOCATION</code> : où vivront vos photos. Un disque avec de la place pour grandir.</li>
+<li><code>DB_DATA_LOCATION</code> : les fichiers de la base, sur un disque local (les partages réseau ne sont pas pris en charge).</li>
+<li><code>DB_PASSWORD</code> : changez-le, lettres et chiffres uniquement.</li>
+<li><code>IMMICH_VERSION</code> : épinglez une version précise, comme le suggère le commentaire du fichier lui-même, et montez de version exprès après avoir lu les notes de version.</li>
+</ul>
+<pre><code>docker compose up -d</code></pre>
+<p>Publiez-le par votre proxy HTTPS (Homelab 2), créez le compte administrateur, puis installez l'app Immich sur votre téléphone et donnez-lui votre adresse.</p>
+
+<h2>2. Les deux choses à sauvegarder</h2>
+<p>Une photothèque, ce sont les fichiers <strong>et</strong> la base qui connaît les albums, les visages, les dates et qui a partagé quoi. Immich exporte automatiquement sa base chaque nuit à 2 h et garde les 14 derniers exports, dans <code>UPLOAD_LOCATION/backups</code>. Il ne sauvegarde <strong>pas</strong> vos fichiers : cette partie est à vous. Copiez tout <code>UPLOAD_LOCATION</code> chaque nuit, vers une autre machine (Homelab 5).</p>
+<p>Si vous ne pouvez pas arrêter le serveur pendant la copie, l'ordre officiel est : la base d'abord, les fichiers ensuite.</p>
+
+<h2>3. Restaurer, une fois, pour voir</h2>
+<p>Sur une installation neuve, remettez les anciens fichiers dans le nouveau <code>UPLOAD_LOCATION</code>, lancez Immich, et choisissez <strong>Restore from backup</strong> sur l'écran d'accueil. Faites-le une fois sur une machine de test avant d'en avoir besoin.</p>
+
+<h2>Pièges</h2>
+<p class="note">Si le dossier des photos est sur un disque séparé monté dans la VM, les sauvegardes de VM de l'hyperviseur ne l'incluent pas. Vérifiez ce que vos sauvegardes contiennent vraiment : la photothèque est souvent la plus grosse, et la moins couverte.</p>
+<p class="note">La première passe de reconnaissance des visages et d'indexation d'une grosse photothèque tourne des heures sur le processeur. Laissez-la tourner, ou confiez le conteneur d'apprentissage automatique à une carte graphique.</p>
+<p class="note">Sous Android, la sauvegarde en arrière-plan s'arrête si le système endort l'app : excluez Immich de l'optimisation de batterie.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://immich.app/" rel="noopener">Immich, official site</a></li><li><a href="https://github.com/immich-app/immich" rel="noopener">Immich repository</a></li></ul>

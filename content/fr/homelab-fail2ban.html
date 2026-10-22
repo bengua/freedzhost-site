@@ -1,0 +1,42 @@
+<!-- {"title": "Homelab 18 : bannir les scanners avec fail2ban, et le piège Docker qui rend les bannissements inutiles", "summary": "Lire les journaux du proxy, bannir une adresse après quelques erreurs, et s'assurer que le bannissement est là où le trafic passe vraiment.", "order": 26, "series": "homelab", "level": "intermediate", "time": "45 min", "requires": ["homelab-proxy"]} -->
+<p class="lead">Dès que les ports 80 et 443 sont ouverts, les scanners arrivent : des milliers de requêtes vers des pages d'administration, de vieilles failles, des mots de passe devinés en boucle. fail2ban lit les journaux de votre proxy et bannit une adresse pour un moment après quelques erreurs. C'est simple et efficace, à une condition qu'une installation Docker casse sans bruit.</p>
+
+{{diagram:f2b}}
+
+<h2>Un peu d'histoire</h2>
+<p>fail2ban date de 2004. Son idée n'a pas vieilli : lire les journaux, compter les échecs par adresse, et quand une adresse échoue trop souvent, ajouter contre elle une règle de pare-feu pour un temps. Il ne connaît rien aux attaques ; il ne connaît que des motifs dans les lignes de journal, ce qui explique qu'un motif qui ne correspond pas à votre format de journal le laisse aveugle sans bruit.</p>
+
+<h2>1. Un filtre pour les journaux du proxy</h2>
+<p>Pour Nginx Proxy Manager, un filtre qui attrape les erreurs et les requêtes refusées :</p>
+<pre><code># filter.d/npm-docker.conf
+[Definition]
+failregex = ^.* \[error\] \d+#\d+: \*\d+ .*client: &lt;HOST&gt;,.*$
+            ^&lt;HOST&gt; .* "(GET|POST|HEAD).*" (401|403|404|429) .*$</code></pre>
+<p>Testez-le sur un vrai journal avant de lui faire confiance : <code>fail2ban-regex /chemin/vers/proxy-host-1_access.log filter.d/npm-docker.conf</code> montre combien de lignes il attraperait.</p>
+
+<h2>2. Une prison, dans la bonne chaîne</h2>
+<pre><code># jail.d/npm.conf
+[npm-docker]
+enabled  = true
+filter   = npm-docker
+logpath  = /var/log/npm/proxy-host-*_access.log
+           /var/log/npm/proxy-host-*_error.log
+maxretry = 5
+findtime = 300
+bantime  = 3600
+chain    = DOCKER-USER
+action   = iptables-multiport[name=npm, port="80,443", protocol=tcp, chain="DOCKER-USER"]</code></pre>
+<p>Cinq erreurs en cinq minutes, une heure de bannissement.</p>
+
+<h2>Le piège Docker</h2>
+<p class="note">Par défaut, fail2ban écrit ses bannissements dans la chaîne <code>INPUT</code> du pare-feu. Le trafic vers un port publié par Docker est relayé vers le conteneur et ne traverse jamais <code>INPUT</code> : le bannissement existe, les compteurs montent, et l'attaquant continue. Docker fournit une chaîne pour vos propres règles sur ce chemin, <code>DOCKER-USER</code> : mettez-y le bannissement.</p>
+<p>Vérifiez par où passe vraiment le trafic, pas seulement qu'une règle existe : les compteurs de paquets vous le disent.</p>
+<pre><code>sudo nft list ruleset | grep -A3 f2b      # ou : sudo iptables -L DOCKER-USER -v -n</code></pre>
+<p>Puis bannissez une adresse que vous contrôlez, depuis votre téléphone en données mobiles, et vérifiez que le site cesse de lui répondre.</p>
+
+<h2>Pièges</h2>
+<p class="note">Ne bannissez pas votre propre réseau. Ajoutez votre plage locale et votre réseau privé à <code>ignoreip</code>, sinon un script capricieux à la maison vous enferme dehors de vos propres services.</p>
+<p class="note">Un 404 seul n'est pas une attaque : un lien cassé sur votre site en produit aussi. Cinq en cinq minutes depuis la même adresse est un seuil raisonnable ; commencez par une semaine en mode « compter seulement » sur vos journaux, et regardez ce qui aurait été banni.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/fail2ban/fail2ban" rel="noopener">fail2ban, official repository</a></li></ul>

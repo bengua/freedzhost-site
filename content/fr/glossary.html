@@ -1,0 +1,50 @@
+<!-- {"title": "Lexique : les mots de ce site, en langage simple", "summary": "VRAM, conteneur, proxy, DNS, port, jeton… chaque mot technique des tutos, expliqué en une ou deux phrases.", "order": 3, "series": "start", "level": "read", "time": "10 min", "requires": []} -->
+<p class="lead">Chaque mot technique de ce site, par ordre alphabétique, expliqué sans jargon. Si un tuto vous perd sur un mot, il est sans doute ici.</p>
+<dl class="glossary">
+<dt>Agent</dt><dd>Un programme piloté par un modèle d'IA qui ne se contente pas de répondre mais agit : il lit des fichiers, lance des commandes, ouvre des pull requests. Voir <a href="/fr/agent-intents.html">Confier du code à un agent local</a>.</dd>
+<dt>API</dt><dd>Une porte par laquelle un programme demande quelque chose à un autre, dans un format fixé. « API compatible OpenAI » désigne le format que parlent déjà la plupart des outils d'IA.</dd>
+<dt>Auto-hébergé</dt><dd>Qui tourne sur votre propre machine au lieu d'être loué à une entreprise.</dd>
+<dt>Cache KV</dt><dd>La mémoire qu'un modèle garde de ce qu'il a déjà lu, pour ne pas le recalculer à chaque nouveau jeton. Voir <a href="/fr/kv-cache-trap.html">le piège du cache KV</a>.</dd>
+<dt>Certificat (HTTPS)</dt><dd>La carte d'identité numérique qui fait afficher le cadenas au navigateur. Let's Encrypt les donne gratuitement. Voir <a href="/fr/homelab-proxy.html">Homelab 2</a>.</dd>
+<dt>CI (intégration continue)</dt><dd>Une machine qui lance les tests automatiquement à chaque changement proposé, et dit vert ou rouge. Voir <a href="/fr/homelab-forgejo.html">Homelab 8</a>.</dd>
+<dt>Compose (Docker Compose)</dt><dd>Un petit fichier texte qui décrit un ou plusieurs conteneurs et comment les lancer, pour qu'une seule commande démarre tout.</dd>
+<dt>Conteneur</dt><dd>Un programme emballé avec tout ce dont il a besoin, isolé du reste de la machine. On le démarre, l'arrête, le supprime sans laisser de traces. Docker est l'outil habituel.</dd>
+<dt>Contexte</dt><dd>La quantité de texte qu'un modèle peut garder en tête d'un coup, comptée en jetons. Plus de contexte demande plus de VRAM.</dd>
+<dt>CSP (Content Security Policy)</dt><dd>Un en-tête qui dit au navigateur quels scripts, styles et images une page a le droit de charger. La meilleure défense à elle seule contre les scripts injectés. Voir <a href="/fr/web-exposure-audit.html">l'audit</a>.</dd>
+<dt>DDoS</dt><dd>Déni de service distribué : beaucoup de machines qui inondent un site jusqu'à ce qu'il ne réponde plus. Les petites inondations se filtrent à la maison ; les grosses seulement en amont. Voir <a href="/fr/ddos-at-home.html">résister aux DDoS</a>.</dd>
+<dt>DNS</dt><dd>L'annuaire d'Internet : il transforme un nom comme <code>freedzhost.cloud</code> en adresse. Voir <a href="/fr/homelab-adguard.html">Homelab 4</a>.</dd>
+<dt>DNSSEC</dt><dd>Des signatures sur les réponses DNS, pour qu'un résolveur distingue une vraie réponse d'une réponse falsifiée.</dd>
+<dt>Décodage spéculatif</dt><dd>Un petit modèle devine quelques jetons d'avance et le gros les vérifie en un passage : même texte, plus vite. Voir <a href="/fr/speculative-decoding.html">le décodage spéculatif</a>.</dd>
+<dt>GGUF</dt><dd>Le format de fichier des modèles pour llama.cpp. Un seul fichier contient tout le modèle, déjà compressé.</dd>
+<dt>GPU / carte graphique</dt><dd>La carte qui calcule les images, et les modèles d'IA, très vite. Sa propre mémoire, c'est la VRAM.</dd>
+<dt>Homelab</dt><dd>Votre petit centre de données à la maison : une ou quelques machines qui font tourner les services que vous loueriez sinon.</dd>
+<dt>HSTS</dt><dd>Un en-tête qui dit au navigateur d'utiliser toujours HTTPS pour un site, même si quelqu'un tape http://.</dd>
+<dt>Hyperviseur</dt><dd>Un logiciel qui découpe une machine physique en plusieurs machines virtuelles. Proxmox en est un. Voir <a href="/fr/homelab-proxmox.html">Homelab 1</a>.</dd>
+<dt>Idempotent</dt><dd>Lancé deux fois, ne change rien la seconde fois. La propriété qui rend une machine reconstructible. Voir <a href="/fr/ansible-workstation.html">Ansible</a>.</dd>
+<dt>Instantané (snapshot)</dt><dd>Une copie figée d'un disque à un instant, prise en une seconde sur les systèmes de fichiers à copie à l'écriture. Voir <a href="/fr/snapshots.html">les instantanés</a>.</dd>
+<dt>Jeton (token)</dt><dd>L'unité que lit et écrit un modèle : à peu près un mot court ou un morceau de mot. Les vitesses se comptent en jetons par seconde.</dd>
+<dt>Limitation de débit</dt><dd>Plafonner le nombre de requêtes qu'une adresse peut envoyer par seconde. Arrête le devinage de mots de passe et les petites inondations. Voir <a href="/fr/ddos-at-home.html">résister aux DDoS</a>.</dd>
+<dt>LLM (grand modèle de langage)</dt><dd>Un modèle d'IA qui lit et écrit du texte. « Local » veut dire qu'il tourne sur votre machine, pas dans le cloud de quelqu'un.</dd>
+<dt>MCP (Model Context Protocol)</dt><dd>Un standard ouvert, publié en 2024, pour brancher des outils et des sources de données aux agents IA. Un seul serveur d'outils peut servir plusieurs agents.</dd>
+<dt>Modèle (poids)</dt><dd>L'IA entraînée elle-même, un gros fichier de nombres. « 8B » veut dire huit milliards de paramètres : plus gros est en général plus malin, et toujours plus lourd.</dd>
+<dt>MoE (mélange d'experts)</dt><dd>Un modèle fait de nombreux sous-réseaux spécialisés, dont quelques-uns seulement travaillent sur chaque jeton. C'est pourquoi de très grands modèles tournent à la maison. Voir <a href="/fr/big-moe-two-cards.html">le 177B sur deux cartes</a>.</dd>
+<dt>OCR</dt><dd>Lire le texte dans une image : transformer un scan en mots qu'on peut chercher. Voir <a href="/fr/homelab-paperless.html">Homelab 12</a>.</dd>
+<dt>Open source</dt><dd>Un logiciel dont n'importe qui peut lire, modifier et partager le code. « Fair-code » ou « source disponible », c'est proche, mais avec des restrictions.</dd>
+<dt>Port</dt><dd>Une porte numérotée sur une machine. Un site web répond en général sur le 443. Chaque port ouvert est une porte à garder fermée sauf besoin.</dd>
+<dt>Prefill (lecture du prompt)</dt><dd>La première phase d'une réponse : le modèle lit tout le prompt. Souvent celle qu'on attend avec les agents. Voir <a href="/fr/kv-cache-trap.html">le piège du cache KV</a>.</dd>
+<dt>Proxy (proxy inverse)</dt><dd>L'entrée unique de votre homelab : il reçoit chaque visiteur, garde les certificats, et passe chaque requête au bon service. Voir <a href="/fr/homelab-proxy.html">Homelab 2</a>.</dd>
+<dt>Pull request (PR)</dt><dd>Un changement de code proposé, en attente de relecture et de fusion. Personne, humain ou agent, ne devrait modifier la branche principale sans en passer par là.</dd>
+<dt>Quantification (Q4, Q8…)</dt><dd>Compresser un modèle en stockant ses nombres sur moins de bits. Q4 est plus petit et un peu moins précis que Q8.</dd>
+<dt>RAG</dt><dd>Faire répondre un modèle à partir de vos propres documents : on retrouve d'abord les passages utiles, puis on les donne au modèle avec la question.</dd>
+<dt>Réseau privé (VPN)</dt><dd>Un tunnel chiffré entre vos propres appareils, pour que votre téléphone rejoigne la maison comme s'il était sur le Wi-Fi. Voir <a href="/fr/homelab-remote.html">Homelab 6</a>.</dd>
+<dt>Sauvegarde</dt><dd>Une copie que l'on sait restaurer. Une copie jamais restaurée n'est pas encore une sauvegarde. Voir <a href="/fr/homelab-backups.html">Homelab 5</a>.</dd>
+<dt>Skill</dt><dd>Une procédure écrite qu'un agent ne charge que quand une tâche en a besoin. Voir <a href="/fr/agent-skills.html">les skills</a>.</dd>
+<dt>Tailnet</dt><dd>Votre réseau privé Tailscale : vos appareils, reliés où qu'ils soient. Voir <a href="/fr/tailscale-backbone.html">Tailscale</a>.</dd>
+<dt>TLS</dt><dd>Le chiffrement derrière HTTPS. Versions 1.2 et 1.3 seulement ; les plus anciennes sont cassées.</dd>
+<dt>Vibe coding</dt><dd>Décrire ce qu'on veut, laisser un modèle écrire le code, juger sur le résultat. Voir <a href="/fr/vibe-coding-art.html">le vibe coding et l'art numérique</a>.</dd>
+<dt>VM (machine virtuelle)</dt><dd>Un ordinateur complet simulé dans un vrai, avec son propre système. Plusieurs VM peuvent se partager une machine physique.</dd>
+<dt>VRAM</dt><dd>La mémoire propre de la carte graphique. Un modèle ne tourne vite que s'il y tient. Voir <a href="/fr/hardware.html">Le matériel, honnêtement</a>.</dd>
+<dt>Wake-on-LAN</dt><dd>Un paquet réseau qui allume un ordinateur endormi. Voir <a href="/fr/sleep-and-wake.html">dormir et se réveiller</a>.</dd>
+<dt>Webhook</dt><dd>Une adresse qui déclenche quelque chose quand on l'appelle. Signez-la, sinon quiconque la trouve peut la déclencher.</dd>
+<dt>WireGuard</dt><dd>Un tunnel chiffré petit et rapide, intégré au noyau Linux depuis 2020. La base de Tailscale.</dd>
+</dl>

@@ -1,0 +1,30 @@
+<!-- {"title": "Trois petits outils pour votre poste : votre historique IA, une jauge de contexte, l'inventaire de vos machines", "summary": "Rapatriez vos conversations Claude.ai en fichiers lisibles, voyez dans la barre d'état à quel point le contexte de votre agent local est rempli, et sachez ce qui a changé sur chacune de vos machines depuis la semaine dernière. Chacun tient en un script sans dépendance.", "order": 71, "series": "desk", "level": "beginner", "time": "45 min", "requires": ["linux-laptop"]} -->
+<p class="lead">Tous les outils n'ont pas besoin d'un serveur. Ces trois-là sont des scripts uniques, bibliothèque standard Python seulement, qui répondent chacun à une question de tous les jours : où sont mes anciennes conversations, à quel point mon agent est près d'oublier, et qu'est-ce qui a bougé sur mes machines.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Tout votre historique de chat IA en fichiers que vous pouvez lire, chercher et indexer ; une jauge de contexte pour un agent local, qu'aucun abonnement hébergé ne vous montre ; et un « qu'est-ce qui a changé » hebdomadaire pour chacune de vos machines.</p>
+
+<h2>1. Votre historique Claude.ai, en fichiers : claude-archive</h2>
+<p>L'export officiel (Paramètres → Confidentialité → Exporter les données) est complet mais en JSON brut. Un script en fait une archive utilisable :</p>
+<pre><code>python3 claude_archive.py ~/Téléchargements/data-XXXX.zip -o ./claude-archive</code></pre>
+<ul>
+<li>un fichier Markdown par conversation, dans l'ordre des dates ;</li>
+<li>chaque bloc de code extrait en vrai fichier source ;</li>
+<li>une liste des pièces jointes à récupérer à la main, puisque l'export ne les contient pas ;</li>
+<li>un manifeste avec les comptes d'entrée et de sortie : rien n'est perdu en silence.</li>
+</ul>
+<p>Sans réseau, sans dépendance. Idéal pour nourrir votre propre <a href="/fr/journal-rag.html">recherche dans vos notes</a>.</p>
+
+<h2>2. Une jauge de contexte dans la barre d'état : openfox-omarchy</h2>
+<p>Un agent hébergé montre ce qui reste de votre abonnement. Un agent local n'a pas d'abonnement ; sa vraie limite, c'est le contexte, qui se remplit et retombe à chaque compaction. Un petit script lit le stockage des sessions d'<a href="/fr/agent-openfox.html">OpenFox</a> et écrit l'enregistrement que le widget des agents d'Omarchy dessine déjà, à côté de Claude Code et Codex :</p>
+<pre><code>install -m 755 openfox-usage ~/.local/bin/openfox-usage
+openfox-usage      # puis un minuteur utilisateur toutes les dix minutes</code></pre>
+<p class="note">Quand vous ajoutez un fournisseur dans les réglages du widget, listez-les tous : donner <code>providers</code> remplace la liste par défaut, donc oublier <code>claude</code> masque Claude.</p>
+
+<h2>3. L'inventaire par scan, pas par déclaration : parc</h2>
+<p>Ansible pousse un état et l'oublie ; les outils de supervision observent sans comparer. <code>parc</code> part de ce qui existe : vous scannez vos machines, et il vous dit ce qui a bougé.</p>
+<pre><code>./parc.py scan local portable serveur   # instantané de chaque machine
+./parc.py diff                          # ce qui a changé depuis
+./parc.py compare portable serveur      # écarts entre deux machines
+./parc.py since 7j                      # ce qui a bougé cette semaine
+./parc.py export-ansible                # inventaire et playbook de réconciliation</code></pre>
+<p>En lecture seule par défaut ; <code>apply</code> n'installe qu'après une confirmation tapée à la main, et ne désinstalle jamais. <code>diff</code> sort en 1 quand une machine s'écarte, il tient donc dans une tâche cron.</p>

@@ -1,0 +1,25 @@
+<!-- {"title": "Homelab 17: your errors find you, with GlitchTip instead of Sentry", "summary": "A self-hosted error tracker in three containers, compatible with Sentry's SDKs: every crash of every service lands in one place, grouped and dated.", "order": 25, "series": "homelab", "level": "intermediate", "time": "1 h", "requires": ["homelab-proxmox"]} -->
+<p class="lead">When a service crashes at 3 a.m., you find out days later, by chance, in a log. An error tracker turns that around: every service sends its errors to one place, grouped so that a thousand identical crashes are one line, with when it started and when it last happened. Sentry is the reference; self-hosted, it needs a dozen containers and 16 GB of RAM. GlitchTip speaks the same protocol with three.</p>
+
+{{diagram:errors}}
+
+<h2>A bit of history</h2>
+<p>Sentry began in 2008 as a small plugin for Django that collected errors from production code; it grew into the reference of error tracking, and its licence later changed. GlitchTip, started in 2020, is an open-source alternative that speaks Sentry's protocol, so the official Sentry libraries send their errors to it without any change in your code.</p>
+
+<h2>1. Run it</h2>
+<p>GlitchTip runs as a web container, PostgreSQL and Valkey (or Redis). Follow the official Docker Compose setup, pin the versions, and close sign-ups once your account exists. Two settings saved us from a silent failure:</p>
+<ul>
+<li><code>GLITCHTIP_EMBED_WORKER=true</code> on the web container if you do not run a separate worker. Without a worker, events are accepted and never processed.</li>
+<li>a one-shot <strong>migrate</strong> service in the compose file: the database is not migrated at start by itself.</li>
+</ul>
+<p>Keep it on your home network or your private network (Homelab 6): your errors describe your weak points.</p>
+
+<h2>2. Connect your services</h2>
+<p>Create one project per service; each gets its own DSN, the address its SDK reports to. Any Sentry SDK works: set the DSN and initialise it at start. A shell script without SDK can report with one request to the project's store endpoint, for example when a nightly job fails.</p>
+
+<h2>Traps</h2>
+<p class="note">Prove it end to end the day you set it up: send one test event from each service and see it arrive as an issue. A tracker that silently drops events is worse than none, because you believe nobody crashed.</p>
+<p class="note">Keep DSNs out of your repositories: put them in each service's environment. A DSN lets anyone flood your tracker.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://glitchtip.com/" rel="noopener">GlitchTip</a></li><li><a href="https://sentry.io/" rel="noopener">Sentry</a></li></ul>

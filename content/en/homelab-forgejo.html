@@ -1,0 +1,26 @@
+<!-- {"title": "Homelab 8: your own code forge, where nothing reaches main without a green check", "summary": "Forgejo with its CI, a protected branch, and the rules that let AI agents propose code without ever breaking main.", "order": 16, "series": "homelab", "level": "intermediate", "time": "2 h", "requires": ["homelab-proxy"]} -->
+<p class="lead">Forgejo is an open-source code forge, a self-hosted GitHub: repositories, pull requests, issues, and a CI (Forgejo Actions) that speaks the same workflow format. At home it becomes more than a backup of your code: it is the place where AI agents propose changes, and where a machine, not good will, decides what reaches <code>main</code>.</p>
+
+{{diagram:forge}}
+
+<h2>1. The forge</h2>
+<p>Forgejo runs as a container next to a PostgreSQL database. Follow the official Docker installation page, pin the version, and publish the web interface through your HTTPS proxy (Homelab 2).</p>
+<p class="note">Git over SSH needs its own port, separate from the web. The HTTPS proxy only carries the web interface: use HTTPS for remote clones, or reach the SSH port through your private network (Homelab 6). Do not open it to the internet.</p>
+
+<h2>2. The runner</h2>
+<p>The CI jobs run on a <em>runner</em>, a separate program, ideally on another VM, which starts each job in a fresh container. Create it in <strong>Site administration → Actions → Runners → Create new runner</strong>, then follow the registration page of the documentation for your version.</p>
+<p>The runner announces <em>labels</em>; a workflow asks for one with <code>runs-on</code>. In the runner's configuration file, under <code>runner</code> → <code>labels</code>, map a label to an image:</p>
+<pre><code>ubuntu-latest:docker://node:lts</code></pre>
+
+<h2>3. The rule that changes everything</h2>
+<p>In the repository settings, protect <code>main</code>: no direct push, and the CI check is <strong>required</strong> before any merge. From then on, a human or an AI agent proposes a change through a pull request; it merges when the tests pass, and only then. Every repository on our forge is born from a template that arms this protection at creation, so none can exist without it.</p>
+
+<h2>Traps we paid for</h2>
+<p class="note">A job whose <code>runs-on</code> matches no label waits forever, without an error. If a run stays "waiting", compare its label with the runner's first.</p>
+<p class="note">Do not run jobs in a <code>slim</code> image: JavaScript actions such as <code>checkout</code> need <code>node</code> inside the job container, and the job dies before its first step.</p>
+<p class="note">Reference actions by their full URL, for example <code>https://data.forgejo.org/actions/checkout@v4</code>: short GitHub-style names are not resolved the same way.</p>
+<p class="note">When CI is red, read the forge's log before reproducing anything. Once, a local reproduction came out green on genuinely broken code; the log named the four failing assertions at once.</p>
+<p class="note">A green CI proves nothing if the tests never execute the code. Break the code on purpose (a mutation) and check that a test turns red. We merged a request header that was built and never sent, under a green CI.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://forgejo.org/" rel="noopener">Forgejo</a></li><li><a href="https://forgejo.org/docs/latest/" rel="noopener">Forgejo documentation</a></li></ul>

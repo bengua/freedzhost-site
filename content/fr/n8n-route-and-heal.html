@@ -1,0 +1,33 @@
+<!-- {"title": "n8n : router, réparer et générer les workflows, avec des garde-fous", "summary": "Une demande en mots simples qui charge le bon modèle ; un workflow qui recharge ce qui a planté, dans des limites strictes ; et des workflows écrits par du code, versionnés comme le reste.", "order": 32, "series": "n8n", "level": "advanced", "time": "1 h", "requires": ["n8n-agentic-clock"]} -->
+<p class="lead">L'horloge (article précédent) remarque ; cet article agit. Deux workflows de notre réseau changent seuls l'état des machines : l'un aiguille une demande vers le bon modèle, l'autre répare un modèle qui a planté. Chacun est utile exactement tant que ses garde-fous tiennent.</p>
+
+{{diagram:route}}
+
+<h2>1. Router : des mots simples au bon modèle</h2>
+<p>Un agent ou une personne demande en mots simples : « charge quelque chose de bon pour lire un très long document ». Le workflow :</p>
+<ol>
+<li><strong>Vérifie la signature.</strong> L'appelant signe le corps avec une clé HMAC partagée ; le nœud Crypto de n8n la recalcule sur le corps brut et refuse tout écart. Un webhook non signé est une porte.</li>
+<li><strong>Interroge le juge</strong> (Homelab 14) pour classer la demande dans une courte liste d'usages : code, long document, réponse rapide, vision… La classe de données est privée par défaut, donc rien ne part vers un modèle hébergé.</li>
+<li><strong>Applique des règles fixes</strong> : réutiliser ce qui sert déjà, ne jamais prendre la carte qu'utilise un jeu, refuser pendant qu'un modèle charge.</li>
+<li><strong>Agit, puis vérifie</strong> que le bon modèle répond vraiment. Sinon, <strong>une seule</strong> reprise après 25 secondes, jamais une boucle.</li>
+<li><strong>Écrit un événement</strong> avec l'issue, <em>failed</em> comme une erreur.</li>
+</ol>
+
+<h2>2. Réparer : recharger ce qui a planté, dans des limites</h2>
+<p>Quand le conteneur d'un modèle s'arrête, un événement le dit. Un workflow tourne chaque minute, lit les nouveaux événements avec un curseur (il se souvient du dernier traité, et garde 60 secondes de retard sur le plus récent pour ne pas lire des lignes à moitié écrites), et décide modèle par modèle. Ses règles viennent de l'<em>action</em>, pas de la confiance de qui que ce soit :</p>
+<ul>
+<li>une seule action est permise : recharger le modèle qui était déclaré, ce qui est réversible ;</li>
+<li>trois recharges du même modèle par heure au plus, puis un disjoncteur et l'appel à un humain ;</li>
+<li>si un autre modèle a été déclaré depuis, la perte est périmée : on l'ignore ;</li>
+<li>si un jeu tient la carte, on attend ;</li>
+<li>après chaque recharge, on vérifie, et on écrit <em>healed</em> ou <em>failed</em>.</li>
+</ul>
+
+<h2>3. Des workflows écrits par du code</h2>
+<p>Assembler des workflows à la souris dans l'éditeur ne passe pas à l'échelle, et ne se relit pas. Les plus importants des nôtres sont générés par de petits scripts Python qui écrivent le JSON du workflow : nœuds, connexions, le JavaScript des nœuds Code sous forme de simples chaînes. Un changement, c'est un diff dans un script, relu comme n'importe quel code ; le JSON est importé dans n8n, et chaque version est gardée dans un dossier de sauvegarde daté. Les reconstruire sur un n8n neuf, c'est relancer les scripts ; les workflows plus simples sont gardés en JSON exporté.</p>
+
+<h2>Pièges que nous avons payés</h2>
+<p class="note">Le bac à sable des expressions de n8n refuse certains noms : un champ appelé <code>caller</code> a fait échouer un workflow. Renommez les champs plutôt que de lutter contre le bac à sable.</p>
+<p class="note">Un nœud qui se replie en silence est pire qu'un nœud qui échoue. Notre nœud de juge exigeait un champ que nous n'envoyions pas ; au lieu d'une erreur, la demande est partie par un autre chemin sans que personne le voie. Validez les entrées dans un nœud Code avant l'appel, et testez chaque branche.</p>
+<p class="note">Lancer un workflow depuis la ligne de commande de n8n échoue pendant que le serveur tourne (ils partagent un port). Testez par le webhook, ou par l'horloge.</p>
+<p class="note">Dans notre version, changer l'état actif d'un workflow ne prenait pas toujours effet avant un redémarrage de n8n. Après un changement, vérifiez que le workflow tourne vraiment.</p>

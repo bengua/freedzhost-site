@@ -1,0 +1,22 @@
+<!-- {"title": "A workstation assistant that points, never types", "summary": "Say a sentence, a small local model picks one function from a closed table, and the script runs it. Questions are answered from your own notes first, then by a cascade of models that must say 'insufficient' when they do not know. What the measurements imposed, one rule at a time.", "order": 72, "series": "agents", "level": "intermediate", "time": "1 h", "requires": ["model-bench", "journal-rag"]} -->
+<p class="lead">"Turn the volume down." "What state is the server in?" "What did we decide about the GPU during games?" A small local assistant can handle these, as long as it is never allowed to type a command. Ours receives a closed table of functions, points at one, and the script does the rest.</p>
+
+<p class="proof"><strong>What you get.</strong> An assistant on your workstation that acts in under a second when the server is up, still answers (slower, never mute) when it sleeps, and says "I don't know" instead of inventing.</p>
+
+<h2>1. The model points, the code acts</h2>
+<p>Measured: the model still got one logic question in seven wrong. So it never generates a command. It returns one call from a closed table; the arguments are read as Python literals, never evaluated; anything outside the table becomes <code>NONE</code> rather than a near miss.</p>
+<pre><code>set_volume(percent: int)
+machine_state(host: str)
+search_memory(query: str)
+escalate(question: str)</code></pre>
+<p class="note">Declare the table as Python signatures with examples. Declared as JSON Schema, the model picked the right function but did not fill the values; as Python it returned 6 exact calls out of 7.</p>
+
+<h2>2. Sources before conversation</h2>
+<p>Asked about "the GPU mode", a model lectured confidently on Docker's network modes: plausible, entirely wrong. So a question is first answered from your notes and your infrastructure journal, with the model allowed to use only those excerpts. Each model in the cascade must answer exactly <code>INSUFFICIENT</code> when it does not know, and the code checks that word, letter for letter, before passing on.</p>
+<p class="note">Keep that marker in the code, not in the editable persona file: one edit to the persona, and the safety disappears.</p>
+
+<h2>3. Fast when it can, never mute</h2>
+<p>The server's general model designates first, at about 140 tokens per second; a small function-calling specialist on the laptop's processor takes over, at 5.5, when the server sleeps. The specialist is good on explicit orders; on an indirect question it gave up where the general model found the right search.</p>
+
+<h2>4. Escalate with the case file</h2>
+<p>The last step is a frontier model. Our first escalation answered from the sources alone, unable to look at the machine; it now receives a snapshot of the machine's state and the journal excerpts, and the screen says so, because it costs a remote call.</p>

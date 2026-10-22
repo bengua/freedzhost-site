@@ -1,0 +1,31 @@
+<!-- {"title": "Un studio de musique local qui garde le projet : fh-seq", "summary": "Les générateurs de chansons en ligne vous rendent un MP3 opaque. fh-seq garde la chanson comme un projet : sections et paroles, un arbre de rendus où chaque retouche garde son parent, la reprise d'une plage de temps, des pistes séparées à mixer, un clip plan par plan. Tout sur des moteurs libres, sur vos propres cartes.", "order": 73, "series": "create", "level": "advanced", "time": "une soirée + téléchargements", "requires": ["comfyui-studio"]} -->
+<p class="lead">Générez une chanson en ligne et vous obtenez un fichier. Vous voulez changer huit mesures du refrain ? Générez à nouveau et espérez. fh-seq est un prototype de l'inverse : une chanson est un projet qu'on retravaille, morceau par morceau, en gardant chaque essai. Tout tourne sur des moteurs libres, sur votre machine.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Des rendus complets, la reprise de n'importe quelle plage de temps, des variations globales, des pistes séparées, un clip plan par plan, et un historique où comparer deux versions tient en un clic. Il remplit aussi la banque d'ambiances de <a href="/fr/purrd.html">Purrd</a> : vingt morceaux instrumentaux en un appel.</p>
+
+<h2>1. Les moteurs, chacun dans sa boîte</h2>
+<table>
+<tr><th>Moteur</th><th>Ce qu'il fait</th></tr>
+<tr><td>HeartMuLa</td><td>rendus complets, meilleure qualité</td></tr>
+<tr><td>ACE-Step</td><td>rendus rapides, reprise d'une plage, variation</td></tr>
+<tr><td>Demucs</td><td>séparation en pistes</td></tr>
+<tr><td>ComfyUI</td><td>le clip vidéo</td></tr>
+</table>
+<p>Chaque moteur vit dans son propre environnement Python : leurs versions de PyTorch et de CUDA se contredisent, et les isoler est voulu. Chaque moteur déclare ce qu'il sait faire (générer, reprendre, varier) ; la page s'adapte. Ajouter un moteur, c'est un fichier et une ligne.</p>
+<pre><code>./fh-seq install    # idempotent ; tout sous runtime/, plusieurs Go au premier lancement
+./fh-seq run        # l'appli et son ComfyUI, sur la machine elle-même
+./fh-seq status     # quels moteurs sont présents</code></pre>
+<p class="note">Deux cartes sont supposées : le modèle de musique sur l'une, son codec audio sur l'autre. Des variables les déplacent si vous n'en avez qu'une.</p>
+
+<h2>2. Travailler une chanson</h2>
+<ol>
+<li>Écrivez les sections et les paroles, réglez les étiquettes de style, <strong>générez</strong>.</li>
+<li>Écoutez ; faites glisser la souris sur une zone de la forme d'onde et <strong>reprenez-la</strong>, avec la variance choisie. Ou faites une <strong>variation</strong> de l'ensemble.</li>
+<li>Chaque essai rejoint l'arbre ; comparez-en deux d'un clic.</li>
+<li>Séparez la version gardée en <strong>pistes</strong>, puis coupez-les ou équilibrez-les.</li>
+<li>Pour le clip : un plan par section, modifiez chaque prompt visuel, rendez plan par plan dans ComfyUI, assemblez.</li>
+</ol>
+
+<h2>Pièges</h2>
+<p class="note">Prévoyez la place. Le moteur écrit du WAV stéréo 32 bits : trois minutes pèsent 69 Mo, et vingt morceaux pour quinze styles pèseraient 20 Go. Convertissez en Opus avant de stocker une banque.</p>
+<p class="note">C'est un prototype : certains écrans sont bruts. C'est la structure (projet, arbre, pistes) qui vaut d'être copiée.</p>

@@ -1,0 +1,26 @@
+<!-- {"title": "Homelab 8 : votre propre forge de code, où rien n'arrive sur main sans contrôle vert", "summary": "Forgejo et sa CI, une branche protégée, et les règles qui laissent des agents IA proposer du code sans jamais casser main.", "order": 16, "series": "homelab", "level": "intermediate", "time": "2 h", "requires": ["homelab-proxy"]} -->
+<p class="lead">Forgejo est une forge de code open source, un GitHub auto-hébergé : dépôts, pull requests, tickets, et une CI (Forgejo Actions) qui parle le même format de workflows. À la maison, elle devient plus qu'une sauvegarde de votre code : c'est l'endroit où des agents IA proposent des changements, et où une machine, et non la bonne volonté, décide de ce qui arrive sur <code>main</code>.</p>
+
+{{diagram:forge}}
+
+<h2>1. La forge</h2>
+<p>Forgejo tourne en conteneur à côté d'une base PostgreSQL. Suivez la page d'installation Docker officielle, épinglez la version, et publiez l'interface web par votre proxy HTTPS (Homelab 2).</p>
+<p class="note">Git en SSH a besoin de son propre port, distinct du web. Le proxy HTTPS ne transporte que l'interface web : utilisez HTTPS pour les clones à distance, ou rejoignez le port SSH par votre réseau privé (Homelab 6). Ne l'ouvrez pas sur Internet.</p>
+
+<h2>2. Le runner</h2>
+<p>Les jobs de CI tournent sur un <em>runner</em>, un programme à part, idéalement sur une autre VM, qui lance chaque job dans un conteneur neuf. Créez-le dans <strong>Administration du site → Actions → Runners → Create new runner</strong>, puis suivez la page d'enregistrement de la documentation de votre version.</p>
+<p>Le runner annonce des <em>labels</em> ; un workflow en demande un avec <code>runs-on</code>. Dans le fichier de configuration du runner, sous <code>runner</code> → <code>labels</code>, associez un label à une image :</p>
+<pre><code>ubuntu-latest:docker://node:lts</code></pre>
+
+<h2>3. La règle qui change tout</h2>
+<p>Dans les réglages du dépôt, protégez <code>main</code> : pas de push direct, et le contrôle de CI est <strong>exigé</strong> avant toute fusion. Dès lors, un humain comme un agent IA propose un changement par pull request ; il fusionne quand les tests passent, et seulement alors. Chaque dépôt de notre forge naît d'un modèle qui arme cette protection à la création : aucun ne peut exister sans elle.</p>
+
+<h2>Pièges que nous avons payés</h2>
+<p class="note">Un job dont le <code>runs-on</code> ne correspond à aucun label attend pour toujours, sans erreur. Si un run reste « waiting », comparez d'abord son label à celui du runner.</p>
+<p class="note">Ne lancez pas les jobs dans une image <code>slim</code> : les actions JavaScript comme <code>checkout</code> ont besoin de <code>node</code> dans le conteneur du job, et le job meurt avant sa première étape.</p>
+<p class="note">Référencez les actions par leur URL complète, par exemple <code>https://data.forgejo.org/actions/checkout@v4</code> : les noms courts façon GitHub ne sont pas résolus de la même manière.</p>
+<p class="note">Quand la CI est rouge, lisez le journal de la forge avant de reproduire quoi que ce soit. Un jour, une reproduction locale est sortie verte sur du code vraiment cassé ; le journal citait d'emblée les quatre assertions en échec.</p>
+<p class="note">Une CI verte ne prouve rien si les tests n'exécutent jamais le code. Cassez le code exprès (une mutation) et vérifiez qu'un test passe au rouge. Nous avons fusionné un en-tête de requête construit et jamais envoyé, sous une CI verte.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://forgejo.org/" rel="noopener">Forgejo</a></li><li><a href="https://forgejo.org/docs/latest/" rel="noopener">Forgejo documentation</a></li></ul>

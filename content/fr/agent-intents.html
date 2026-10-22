@@ -1,0 +1,20 @@
+<!-- {"title": "Confier du code à un agent local sans qu'il casse tout", "summary": "Les modèles locaux écrivent du code plausible qui ne tourne pas. Les règles que nous avons mesurées : quatre livrables au plus, les vraies données, un test qui exécute, et une pull request que quelqu'un relit.", "order": 12, "series": "ai", "level": "advanced", "time": "15 min", "requires": ["homelab-forgejo"]} -->
+<p class="lead">Un modèle de code local écrit du code plausible et bien commenté. Parfois, il ne tourne pas. Ces règles viennent de notre propre forge, où des agents locaux proposent des changements chaque jour ; chacune a été payée par un run cassé ou une fusion défectueuse.</p>
+
+{{diagram:intent}}
+
+<h2>1. Des demandes courtes</h2>
+<p>L'échec tient à l'endurance, pas à la difficulté. Nos livrables courts sont sortis propres (13 et 31 lignes, sans défaut) ; les longs ont cassé (83 et 342 lignes, défectueux). Les demandes à un ou deux livrables finissaient en 6 à 11 minutes, à quatre en 7 minutes ; à huit, elles tournaient 28 minutes et plus, puis expiraient sans rien produire. Donc : <strong>quatre livrables au plus</strong>, et découpez le reste. Notre file refuse d'elle-même les demandes plus larges.</p>
+
+<h2>2. Donner les données, pas leur description</h2>
+<p>Un run a brûlé 57 minutes à chercher dans un dépôt des champs JSON qu'un autre dépôt produisait. Collez un vrai extrait dans la demande et dites explicitement de ne pas le chercher. Donnez aussi le sujet du commit, et une liste fermée des fichiers qu'il a le droit de toucher.</p>
+
+<h2>3. Un test qui exécute le code</h2>
+<p>Demandez toujours un test qui <em>fait tourner</em> ce qui a été écrit, si petit soit-il, et ne le lâchez jamais quand vous découpez une tâche. Nos deux seules pull requests qui ne pouvaient pas tourner étaient les deux seules sans test. Ce qui est passé faute d'un tel test : un en-tête d'autorisation construit et jamais envoyé, un nom d'hôte confondu avec une URL complète, un contrôle de chemin qui comparait du texte au lieu de dossiers, une fonction appelée sans son tiret bas. Un test qui exécutait simplement le code aurait attrapé chacun.</p>
+<p>Pour tout ce qui a un format strict, donnez la sortie attendue dans un <strong>fichier de référence</strong> et comparez octet pour octet. Puis cassez le code exprès et vérifiez qu'un test passe au rouge : un test qui n'échoue jamais ne prouve rien.</p>
+
+<h2>4. Relire chaque pull request</h2>
+<p>Deux pull requests sur cinq fusionnées en une journée portaient un défaut qui ne tournait pas. L'agent travaille sur sa propre branche et ne touche jamais <code>main</code> ; un humain, ou un modèle plus fort, relit le diff avant la fusion. Et vérifiez qu'une pull request est toujours ouverte avant de pousser un correctif sur sa branche : la fusion automatique l'a peut-être déjà fermée.</p>
+
+<h2>Le piège découvert aujourd'hui</h2>
+<p class="note">Les modèles de la famille Qwen utilisent des jetons spéciaux (<code>&lt;|im_start|&gt;</code>, <code>&lt;|im_end|&gt;</code>) pour marquer leurs propres tours de parole. Prié de recopier une ligne qui en contenait, notre modèle s'est arrêté net au premier : il ne peut pas les écrire comme du texte. Trois runs ont échoué sur un module qui en avait besoin. Le premier a inventé d'autres jetons et plié les tests pour les accepter, le second a tourné en rond 314 tours, le troisième les a supprimés sans rien dire. La solution : construire ces jetons par concaténation dans le code (<code>"&lt;|" + "im_start|&gt;"</code>), utiliser des marqueurs en texte simple dans les fichiers de données, et ne jamais les taper dans la demande elle-même. Si vous affinez ou interrogez ces modèles par gabarits bruts, attendez-vous à ça.</p>

@@ -1,0 +1,59 @@
+<!-- {"title": "OpenFox: the coding agent that takes local models seriously", "summary": "Most coding agents are built for a frontier model and tolerate a local one. OpenFox is built the other way round: a plan becomes an immutable contract of acceptance criteria, the agent loops until every criterion passes, and you see the prefill and generation speed of your own card live. Open source, free per token, and our agent of every day.", "order": 46, "series": "agents", "level": "beginner", "time": "30 min", "requires": ["model-gateway"]} -->
+<p class="lead">OpenFox is the agent we open first, every day. Not because it is free, but because it was designed for what a local model really is: fast, cheap, a little forgetful, and in need of a frame. Where cloud-first agents hope the model will stay on track, OpenFox writes the track down, checks it at every step, and does not stop until it is reached. With a 9B or a 27B model on your own card, that changes everything.</p>
+
+<p class="proof"><strong>What you get.</strong> A complete coding agent in your browser, for any local backend (llama.cpp, Ollama, vLLM, SGLang), open source under the MIT licence, with no cost per token. Here it runs on the server with the graphics cards, and the phone app <a href="/agent-swarmfox.html">SwarmFox</a> drives its sessions from anywhere.</p>
+
+{{diagram:agents}}
+
+<h2>1. Why it is different: a contract, not a hope</h2>
+<ul>
+<li><strong>Plan, then build.</strong> You and the agent break the task down together; then it implements on its own.</li>
+<li><strong>Acceptance criteria are a contract.</strong> Once the plan is agreed, its criteria are immutable: the agent cannot quietly redefine "done".</li>
+<li><strong>It loops until every criterion passes.</strong> Build, verify, fix, verify again. Small models make mistakes; this loop is what turns them into delivered work.</li>
+<li><strong>Immediate feedback from the language server</strong>: an invalid edit is caught at once, not three steps later.</li>
+<li><strong>Workflows</strong>: declarative pipelines of agent turns, sub-agents, shell commands and human gates, with a code review phase in the build–verify cycle.</li>
+</ul>
+
+<h2>2. Built for your own hardware</h2>
+<ul>
+<li>It <strong>detects your backend</strong> on first run and configures itself.</li>
+<li><strong>Real-time metrics</strong>: prefill time, generation speed, context used. You see your card work, and you see when the context fills.</li>
+<li><strong>Vision for every model</strong>: images are described before each turn, so even a text-only model can "see" a screenshot.</li>
+<li><strong>Safe parallel edits</strong>: one lock per file, so two sub-agents never write the same file at once.</li>
+<li><strong>Plugins</strong> for more providers, tools and commands, installable from the interface without a restart.</li>
+</ul>
+
+<h2>3. Install it in one evening</h2>
+<pre><code>npm install -g openfox      # Node 24 or newer
+openfox                     # opens the interface; the first run detects your backend</code></pre>
+<p>Point it at your <a href="/model-gateway.html">model gateway</a> rather than at one model server: the gateway knows which model is on which card, OpenFox only needs one stable address. Run it on the machine with the cards, and reach it from the laptop or the phone through your private network.</p>
+<pre><code>OPENFOX_LLM_URL=http://your-gateway:4000/v1 \
+OPENFOX_MAX_CONTEXT=65536 openfox --no-browser</code></pre>
+<p class="note">Declare the real window of your model with <code>OPENFOX_MAX_CONTEXT</code>. The default assumes 200,000 tokens; a local model with 64k would overflow long before OpenFox compacts.</p>
+
+<h2>4. Run it as a service on the server</h2>
+<p>Ours runs as a user service on the machine with the cards, listening only on the private network, so the laptop and the phone reach the same sessions:</p>
+<pre><code>[Service]
+Environment=OPENFOX_HOST=&lt;the server's private-network address&gt;
+Environment=OPENFOX_LLM_URL=http://127.0.0.1:4000/v1
+Environment=OPENFOX_MAX_CONTEXT=180224
+Environment=OPENFOX_LLM_TIMEOUT=900000
+Environment=OPENFOX_WORKDIR=/srv/projects
+Environment=OPENFOX_DEFAULT_AGENT=fh-coder
+ExecStart=%h/.local/bin/openfox</code></pre>
+<p>A long timeout (15 minutes) leaves room for a large model reading a long prompt; the work folder confines projects to one tree; the default agent is our own (see <a href="/fh-coder.html">FH Coder</a>). Agents, workflows and skills live as plain files in <code>~/.config/openfox/</code>, easy to version.</p>
+
+<h2>5. What we added around it</h2>
+<ul>
+<li><strong>It follows the card.</strong> A small follower reads which model each card declares and rewrites OpenFox's default model to match: the agent's configuration follows the hardware, never the reverse.</li>
+<li><strong>A context meter in the status bar</strong> of the laptop (see <a href="/workstation-small-tools.html">three small tools</a>).</li>
+<li><strong>Phone and desktop clients</strong>: <a href="/agent-swarmfox.html">SwarmFox</a> and <a href="/agent-rooms-foxdesk.html">FoxDesk</a> open, follow and approve its sessions.</li>
+</ul>
+
+<h2>Traps</h2>
+<p class="note">Keep the tool list short. Our first turn weighed 8,455 tokens before a single word, mostly tool descriptions: one permanent tool server instead of five, tools loaded on demand.</p>
+<p class="note">Never let two processes write its configuration file at once: two parallel registrations left us a corrupted <code>config.json</code>. Keep a copy before changing it.</p>
+<p class="note">Test it where it is used. A model that answers a <code>curl</code> is not a working agent; the proof is a session where it calls a tool and uses the result.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/co-l/openfox" rel="noopener">OpenFox, official repository</a></li></ul>

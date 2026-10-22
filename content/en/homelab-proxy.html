@@ -1,0 +1,50 @@
+<!-- {"title": "Homelab 2: one HTTPS entrance for all your services", "summary": "A reverse proxy with free certificates: how this very site went online, in fifteen minutes.", "order": 7, "series": "homelab", "level": "beginner", "time": "1 h", "requires": ["homelab-proxmox"]} -->
+<p class="lead">Every service you host needs an address and a padlock. Rather than opening one door per service, open one: a reverse proxy. It receives every visitor, holds the HTTPS certificates, and passes each request to the right service inside your network. Ours is Nginx Proxy Manager (NPM): open source, with a web interface, and it renews Let's Encrypt certificates by itself.</p>
+
+{{diagram:proxy}}
+
+<h2>A bit of history</h2>
+<p>Igor Sysoev released nginx in 2004 to serve many simultaneous connections with little memory; it became one of the most used web servers in the world. Let's Encrypt, opened to the public at the end of 2015, made HTTPS certificates free and automatic. Nginx Proxy Manager wraps both in a web interface: one form per site, and a certificate that renews itself.</p>
+
+<h2>Proof it is simple</h2>
+<p>This site went online exactly this way: a container serving the pages, one proxy entry, one certificate, about fifteen minutes. A small VM is plenty for a whole homelab.</p>
+
+<h2>1. The name</h2>
+<p>At your domain registrar, create an <code>A</code> record for your domain and one for each subdomain (or a wildcard <code>*</code>), pointing to your public IP address. Check from outside your network that the name resolves before going further.</p>
+
+<h2>2. The box</h2>
+<p>In your internet box, forward ports <strong>80</strong> and <strong>443</strong> to the machine that runs the proxy. Nothing else.</p>
+<p class="note">Never forward port 81: it is NPM's administration page. It stays reachable from your home network only.</p>
+
+<h2>3. The proxy</h2>
+<p>On a VM or container with Docker (see Homelab 1), the official compose file, version pinned:</p>
+<pre><code>services:
+  npm:
+    image: jc21/nginx-proxy-manager:2.16.0
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "81:81"
+      - "443:443"
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt</code></pre>
+<pre><code>docker compose up -d</code></pre>
+<p>Open <code>http://&lt;proxy-address&gt;:81</code> from your network. A default administrator account is created on the first start (see the setup page of the official documentation): log in, then change its email and password right away.</p>
+
+<h2>4. Publish a service</h2>
+<ol>
+<li><strong>Hosts → Proxy Hosts → Add Proxy Host.</strong></li>
+<li>Domain names: <code>yourdomain.tld</code>, <code>www.yourdomain.tld</code>.</li>
+<li>Forward to the service's address and port on your network, for example <code>192.0.2.10</code> and <code>8000</code>.</li>
+<li>Tab <strong>SSL</strong>: request a new Let's Encrypt certificate, tick <strong>Force SSL</strong>.</li>
+</ol>
+<p>Save: Let's Encrypt checks that you own the name through port 80, issues the certificate, and NPM renews it before it expires.</p>
+
+<h2>Traps</h2>
+<p class="note">Pin a version instead of <code>:latest</code>: otherwise an update arrives the day you restart, unannounced. And never add <code>privileged: true</code> out of habit: a proxy does not need full control of the host.</p>
+<p class="note">If certificate requests keep failing, stop retrying: Let's Encrypt limits how many identical certificates you can get per week. Fix the cause first, usually port 80 not forwarded or a name that does not resolve yet.</p>
+<p class="note">Testing from home and the site does not answer? Some boxes cannot loop back to their own public address. Test from a phone on mobile data before suspecting the proxy.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://nginx.org/" rel="noopener">nginx</a></li><li><a href="https://nginxproxymanager.com/" rel="noopener">Nginx Proxy Manager</a></li><li><a href="https://letsencrypt.org/" rel="noopener">Let&#x27;s Encrypt</a></li></ul>

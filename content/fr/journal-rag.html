@@ -1,0 +1,25 @@
+<!-- {"title": "Un RAG sur votre propre journal : ne jamais résoudre deux fois le même problème", "summary": "Notez ce que vous avez résolu, laissez un service de recherche l'indexer, et laissez vos agents l'interroger avant de deviner. La taille de morceau qui compte, et les trois façons dont il sert en silence des réponses périmées.", "order": 19, "series": "ai", "level": "intermediate", "time": "2 h", "requires": ["homelab-proxmox"]} -->
+<p class="lead">Les problèmes les plus coûteux d'un homelab sont ceux qu'on résout deux fois : vous l'avez réparé en septembre, oublié comment, et passez octobre à le redécouvrir. Un journal règle ça seulement si l'on peut y retrouver les choses. Un RAG (génération augmentée par la recherche) le fait : il retrouve les passages de vos notes les plus proches d'une question, et vous les donne, à vous ou à un agent, avant que quiconque devine.</p>
+
+{{diagram:rag}}
+
+<h2>Un peu d'histoire</h2>
+<p>La génération augmentée par la recherche (RAG) a été nommée dans un article de 2020 de Facebook AI Research : au lieu d'espérer qu'un modèle se souvienne d'un fait, le chercher dans vos propres documents et donner les passages au modèle avec la question. Un modèle sait ce qu'il a lu pendant son entraînement ; le RAG lui permet de répondre à partir de ce que vous avez écrit hier.</p>
+
+<h2>1. L'écrire</h2>
+<p>Un fichier Markdown par jour, une section par problème : le symptôme, la cause, la réparation, et le piège. Écrivez-le au moment où c'est résolu ; demain, vous aurez oublié le détail qui comptait. Notre règle : un diagnostic qui n'est pas écrit sera payé deux fois.</p>
+
+<h2>2. L'indexer automatiquement</h2>
+<p>Un petit service découpe les notes en morceaux, transforme chaque morceau en vecteur avec un petit modèle d'embedding (le nôtre : e5-small, qui tourne sur un processeur), et répond aux questions avec les morceaux les plus proches. Une unité systemd <code>.path</code> surveille le dossier du journal et réindexe quand un fichier change, environ 70 secondes par passe sur notre petite VM.</p>
+
+<h2>3. L'interroger d'abord</h2>
+<p>Donnez à vos agents un outil qui l'interroge, et faites-en une règle : avant de diagnostiquer quoi que ce soit dans le homelab, on demande au journal. Fermez la route de recherche par un jeton (dans un en-tête, pas dans l'URL) ; laissez le contrôle de santé public, une sonde ne devrait pas avoir besoin d'un secret.</p>
+
+<h2>Pièges que nous avons payés</h2>
+<p class="note"><strong>La taille des morceaux.</strong> Notre modèle d'embedding lit 512 jetons, environ 1 400 caractères de français. Nos premiers morceaux étaient des sections entières, certaines de 7 000 caractères : seul leur début était indexé, et un incident écrit au caractère 2 719 restait introuvable. Plafonnez les morceaux à environ 1 200 caractères.</p>
+<p class="note"><strong>L'index vit en mémoire.</strong> Notre service chargeait chaque index une fois et le gardait toute sa vie : réindexer mettait à jour le disque, pas les réponses. Redémarrez le service après chaque indexation, dans la même tâche.</p>
+<p class="note"><strong>L'orphelin.</strong> Une vieille copie du service gardait le port. La nouvelle échouait à démarrer, en boucle, et l'orphelin continuait de répondre avec un index de 40 heures : le redémarrage « réussissait », la santé était au vert. Le signe : tous les résultats avaient le même score, 1,0, donc le classement n'était plus que l'ordre des fichiers. Vérifiez qui tient vraiment le port (<code>ss -lntp</code>), et arrêtez l'orphelin par son PID, jamais par un motif de nom.</p>
+<p class="note"><strong>La mémoire.</strong> La réindexation montait à 1 Go sur une VM de 2 Go sans swap, et le système la tuait, à chaque fois, en silence. 2 Go de swap ont réglé le problème sans toucher à la RAM de la VM.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://arxiv.org/abs/2005.11401" rel="noopener">Lewis et al. (2020), Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks</a></li></ul>

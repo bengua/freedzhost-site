@@ -1,0 +1,32 @@
+<!-- {"title": "From an e-mail to a pull request: the go label", "summary": "Send yourself an e-mail with an idea; it becomes a drafted issue waiting for you. Put one label on it, and an agent picks it up, works, opens a pull request, and closes the issue when it is merged. One rule keeps it safe: no code ever adds the label.", "order": 80, "series": "agents", "level": "advanced", "time": "an evening", "requires": ["homelab-n8n", "agent-claude-code", "agent-swarmfox"]} -->
+<p class="lead">Ideas arrive anywhere: on a walk, in a waiting room. You send yourself an e-mail. The next morning it is an issue on your forge, written properly, labelled, waiting. You read it, put the label <strong>go</strong> on it from your phone, and an agent does the work. You read the pull request and merge.</p>
+
+<p class="proof"><strong>What you get.</strong> A queue of work fed from your mailbox and drained by local agents, with one human gesture in the middle. Each issue follows itself to the end: pull request linked, issue closed on merge, a "needs a human" flag when something fails.</p>
+
+<h2>1. The mail becomes an issue, and waits</h2>
+<ul>
+<li>You write to an address alias reserved for this (<code>you+forge@…</code>), subject <code>[repository] what you want</code>.</li>
+<li>An automation reads the mailbox, and a local model drafts the issue: a clear title, a body, a kind (bug, feature, doc, task).</li>
+<li>The issue is labelled <strong>triage</strong>: it means <em>waiting for you</em>. No agent touches it.</li>
+</ul>
+
+<h2>2. One label starts the work</h2>
+<p>Only an issue labelled <strong>go</strong> is work. A small worker passes every five minutes, takes <em>one</em> issue, and only if a model is actually loaded on a card:</p>
+<ol>
+<li>labels it <em>in progress</em> and removes <em>go</em>;</li>
+<li>hands the title and body to the coding agent, which opens a pull request;</li>
+<li>comments the run's identifier on the issue.</li>
+</ol>
+<p>Each following pass follows the run: pull request linked, issue closed when it merges, label <em>needs-human</em> and a comment when the run or the pull request fails. A task too wide for the agent gets <em>needs-split</em>.</p>
+<p class="note">The rule that makes it safe: <strong>no code ever adds the go label</strong>. Only your account, from your phone or the forge, can. A test checks that no script in the repository adds it.</p>
+
+<h2>3. Write the task for a small model</h2>
+<ul>
+<li>Give the agent the text, not the issue number: told "#4", a 9B model ran the same history search 208 times.</li>
+<li>Four deliverables at most, a closed list of files, and a test that runs what was written.</li>
+<li>Read the pull request before merging: short changes come back clean, long ones break.</li>
+</ul>
+
+<h2>Traps</h2>
+<p class="note">Our forge's issue search ignored a label filter when no repository had that label yet, and returned everything. Check the label yourself on each result before acting.</p>
+<p class="note">Do not start the worker when no model is loaded: a run on an empty card fails after minutes and clutters the issue. Ask the GPU grid first.</p>

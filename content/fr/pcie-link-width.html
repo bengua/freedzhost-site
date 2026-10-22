@@ -1,0 +1,38 @@
+<!-- {"title": "Votre carte graphique en x4 au lieu de x16 : le diagnostiquer, et retrouver le x16", "summary": "Une carte peut tourner en silence sur un quart de ses lignes après un redémarrage. Comment lire le lien que le micrologiciel lui a vraiment donné, pourquoi le BIOS n'a pas de réglage « x16 » à choisir, la mauvaise solution à éviter, et ce qu'un cycle d'alimentation a fait chez nous : de x4 à x16, sans rien changer.", "order": 92, "series": "ai", "level": "intermediate", "time": "30 min", "requires": ["second-gpu-oculink"]} -->
+<p class="lead">Un matin, notre carte principale tournait sur quatre lignes PCIe au lieu de seize. Rien n'a échoué, rien n'a prévenu : les modèles étaient juste plus lents. La première explication qui est venue (la seconde carte qui « vole » des lignes) était fausse. La vraie cause était le micrologiciel, et le remède un cycle d'alimentation, pas un réglage.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Une vérification de deux minutes du lien réel de chaque carte, la bonne lecture des options de votre BIOS, et une petite commande qui refuse de dire « tout va bien » quand ce n'est pas le cas. Mesuré ici : x16 à 252 Gbit/s pour la carte principale et x4 à 63 Gbit/s pour la seconde en OCuLink, les deux en même temps.</p>
+
+<h2>1. Lire le lien donné par le micrologiciel</h2>
+<pre><code>for d in $(lspci -D -d 10de: | awk '/VGA|3D/ {print $1}'); do
+  echo "$d  $(cat /sys/bus/pci/devices/$d/current_link_width)/$(cat /sys/bus/pci/devices/$d/max_link_width) lignes"
+done
+journalctl -k -b | grep -i "available PCIe bandwidth"</code></pre>
+<p>La seconde ligne est la précieuse : le noyau écrit la bande passante disponible pour chaque carte <strong>et le port qui la limite</strong>. <code>current_link_width</code> dit la largeur ; cette ligne dit pourquoi. Avec <code>journalctl -b -1</code>, vous comparez au démarrage précédent sans rien toucher.</p>
+<p class="note">Désignez une carte par son identité (<code>lspci -d fabricant:modèle</code>), jamais par son adresse de bus : la nôtre a changé d'adresse après un redémarrage, et un ancien script annonçait tranquillement la puce graphique intégrée « en x16 ».</p>
+
+<h2>2. Comprendre ce qui s'est vraiment passé</h2>
+<p>Sur une plateforme AMD récente, le processeur distribue 28 lignes : 16 au slot principal, 4 à chacun de deux emplacements M.2, 4 au chipset. Notre seconde carte, sur un adaptateur M.2 vers OCuLink, a ses propres lignes. Rien n'était partagé. Le micrologiciel avait, le temps d'un démarrage, découpé le slot principal et posé la carte sur un sous-port x4.</p>
+
+<h2>3. Le BIOS n'a pas de « x16 » à choisir</h2>
+<p>Le menu de bifurcation de notre carte mère propose trois entrées, et aucune ne s'appelle x16 :</p>
+<ul>
+<li><strong>Auto</strong> : détecte ce qui est branché et ne découpe qu'au besoin. <strong>Auto, c'est le x16.</strong></li>
+<li><strong>8x/8x</strong> : documenté pour les cartes riser seulement. Le choisir bride la carte à x8 pour de bon, même quand rien d'autre n'est branché.</li>
+<li><strong>Un mode pour cartes de stockage</strong> (x4/x4) : pour les cartes porteuses NVMe. Jamais avec une carte graphique.</li>
+</ul>
+
+<h2>4. Ce qui a ramené le x16</h2>
+<ol>
+<li>Ne rien changer et mesurer deux fois : le découpage peut être passager.</li>
+<li>Un cycle d'alimentation complet, avec le boîtier externe allumé <em>avant</em> le PC. C'est ce qui a suffi chez nous : un passage dans le BIOS sans rien y changer, puis extinction et rallumage.</li>
+<li>Seulement si ça persiste : une mise à jour du micrologiciel. La nôtre aurait été irréversible, sans aucune note de version parlant de bifurcation : un pari, pas un correctif.</li>
+</ol>
+<p>Ensuite, vérifiez-le à chaque démarrage, automatiquement : notre <code>fh-egpu verify 16</code> sort en erreur si la carte principale n'est pas en x16.</p>
+
+<h2>Pièges</h2>
+<p class="note">Un lien lent n'échoue pas, il ralentit tout en silence. N'attribuez pas non plus le gain à la mauvaise cause : notre gros modèle est passé de 26,1 à 55,6 jetons par seconde cette semaine-là, et une mesure intermédiaire a montré que le x16 n'en expliquait qu'une partie (voir <a href="/fr/big-moe-two-cards.html">le 177B sur deux cartes</a>).</p>
+<p class="note">Une carte externe doit être allumée avant le PC : le système ne recense que les périphériques présents à la mise sous tension.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.kernel.org/PCI/sysfs-pci.html" rel="noopener">Linux kernel, PCI sysfs documentation</a></li></ul>

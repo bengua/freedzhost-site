@@ -1,0 +1,39 @@
+<!-- {"title": "Tailscale as the backbone: everything private, reachable from anywhere", "summary": "The model gateway, the phone console's API, the fingerprint relay, game streaming, the health reports of a laptop on the road: all of it travels over a private network, none of it is on the internet. How we publish a service to the private network only, with real HTTPS, and the defaults worth tightening.", "order": 97, "series": "homelab", "level": "intermediate", "time": "1 h", "requires": ["homelab-remote"]} -->
+<p class="lead">The best way to secure a service is not to publish it. A private mesh network such as Tailscale (or its self-hosted counterpart, Headscale) links your laptop, phone and servers wherever they are, as if they shared one local network. In our lab, most services live <em>only</em> there. Here is what goes through it, and how.</p>
+
+<p class="proof"><strong>What you get.</strong> Your whole lab in your pocket, from any network, with nothing to open on your router: the model gateway, the phone console, game streaming, admin consoles. Each service on the private network gets a real HTTPS address, and the public internet sees none of it.</p>
+
+<h2>A bit of history</h2>
+<p>For decades, reaching home from outside meant a VPN server, an open port and certificates to manage, or a port forward per service. WireGuard, written by Jason Donenfeld and merged into the Linux kernel in 2020, made encrypted tunnels small, fast and simple. Tailscale, founded in 2019, added what WireGuard leaves to you: exchanging keys, finding each device behind its router, naming machines. Each device talks directly to the others; a coordination server only introduces them. Headscale is an open-source reimplementation of that coordination server, for those who want to host it too. Addresses come from a range reserved in 2012 for carriers (RFC 6598), so they never collide with your home network.</p>
+
+<h2>1. What lives only on the private network here</h2>
+<ul>
+<li>The <a href="/model-gateway.html">model gateway</a>: it listens only on the private network's interface.</li>
+<li>The API behind the <a href="/agent-swarmfox.html">phone console</a>, and the agents' sessions.</li>
+<li>The <a href="/fingerprint-everywhere.html">fingerprint relay</a> that approves a sudo on the server.</li>
+<li>Game streaming from the <a href="/headless-gaming-node.html">headless gaming PC</a>.</li>
+<li>Health reports from the laptop when it is away from home: they reach the lab through the private network, not a public address.</li>
+<li>Admin consoles: behind the proxy, they answer only to the local and the private network (see <a href="/web-exposure-audit.html">the audit</a>).</li>
+</ul>
+
+<h2>2. Publish a service with real HTTPS, privately</h2>
+<pre><code>tailscale serve --bg --https=443 http://127.0.0.1:8460</code></pre>
+<p>The service keeps listening on the machine itself; Tailscale gives it an address of the form <code>https://machine.your-tailnet.ts.net</code> with a valid certificate, reachable only by your devices. No proxy, no open port, no certificate to renew by hand.</p>
+
+<h2>3. Open a port to the private network only</h2>
+<pre><code>ufw allow in on tailscale0 to any port 4000 proto tcp</code></pre>
+<p>Rules on the <code>tailscale0</code> interface never apply to the local network or the internet. Combined with a service bound to the private address, a mistake in one layer is caught by the other.</p>
+
+<h2>4. Tighten the defaults</h2>
+<ul>
+<li><strong>Access rules</strong>: the default policy lets every device reach every other. Write rules by tag: the phone may reach the console and the gateway, a guest device nothing.</li>
+<li><strong>Names</strong>: enable MagicDNS, and on the phone "use Tailscale DNS settings", or names will not resolve.</li>
+<li><strong>Allow-lists elsewhere</strong>: the private network's address range (inside the <code>100.64/10</code> block) can be trusted in your proxy's access lists, your fail2ban <code>ignoreip</code> and your rate limits.</li>
+</ul>
+
+<h2>Traps</h2>
+<p class="note">A sleeping machine does not answer even a <code>tailscale ping</code>. Wake it first (see <a href="/sleep-and-wake.html">sleep and wake</a>) before concluding the network is broken.</p>
+<p class="note">Do not confuse "on the private network" with "safe": a compromised laptop is on it too. Keep logins, and keep the access rules tight.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://www.wireguard.com/" rel="noopener">WireGuard</a></li><li><a href="https://tailscale.com/kb" rel="noopener">Tailscale documentation</a></li><li><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale</a></li><li><a href="https://www.rfc-editor.org/rfc/rfc6598" rel="noopener">RFC 6598, shared address space</a></li></ul>

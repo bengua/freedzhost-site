@@ -1,0 +1,54 @@
+<!-- {"title": "Résister aux DDoS quand votre site vit à la maison", "summary": "Aucun réglage d'un serveur maison n'arrête une inondation qui sature la ligne. Ce que vous pouvez faire : rendre les petites attaques inutiles au niveau du proxy, servir le site depuis la mémoire, et, pour une vraie protection, placer devant la maison un petit frontal loué avec anti-DDoS, pour que son adresse ne soit jamais publiée. Quatre couches, du gratuit à cinq euros par mois.", "order": 94, "series": "homelab", "level": "intermediate", "time": "une soirée", "requires": ["web-exposure-audit"]} -->
+<p class="lead">Soyons honnêtes d'abord : si quelqu'un envoie plus de trafic que votre ligne internet ne peut en porter, votre site tombe, quoi que vous configuriez à la maison. L'inondation s'arrête en amont ou pas du tout. Ce que vous maîtrisez, c'est tout le reste : les robots, le devinage de mots de passe, les inondations applicatives, et le fait que l'adresse de votre maison soit visible ou non.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Un plan clair en quatre couches. Les deux premières sont gratuites, prennent une heure et arrêtent le bruit quotidien ; la troisième, un petit frontal loué, cache votre maison et garde le site en ligne même quand la maison est coupée.</p>
+
+{{diagram:front}}
+
+<h2>Couche 1 : des limites au proxy (gratuit, une heure)</h2>
+<p>Dans Nginx Proxy Manager, un fichier personnalisé chargé dans le bloc <code>http</code> s'applique à tous les sites :</p>
+<pre><code># /data/nginx/custom/http_top.conf
+geo $limited { default 1; YOUR-LAN/24 0; YOUR-TAILNET-RANGE 0; 127.0.0.0/8 0; }
+map $limited $limit_key { 0 ""; 1 $binary_remote_addr; }   # vos propres réseaux ne sont jamais limités
+limit_req_zone  $limit_key zone=perip:10m rate=30r/s;
+limit_conn_zone $limit_key zone=conn:10m;
+limit_req  zone=perip burst=120 nodelay;
+limit_conn conn 60;
+limit_req_status 429;
+client_header_timeout 15s; client_body_timeout 15s; send_timeout 15s;
+# keepalive_timeout est déjà posé par le proxy : le poser deux fois casse le rechargement</code></pre>
+<ul>
+<li>Les requêtes et les connexions par adresse sont plafonnées : une seule machine ne peut pas accaparer le serveur.</li>
+<li>Des délais courts déjouent les attaques « lentes » qui ouvrent des connexions et envoient un octet par minute.</li>
+<li>Les pages de connexion méritent une zone plus stricte, autour de 5 requêtes par minute.</li>
+<li>Mesuré après application ici : sur 400 requêtes tirées en parallèle depuis une adresse extérieure, 171 servies et 229 refusées en 429. Un visiteur normal ne s'aperçoit de rien.</li>
+</ul>
+<p>Ensuite un fail2ban qui marche (vérifiez qu'il reconnaît vraiment quelque chose, voir <a href="/fr/web-exposure-audit.html">l'audit</a>), avec une prison qui bannit dès la première recherche de <code>/.env</code> ou <code>/.git/</code>, et une prison <code>recidive</code> qui bannit les récidivistes pour une semaine.</p>
+
+<h2>Couche 2 : servir le site depuis la mémoire (gratuit, trente minutes)</h2>
+<p>Un site statique peut être mis en cache par le proxy quelques secondes. Une inondation de requêtes identiques reçoit alors sa réponse depuis la mémoire, sans toucher au conteneur du site :</p>
+<pre><code>proxy_cache_path /data/cache levels=1:2 keys_zone=site:10m max_size=200m inactive=10m;
+proxy_cache site;
+proxy_cache_valid 200 10s;
+proxy_cache_use_stale error timeout updating;</code></pre>
+<p class="note"><code>proxy_cache_use_stale</code> continue aussi de servir la dernière bonne copie si le conteneur du site redémarre : le visiteur ne s'aperçoit de rien.</p>
+
+<h2>Couche 3 : un frontal loué (environ cinq euros par mois)</h2>
+<p>C'est la seule couche qui résiste à une attaque volumétrique. Un petit serveur virtuel chez un hébergeur qui inclut le filtrage anti-DDoS sur son réseau :</p>
+<ol>
+<li>sert lui-même le site statique (une copie, synchronisée après chaque publication) ;</li>
+<li>transmet les autres services par un tunnel WireGuard jusqu'à la maison ;</li>
+<li>la box ne redirige plus les ports 80 et 443 depuis internet : seulement le tunnel.</li>
+</ol>
+<p>Votre DNS pointe alors vers le frontal, jamais vers la maison. Un attaquant ne peut viser qu'une adresse dont le réseau est conçu pour encaisser, et votre site reste en ligne même quand la connexion de la maison est coupée.</p>
+
+<h2>Couche 4 : un grand CDN, en connaissance de cause</h2>
+<p>Une offre gratuite de CDN encaisse presque tout, pour rien. Le prix est ailleurs : un tiers déchiffre votre trafic et voit chaque requête. Pour un site public statique, ça peut se défendre ; pour des services privés, c'est contraire à la raison même d'héberger chez soi. Nous avons choisi la couche 3.</p>
+
+<h2>Pièges</h2>
+<p class="note">Mettez vos propres réseaux en liste blanche dans chaque bannissement et chaque limite (<code>ignoreip</code>, un bloc <code>geo</code> pour les limites) : une sonde de supervision ou un exécutant de CI qui martèle une API ressemble exactement à un attaquant.</p>
+<p class="note">Des limites trop basses punissent les vrais visiteurs derrière une adresse partagée (un bureau, un opérateur mobile). Commencez large, surveillez les 429 dans les journaux, puis resserrez.</p>
+<p class="note">Un enregistrement DNS joker publie l'adresse de votre maison sous chaque nom inventé. Retirez-le avant tout le reste.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://nginx.org/en/docs/http/ngx_http_limit_req_module.html" rel="noopener">nginx, limit_req module</a></li><li><a href="https://nginx.org/en/docs/http/ngx_http_limit_conn_module.html" rel="noopener">nginx, limit_conn module</a></li><li><a href="https://www.wireguard.com/" rel="noopener">WireGuard</a></li></ul>

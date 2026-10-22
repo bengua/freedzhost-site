@@ -1,0 +1,35 @@
+<!-- {"title": "Docker avec accès à votre carte graphique", "summary": "Installer Docker et le NVIDIA Container Toolkit, tester, et éviter le piège après une mise à jour du pilote.", "order": 4, "series": "ai", "level": "beginner", "time": "30 min", "requires": ["nvidia-driver"]} -->
+<p class="lead">Chaque serveur de modèles de cette série tourne dans un conteneur : il s'installe proprement, se désinstalle proprement, et deux versions peuvent cohabiter. Deux pièces, aucune n'est de nous : Docker, et le Container Toolkit de NVIDIA.</p>
+
+{{diagram:docker}}
+
+<h2>Un peu d'histoire</h2>
+<p>Docker, sorti en 2013, a permis d'expédier toute une application comme une seule image qui tourne pareil partout. Les cartes graphiques sont venues plus tard : un conteneur ne voit pas les périphériques de l'hôte par défaut. Le toolkit de conteneurs de NVIDIA fait le pont, et la plus récente Container Device Interface (CDI) décrit les périphériques dans un simple fichier que tout moteur de conteneurs sait lire, ce qui explique aussi pourquoi ce fichier doit rester au pas du pilote.</p>
+
+<h2>1. Docker</h2>
+<p>Le script d'installation de Docker installe la dernière version. Docker le réserve aux machines de test et de développement ; pour un serveur de production, utilisez la méthode par dépôt de leur documentation.</p>
+<pre><code>curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh</code></pre>
+
+<h2>2. NVIDIA Container Toolkit (Ubuntu, Debian)</h2>
+<p>D'après le guide d'installation de NVIDIA :</p>
+<pre><code>curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+  | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+  | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+  | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker</code></pre>
+<p>Autres distributions : suivez le même guide sur le site de NVIDIA.</p>
+
+<h2>3. Tester</h2>
+<pre><code>sudo docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi</code></pre>
+<p>Le même tableau que sur l'hôte, affiché depuis l'intérieur d'un conteneur : vos conteneurs voient la carte.</p>
+
+<h2>Le piège après une mise à jour du pilote</h2>
+<p class="note">Si vous utilisez CDI (le fichier <code>/etc/cdi/nvidia.yaml</code>), il décrit les bibliothèques du pilote telles qu'elles étaient au moment où il a été généré. Après une mise à jour du pilote, il peut pointer vers des fichiers qui n'existent plus, et plus aucun conteneur GPU ne démarre. Voir <a href="/fr/gpu-container-on-cpu.html">le conteneur GPU sur le processeur</a> pour le correctif au démarrage. Régénérez-le : <code>sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml</code>. Chez nous, il est désormais régénéré à chaque démarrage.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://docs.docker.com/" rel="noopener">Docker documentation</a></li><li><a href="https://github.com/NVIDIA/nvidia-container-toolkit" rel="noopener">NVIDIA Container Toolkit</a></li><li><a href="https://github.com/cncf-tags/container-device-interface" rel="noopener">Container Device Interface (CDI) specification</a></li></ul>

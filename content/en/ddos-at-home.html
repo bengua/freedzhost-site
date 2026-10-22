@@ -1,0 +1,54 @@
+<!-- {"title": "Resisting DDoS when your site lives at home", "summary": "No setting on a home server can stop a flood that saturates the line. What you can do: make small attacks useless at the proxy, serve the site from memory, and, for real protection, put a cheap rented front with anti-DDoS in front of the house, so its address is never published. Four layers, from free to five euros a month.", "order": 94, "series": "homelab", "level": "intermediate", "time": "an evening", "requires": ["web-exposure-audit"]} -->
+<p class="lead">Let us be honest first: if someone sends more traffic than your internet line can carry, your site goes down, whatever you configure at home. The flood is stopped upstream or not at all. What you control is everything below that: robots, password guessing, application floods, and whether your home address is out there to be targeted.</p>
+
+<p class="proof"><strong>What you get.</strong> A clear plan in four layers. The first two are free, take an hour, and stop the daily noise; the third, a small rented front, hides your home and keeps the site online even when the house is offline.</p>
+
+{{diagram:front}}
+
+<h2>Layer 1: limits at the proxy (free, one hour)</h2>
+<p>In Nginx Proxy Manager, a custom file loaded in the <code>http</code> block applies to every site:</p>
+<pre><code># /data/nginx/custom/http_top.conf
+geo $limited { default 1; YOUR-LAN/24 0; YOUR-TAILNET-RANGE 0; 127.0.0.0/8 0; }
+map $limited $limit_key { 0 ""; 1 $binary_remote_addr; }   # your own networks are never limited
+limit_req_zone  $limit_key zone=perip:10m rate=30r/s;
+limit_conn_zone $limit_key zone=conn:10m;
+limit_req  zone=perip burst=120 nodelay;
+limit_conn conn 60;
+limit_req_status 429;
+client_header_timeout 15s; client_body_timeout 15s; send_timeout 15s;
+# keepalive_timeout is already set by the proxy: setting it twice breaks the reload</code></pre>
+<ul>
+<li>Requests and connections per address are capped: one machine cannot hog the server.</li>
+<li>Short timeouts defeat "slow" attacks that open connections and send a byte a minute.</li>
+<li>Login pages deserve a stricter zone, around 5 requests a minute.</li>
+<li>Measured after applying it here: of 400 requests fired in parallel from one outside address, 171 were served and 229 refused with 429. A normal visitor never notices.</li>
+</ul>
+<p>Then a working fail2ban (check it really matches, see <a href="/web-exposure-audit.html">the audit</a>), with a jail that bans on the first probe for <code>/.env</code> or <code>/.git/</code>, and a <code>recidive</code> jail that bans repeat offenders for a week.</p>
+
+<h2>Layer 2: serve the site from memory (free, thirty minutes)</h2>
+<p>A static site can be cached by the proxy for a few seconds. A flood of identical requests is then answered from memory, without touching the site's container:</p>
+<pre><code>proxy_cache_path /data/cache levels=1:2 keys_zone=site:10m max_size=200m inactive=10m;
+proxy_cache site;
+proxy_cache_valid 200 10s;
+proxy_cache_use_stale error timeout updating;</code></pre>
+<p class="note"><code>proxy_cache_use_stale</code> also keeps serving the last good copy if the site's container restarts: the visitor never notices.</p>
+
+<h2>Layer 3: a rented front (about five euros a month)</h2>
+<p>This is the only layer that resists a volumetric attack. A small virtual server at a host that includes anti-DDoS filtering on its network:</p>
+<ol>
+<li>serves the static site itself (a copy, synchronised after each publication);</li>
+<li>forwards the other services through a WireGuard tunnel to the house;</li>
+<li>the home router no longer forwards ports 80 and 443 from the internet: only the tunnel.</li>
+</ol>
+<p>Your DNS then points to the front, never to the house. An attacker can only aim at an address whose network is built to absorb it, and your site stays online even when your home connection is down.</p>
+
+<h2>Layer 4: a large CDN, knowingly</h2>
+<p>A free CDN plan absorbs almost anything, for nothing. The price is elsewhere: a third party terminates your encryption and sees every request. For a public static site it can be acceptable; for private services it contradicts the reason you host at home. We chose layer 3.</p>
+
+<h2>Traps</h2>
+<p class="note">Whitelist your own networks in every ban and limit (<code>ignoreip</code>, a <code>geo</code> block for limits): a monitoring probe or a CI runner hammering an API looks exactly like an attacker.</p>
+<p class="note">Rate limits that are too low punish real visitors on a shared address (an office, a mobile operator). Start generous, watch the 429s in the logs, then tighten.</p>
+<p class="note">A wildcard DNS record publishes your home address under every invented name. Remove it before anything else.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://nginx.org/en/docs/http/ngx_http_limit_req_module.html" rel="noopener">nginx, limit_req module</a></li><li><a href="https://nginx.org/en/docs/http/ngx_http_limit_conn_module.html" rel="noopener">nginx, limit_conn module</a></li><li><a href="https://www.wireguard.com/" rel="noopener">WireGuard</a></li></ul>

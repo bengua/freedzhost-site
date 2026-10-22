@@ -1,0 +1,42 @@
+<!-- {"title": "SwarmFox: your agents in your pocket", "summary": "The laptop sleeps, the phone does not. A native Android console that follows coding sessions live, talks to a local orchestrator, and holds the one decision that stays human: the go on a task. Built without Google, published without a store.", "order": 49, "series": "agents", "level": "advanced", "time": "a weekend", "requires": ["agent-openfox", "homelab-ntfy", "android-self-publish"]} -->
+<p class="lead">Once agents work on their own, the question is no longer "how do I start them" but "how do I know what they are doing, and how do I say yes or no from the sofa". SwarmFox is our answer: a native Android app that is the console of the whole stack. It is open source; what follows is how it is built, so you can build yours.</p>
+
+<p class="proof"><strong>What you get.</strong> Your whole lab in your pocket: sessions followed live, an orchestrator that reads everything, and every decision a single tap. Simple to build: a small API and a native app.</p>
+
+{{diagram:wiring}}
+
+<h2>1. A small API, not a direct line</h2>
+<p>The phone never talks to an agent or a database directly. A small HTTP API runs on the host that already holds the fleet's event table. It:</p>
+<ul>
+<li>listens on one address only, the one on your private network;</li>
+<li>refuses every route but <code>/v1/health</code> without its bearer token;</li>
+<li>reads its sources with read-only credentials: events, issues on the Forge, which model is on which card;</li>
+<li>has one write: putting the <strong>go</strong> label on an issue, which starts an agent on it.</li>
+</ul>
+<p>Each source fails on its own: if the Forge does not answer, the summary carries an error in that field, never a blank page.</p>
+<p class="note">The rule "no code ever adds go" stays true: that route carries a human's tap, authenticated, from the phone. The decision to spend a model's evening on a task is yours.</p>
+
+<h2>2. The tabs that earned their place</h2>
+<ul>
+<li><strong>Sessions</strong>: the coding sessions of <a href="/agent-openfox.html">OpenFox</a>, followed live, with your approval asked when the agent wants to run something sensitive.</li>
+<li><strong>Swarm</strong>: a chat with a local orchestrator that reads the fleet by itself and proposes actions on cards.</li>
+<li><strong>Runs</strong> and <strong>Control</strong>: the agents' logs as they write, the queue, which model is on which card.</li>
+<li><strong>Issues</strong>: the tasks waiting for you, with the Go button.</li>
+<li><strong>Rooms</strong>: long conversations that survive a closed app (see <a href="/agent-rooms-foxdesk.html">rooms and FoxDesk</a>).</li>
+</ul>
+
+<h2>3. The orchestrator designates, the code acts</h2>
+<p>The local orchestrator is a 9B to 27B model with a closed list of tools. Reading tools run alone. Action tools (start a session, switch a model, relaunch a workflow) never run: they return a card, and only your tap executes it. The card says exactly what it will do, including what it will unload.</p>
+<p>Measured on a 9B: it announced an action without calling the tool once in three tries, and read counters upside down. The fixes were in the tools, not the prompt: each tool returns its own reading instructions, and date filtering is done by the code. Before trusting a new capability, a bench of ten cases run three times, with every action refused.</p>
+
+<h2>4. Without Google</h2>
+<ul>
+<li>Native Kotlin and Jetpack Compose, no network library: the platform's HTTP client and JSON parser.</li>
+<li>The token encrypted by the Android Keystore, the app locked by your fingerprint, HTTPS only.</li>
+<li>Notifications by <a href="/homelab-ntfy.html">ntfy</a>, not Firebase. A notification carries a link that opens the exact session waiting for you.</li>
+<li>Published by the server itself, <a href="/android-self-publish.html">outside any store</a>.</li>
+</ul>
+
+<h2>Traps</h2>
+<p class="note">Do not decide the scope of a version 1 alone. Our first version was a dashboard; what was wanted was "a coding agent in the pocket, local only". Show a sketch before building.</p>
+<p class="note">A double tap must not start two tasks. Generate a request identifier on the phone and let the server return the same receipt for the same identifier.</p>

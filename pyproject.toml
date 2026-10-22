@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "freedzhost-site"
+version = "0.1.0"
+description = "Static website of freedzhost.cloud: manifesto and free tutorials, in English and French."
+readme = "README.md"
+requires-python = ">=3.10"
+# Content (content/, static/) is CC BY-SA 4.0; the generator code is MIT.
+license = "CC-BY-SA-4.0 AND MIT"
+license-files = ["LICENSE", "LICENSE-CODE"]
+authors = [{ name = "FreedzHost" }]
+dependencies = []
+
+[project.optional-dependencies]
+# ruff is pinned so a local run and the CI agree exactly.
+dev = ["ruff==0.16.6", "pytest>=8"]
+
+[project.urls]
+Homepage = "https://freedzhost.cloud"
+Source = "https://github.com/OWNERTEST/freedzhost-site"
+
+[project.scripts]
+freedzhost-site-build = "site_build:main"
+
+[tool.setuptools]
+packages = []
+py-modules = ["site_build", "diagrams"]
+
+[tool.ruff]
+line-length = 88

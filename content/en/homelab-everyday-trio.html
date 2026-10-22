@@ -1,0 +1,43 @@
+<!-- {"title": "Homelab: a private ChatGPT, every PDF tool, and transcription at home", "summary": "Three self-hosted services: Open WebUI to chat with your own models, Stirling-PDF to merge, split, sign and OCR documents, Scriberr to turn recordings into text. Each replaces a subscription or an upload to a stranger's server, and each needs the same three safety settings, learned the hard way.", "order": 84, "series": "homelab", "level": "beginner", "time": "1 h", "requires": ["homelab-proxy", "first-model"]} -->
+<p class="lead">Three web services cover a lot of everyday needs. A chat window for your own models, so the family does not paste private things into a public chatbot. A toolbox for PDFs, so contracts and payslips are not uploaded to "free" converters. And transcription, so a meeting or a voice memo becomes text without leaving the house.</p>
+
+<p class="proof"><strong>What you get.</strong> Replacements for a chatbot subscription, online PDF converters and transcription services, running on your own machines, and the three settings that keep them yours.</p>
+
+<h2>1. Open WebUI: a private chat for your models</h2>
+<pre><code>docker run -d --name openwebui -p 127.0.0.1:3000:8080 \
+  -v openwebui:/app/backend/data \
+  -e WEBUI_AUTH=true -e ENABLE_SIGNUP=false \
+  -e OLLAMA_BASE_URL=http://your-model-server:11434 \
+  ghcr.io/open-webui/open-webui:main</code></pre>
+<ul>
+<li>It talks to Ollama, or to your <a href="/model-gateway.html">model gateway</a> as an OpenAI-compatible connection: every model you serve appears in the list.</li>
+<li>Web search can go through your own <a href="/homelab-searxng.html">SearXNG</a>, so questions about the news stay private too.</li>
+<li>Create the accounts yourself, then leave sign-up closed.</li>
+</ul>
+<p class="note">We ran it for months, then retired it: our own clients now do the job: <a href="/agent-swarmfox.html">SwarmFox</a> on Android and <a href="/agent-rooms-foxdesk.html">FoxDesk</a> on the PC, talking to the same models through the same gateway. Its logs showed something worth knowing: published on the internet, almost every request came from automated scanners, not from us. If only your household uses it, reach it through your private network and do not publish it at all.</p>
+
+<h2>2. Stirling-PDF: every PDF tool, offline</h2>
+<pre><code>docker run -d --name stirling-pdf -p 127.0.0.1:8081:8080 \
+  -v stirling-configs:/configs \
+  -e DOCKER_ENABLE_SECURITY=true \
+  stirlingtools/stirling-pdf:latest</code></pre>
+<p>Merge, split, rotate, compress, convert, sign, and OCR scanned documents with Tesseract, in the browser, with the files never leaving your network. With security enabled it asks for a login; change the initial password at first connection.</p>
+
+<h2>3. Scriberr: recordings to text</h2>
+<p>Drop an audio file, get a transcript with timestamps, produced by WhisperX on your own machine. Ours runs next to the graphics cards, bound to the machine itself, and is reached through the private network with HTTPS, the only origin it accepts.</p>
+<pre><code>docker run -d --name scriberr --network host \
+  -e HOST=127.0.0.1 -e PORT=8080 \
+  -e ALLOWED_ORIGINS=https://your-machine.your-tailnet.ts.net:8080 \
+  -v scriberr-data:/app/data -v scriberr-whisperx:/app/whisperx-env \
+  ghcr.io/rishikanthc/scriberr:v1.2.0</code></pre>
+
+<h2>The same three settings for all three</h2>
+<ol>
+<li><strong>Bind to the machine itself</strong> (<code>127.0.0.1</code>) and publish through your <a href="/homelab-proxy.html">reverse proxy</a> or your <a href="/homelab-remote.html">private network</a>, never by opening the port to everyone.</li>
+<li><strong>Login on, sign-up off.</strong> You create the accounts.</li>
+<li><strong>Pin a version</strong> rather than <code>latest</code> or <code>main</code> for what matters, so an update happens when you choose.</li>
+</ol>
+
+<h2>Traps</h2>
+<p class="note">Do not turn off certificate checks to make a web loader "work": you would accept any answer from any impostor. Fix the certificate instead.</p>
+<p class="note">Give the most restricted role to new users by default. An interface where every new account is administrator is one leaked invitation away from trouble.</p>

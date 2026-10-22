@@ -1,0 +1,30 @@
+<!-- {"title": "Three small tools for your workstation: your AI history, a context meter, a fleet inventory", "summary": "Take your Claude.ai conversations home as readable files, see how full your local agent's context is right in the status bar, and know what changed on each of your machines since last week. Each one is a single script with no dependency.", "order": 71, "series": "desk", "level": "beginner", "time": "45 min", "requires": ["linux-laptop"]} -->
+<p class="lead">Not every tool needs a server. These three are single scripts, Python standard library only, that each answer one everyday question: where are my old conversations, how close is my agent to forgetting, and what moved on my machines.</p>
+
+<p class="proof"><strong>What you get.</strong> Your whole AI chat history as files you can read, search and index; a context gauge for a local agent, which no hosted plan shows you; and a weekly "what changed" for every machine you own.</p>
+
+<h2>1. Your Claude.ai history, as files: claude-archive</h2>
+<p>The official export (Settings → Privacy → Export data) is complete but raw JSON. One script turns it into an archive you can use:</p>
+<pre><code>python3 claude_archive.py ~/Downloads/data-XXXX.zip -o ./claude-archive</code></pre>
+<ul>
+<li>one Markdown file per conversation, in date order;</li>
+<li>every code block extracted as a real source file;</li>
+<li>a checklist of attachments to fetch by hand, since the export does not contain them;</li>
+<li>a manifest with input and output counts: nothing is dropped silently.</li>
+</ul>
+<p>No network, no dependency. Ideal to feed your own <a href="/journal-rag.html">search over your notes</a>.</p>
+
+<h2>2. A context meter in the status bar: openfox-omarchy</h2>
+<p>A hosted agent shows what is left of your plan. A local one has no plan; its real limit is the context, which fills up and drops at every compaction. A small script reads <a href="/agent-openfox.html">OpenFox</a>'s session store and writes the record that Omarchy's agents widget already draws, next to Claude Code and Codex:</p>
+<pre><code>install -m 755 openfox-usage ~/.local/bin/openfox-usage
+openfox-usage      # then a user timer every ten minutes</code></pre>
+<p class="note">When you add a provider to the widget's settings, list all of them: giving <code>providers</code> replaces the default list, so leaving out <code>claude</code> hides Claude.</p>
+
+<h2>3. Inventory by scanning, not declaring: parc</h2>
+<p>Ansible pushes a state and forgets it; monitoring tools observe without comparing. <code>parc</code> starts from what exists: you scan your machines, and it tells you what moved.</p>
+<pre><code>./parc.py scan local laptop server   # snapshot of each machine
+./parc.py diff                       # what changed since
+./parc.py compare laptop server      # gaps between two machines
+./parc.py since 7d                   # what moved this week
+./parc.py export-ansible             # inventory and a reconciliation playbook</code></pre>
+<p>Read-only by default; <code>apply</code> only installs after a confirmation typed by hand, and never uninstalls. <code>diff</code> exits with 1 when a machine strays, so it fits a cron.</p>

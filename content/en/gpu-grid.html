@@ -1,0 +1,20 @@
+<!-- {"title": "Several models, two graphics cards: a grid instead of a juggling act", "summary": "One container per model and per card, swaps that cost half a second per gigabyte, a voice service that gives way, and why a model must never fill its card.", "order": 14, "series": "ai", "level": "advanced", "time": "15 min", "requires": ["model-gateway"]} -->
+<p class="lead">Two 16 GB cards hold one big model each, or a few small ones, or one huge model across both. Which one serves depends on the hour: an agent coding, a long document to read, a game. Changing by hand means stopping containers, starting others, and forgetting one. We replaced that with a grid and one small program that owns it.</p>
+
+{{diagram:grid}}
+
+<h2>1. One cell, one container</h2>
+<p>Each model exists once per place it can run: card 0, card 1, or both cards together. Each of those cells is its own container, created once with its exact command line (which card, how much context, which options). A container fixes its command line at creation: if one container served several cells, every swap would mean recreating it.</p>
+<p>Our grid has about thirty cells. At any time, a few of them serve; the rest are stopped, ready.</p>
+
+<h2>2. Swap, and know what it costs</h2>
+<p>Swapping is stopping the cells that conflict and starting the one you want, then waiting until it really answers. We measured the load time on our cards: <strong>0.48 s per GB</strong> spread over both cards, <strong>0.75 s per GB</strong> on a single card. A 9 GB model is ready in about seven seconds; a model spread over both cards is ready faster than its size suggests. Knowing that number lets a scheduler decide whether a swap is worth it.</p>
+<p>Over the period we counted, 425 swaps out of 463 succeeded. The 38 failures are why every swap ends with a check, never with an assumption.</p>
+
+<h2>3. Guests that give way</h2>
+<p>Some services are not models but still want a card: our voice service (Homelab 15) uses 3.9 GB. It is a <em>guest</em>: it runs when its card holds a compatible model, stops before a bigger one loads, and restarts after. A game is the strongest guest of all: it takes card 0 entirely, and the grid gives it back when the game ends (see <a href="/gpu-for-ai.html">Free your graphics cards for AI</a>).</p>
+
+<h2>Traps we paid for</h2>
+<p class="note">Never let a model fill its card. A 27B model that used 97.4 % of the VRAM loaded fine, then died at the first "hello": no room left for the computation buffers. Keep headroom, or the model is only healthy until someone talks to it.</p>
+<p class="note">Name each container after what it really runs (model, engine, card), and check it automatically: a container whose name lies sends every tool to the wrong place.</p>
+<p class="note">Anything started by hand outside the grid is invisible to it, and the grid will happily load a model onto a card that something else already fills. Either declare it, or let the scheduler report it as foreign.</p>

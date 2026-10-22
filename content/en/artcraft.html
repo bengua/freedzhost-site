@@ -1,0 +1,31 @@
+<!-- {"title": "ArtCraft: stage the scene before you generate it", "summary": "Prompting is guessing; ArtCraft lets you build the shot: layers in 2D, sets and props in 3D, posed characters, a camera you place, then the generation. An open-source creative studio we build from source on Linux, with the one dependency fix it needed.", "order": 87, "series": "create", "level": "intermediate", "time": "1 h + build", "requires": ["comfyui-studio"]} -->
+<p class="lead">Typing a prompt and hoping for the right framing works for a sketch, not for a series of shots that must match. ArtCraft is an open-source creative studio that turns prompting into staging: compose layers in 2D, place a set, props and posed characters in 3D, set the camera, and only then generate the image or the video.</p>
+
+<p class="proof"><strong>What you get.</strong> Control over composition, character pose and camera before the generation: the same room across several shots, a character placed exactly, an image turned into a 3D object you can rotate. Open source (MIT and Apache 2.0), built from source here in one evening.</p>
+
+<h2>1. What it does</h2>
+<ul>
+<li><strong>2D compositing</strong>: layers, background removal, drawing tools, masks and inpainting.</li>
+<li><strong>3D staging</strong>: backdrops, props and kits placed in depth, characters posed with a mannequin, a camera you frame.</li>
+<li><strong>Image to 3D</strong>: turn a picture into a mesh you can move and light.</li>
+<li><strong>Image to video</strong>: animate a staged frame with the video model of your choice.</li>
+</ul>
+<p class="note">Many of the models it lists are hosted services. For a fully local studio, keep the staging in ArtCraft and do the generation with your own models (see <a href="/comfyui-studio.html">ComfyUI</a>).</p>
+
+<h2>2. Build it from source on Linux</h2>
+<pre><code>git clone https://github.com/storytold/artcraft.git &amp;&amp; cd artcraft
+# follow _docs/dev_setup.md: a Rust toolchain for the native app, Node for the interface
+cd frontend &amp;&amp; npm install &amp;&amp; cd ..
+cargo build --release          # produces target/release/artcraft</code></pre>
+<p>The native binary weighs about 90 MB. The first build takes a while; the next ones are incremental.</p>
+
+<h2>3. The one fix it needed</h2>
+<p>The interface depends on a package fetched from a Git branch (<code>github:owner/repo#branch</code>). Our npm refused to resolve it. Pinning the same code as a tarball of one exact commit solved it:</p>
+<pre><code>"ccapture.js": "https://github.com/aceslowman/ccapture.js/archive/&lt;commit&gt;.tar.gz"</code></pre>
+<p class="note">A dependency on a Git branch is a moving target anyway. Pinning a commit makes the build reproducible; note the change, so you can drop it when upstream fixes theirs.</p>
+
+<h2>Traps</h2>
+<p class="note">Keep your local changes small and listed: a fork that diverges everywhere never catches up with upstream.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/storytold/artcraft" rel="noopener">ArtCraft, official repository</a></li></ul>

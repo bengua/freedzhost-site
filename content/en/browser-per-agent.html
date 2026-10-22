@@ -1,0 +1,23 @@
+<!-- {"title": "One browser per agent: web automation that does not trip over itself", "summary": "Twenty agents in one browser looked efficient and produced false results. Separate browsers, clean profiles and encrypted DNS fixed it; here is the setup and the limit of a laptop.", "order": 21, "series": "ai", "level": "advanced", "time": "1 h", "requires": []} -->
+<p class="lead">Agents that use the web (to check a site, fill a form, read a page) often drive a browser through its remote-debugging port. The tempting setup is one browser for everyone, each agent in its own tab. We ran twenty agents and six scripts that way, and the results lied.</p>
+
+{{diagram:browsers}}
+
+<h2>What went wrong, measured</h2>
+<ul>
+<li><strong>One runaway tab froze everyone</strong>: a renderer at 10.7 GB and 162 % CPU made every agent's connection hang for 180 seconds. Killed, the next connection took 0.4 s.</li>
+<li><strong>Navigations interrupted each other</strong>: 11 out of 20 page loads failed with "navigation interrupted", a race between tabs, not a refusal by the site.</li>
+<li><strong>Healthy domains declared dead</strong>: the shared browser's bursts of DNS lookups were throttled by our own DNS filter, so large sites came back as "does not resolve".</li>
+</ul>
+
+<h2>The setup that works</h2>
+<p>Start one browser per agent, each with its own profile folder, its own debugging port and its own process. Give each one encrypted DNS of its own, so its lookups no longer go through your home resolver:</p>
+<pre><code>chromium --headless=new --user-data-dir=/tmp/agent-1 \
+  --remote-debugging-port=9301 \
+  --dns-over-https-mode=secure</code></pre>
+<p>A clean profile also removes a subtle false positive: "I am logged in" can no longer come from a session that another run left open.</p>
+
+<h2>Traps</h2>
+<p class="note">Tabs accumulate run after run. Close them between waves: closing 100 tabs took one machine from 28 GB used to 19.</p>
+<p class="note">Know your ceiling. On a 30 GB laptop, 16 browsers and 16 agents filled the memory; at 24 browsers the system started killing new ones, and each kill looked like an instant "site blocked": 47 false failures in 29 seconds. Move the browsers to a bigger machine before scaling further.</p>
+<p class="note">Browser profiles in a small memory-backed folder (such as <code>$XDG_RUNTIME_DIR</code>) can fill it, and other programs keep important things there. Put the profiles on disk.</p>

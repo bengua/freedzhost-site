@@ -1,0 +1,31 @@
+<!-- {"title": "Pourquoi ça échoue ? Donnez des faits au modèle, et une machine qui se souvient", "summary": "Interrogé sur la cause d'une panne, un modèle local explore à l'aveugle et invente des fichiers. Muni des faits, le même modèle répond juste : 5/5 en 72 secondes au lieu de 2,75/5 en 9 minutes. Deux petits outils : l'un rassemble les faits, l'autre enregistre ce que vivait la machine.", "order": 68, "series": "agents", "level": "intermediate", "time": "45 min", "requires": ["agent-openfox"]} -->
+<p class="lead">« Pourquoi ce service échoue-t-il ? » Un modèle muni d'un shell lancera des commandes au hasard, citera des lignes de journal qui n'existent pas et accusera des fichiers inventés. Le problème n'est pas son intelligence : il lui manque les faits, et les rassembler n'est pas son fort. Alors on les rassemble avec du code, et on les lui donne.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Sur quatre pannes posées exprès, notre modèle de 27B en a trouvé 5 sur 5 en 72 secondes avec l'outil de faits, contre 2,75 sur 5 en 9 minutes sans lui. Même modèle, mêmes pannes : seuls les faits ont changé.</p>
+
+<h2>1. Un outil de faits : fh-why</h2>
+<pre><code>fh-why unit nginx.service            # ses derniers mots, depuis quand, ce qui a changé juste avant
+fh-why unit --failed                 # chaque unité en échec, système et utilisateur
+fh-why container mon-modele          # contrôles de santé, redémarrages, tués par manque de mémoire, dernières erreurs
+fh-why run 4182                      # un run d'agent : état final et lignes en échec
+fh-why unit --failed --json          # un objet par ligne, pour un modèle ou un script</code></pre>
+<p>Un seul fichier, bibliothèque standard Python seulement, aucun modèle dedans. Sa règle : ce qui ne peut pas être lu est dit, jamais sauté. « Impossible de lire le journal : permission refusée » est un fait ; le silence n'en est pas un.</p>
+
+<h2>2. Une machine qui se souvient : fh-probes</h2>
+<p>Un run d'agent échoue à 3 h du matin. Était-ce le code, ou la machine qui suffoquait ? Sans enregistrement, impossible de savoir. Un petit échantillonneur écrit, une fois par seconde, une ligne sur les cartes, la mémoire, la pression mémoire et les serveurs de modèles. Une seconde commande joint cette série à la fenêtre de temps de chaque run :</p>
+<pre><code>fh-history 4182
+# « ce run a échoué pendant que la pression mémoire montait à 91 et que la lecture du prompt tombait à 20 jetons/s »</code></pre>
+<p>Il garde les extrêmes, pas les moyennes, et dit quand deux runs se sont chevauchés et partagent donc les mêmes chiffres.</p>
+
+<h2>3. Des règles apprises d'un gel</h2>
+<p>Le jour où notre serveur a gelé, l'ancien collecteur était passé de 3 à 20 secondes par passe, et dix copies tournaient côte à côte, chacune lançant ses propres sous-processus : la supervision a contribué au gel qu'elle aurait dû voir venir. L'échantillonneur a été réécrit avec trois règles :</p>
+<ol>
+<li><strong>Aucun sous-processus</strong> : la bibliothèque de la carte appelée directement, <code>/proc</code>, deux requêtes HTTP locales.</li>
+<li><strong>Une seule instance</strong> : un verrou exclusif ; une seconde copie s'arrête.</li>
+<li><strong>Sauter, jamais rattraper</strong> : un tour en retard est noté sauté, jamais remboursé en rafale.</li>
+</ol>
+<p class="note">Surveillez la <em>pression</em> mémoire (<code>/proc/pressure/memory</code>), pas la « mémoire disponible ». Trois minutes avant le gel, la mémoire disponible disait que tout allait bien ; la pression était à 99. Ce sont les poids des modèles, résidents en mémoire partagée, qui remplissaient la machine.</p>
+
+<h2>Pièges</h2>
+<p class="note">Une panne vue assez souvent mérite une page écrite, pas un nouveau diagnostic à chaque fois. Tenez une liste des signatures de pannes récurrentes et de leur remède.</p>
+<p class="note">Un index de recherche qui répond encore mais a quarante heures de retard est pire qu'un index en panne. Vérifiez sa fraîcheur, pas seulement son code de réponse.</p>

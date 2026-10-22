@@ -1,0 +1,22 @@
+<!-- {"title": "Hybrid: local first, the cloud only when it is worth it", "summary": "A queue that sends each task to the cheapest agent able to do it: local models, then a cheaper hosted agent, then a frontier one. Daily caps, sandboxes, and your confirmation before anything climbs.", "order": 23, "series": "ai", "level": "advanced", "time": "1 h", "requires": ["model-gateway", "local-judge"]} -->
+<p class="lead">Local models handle most of the work; some tasks still need a frontier model. Paying a subscription for everything wastes its quota on what a local model does well; refusing the cloud entirely leaves the hard tasks undone. Our answer is a small escalation queue: each task goes only as far up as it needs.</p>
+
+{{diagram:escalation}}
+
+<h2>1. A queue, not a reflex</h2>
+<p>Agents do not call a hosted model directly. When a local agent cannot finish a task, it files it in an escalation queue with what it already tried. The queue decides who takes it: by default the cheaper hosted agent, the frontier one only if the cheaper one is out of quota or does not answer, or if you pinned the task to it (hard problems, critical changes, final reviews).</p>
+
+<h2>2. Caps and cages</h2>
+<ul>
+<li><strong>A daily cap per hosted agent</strong> (ours: 30 tasks a day for the cheaper one, 10 for the frontier one): a loop cannot burn a month of quota in a night.</li>
+<li><strong>An allow-list of tools</strong> for the agent that supports one, with no <code>sudo</code>, no recursive delete, no killing by name.</li>
+<li><strong>A sandbox</strong> for the agent that has no allow-list: a read-only system, write access only to its working folder.</li>
+</ul>
+
+<h2>3. You confirm</h2>
+<p>Nothing climbs to a hosted agent without a card on your phone: the task, the agent chosen, a yes or a no. Large projects are split into ordered tasks, with a final review by the strongest model.</p>
+
+<h2>Traps we paid for</h2>
+<p class="note">Start tasks in order. Our first project runner started every task at once: a "review then deploy" task ran on code that had not been written yet. Dependencies are part of the plan.</p>
+<p class="note">Private data stays local: route by the data's class, not only by difficulty (see the decision cascade in <a href="/homelab-n8n.html">Homelab 14</a>).</p>
+<p class="note">A context-compression proxy in front of a hosted model saved nothing on prompts under about 100,000 tokens, and cost a little more. Measure before adding a layer.</p>

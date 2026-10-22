@@ -1,0 +1,25 @@
+<!-- {"title": "Un petit juge local pour les petites décisions", "summary": "Oui ou non, lequel de ceux-ci, combien : un modèle de moins d'un milliard de paramètres sur le processeur répond à des questions typées en 0,05 s avec une confiance honnête. Et pourquoi c'est le code, pas le prompt, qui doit lui envoyer la question.", "order": 18, "series": "ai", "level": "intermediate", "time": "45 min", "requires": ["model-gateway"]} -->
+<p class="lead">La plupart des décisions d'un réseau d'agents sont petites : ce mail est-il une facture ou une lettre d'information, lequel de ces quatre tutos répond à cette question, ce changement est-il risqué. Demander à un gros modèle à chaque fois est lent et coûteux. Un tout petit modèle entraîné à répondre à des questions typées le fait en un vingtième de seconde, sur le processeur, et dit à quel point il est sûr.</p>
+
+{{diagram:judge}}
+
+<h2>1. Des questions typées, pas du texte libre</h2>
+<p>Un juge ne discute pas. Il répond selon l'une de trois formes, avec des probabilités :</p>
+<ul>
+<li><strong>oui/non</strong> : une probabilité que la réponse soit oui ;</li>
+<li><strong>choix</strong> : quelle option, parmi quelques-unes, chacune avec sa probabilité ;</li>
+<li><strong>note</strong> : un niveau sur une échelle que vous définissez.</li>
+</ul>
+<p>Le format compte à la lettre. Avec l'API que nous utilisons, un choix prend ses options sous forme d'objet (<code>{"a": "le certificat", "b": "la faute de frappe"}</code>), et un oui/non prend une simple phrase <code>instructions</code>. La mauvaise forme renvoie une erreur HTTP, pas un diagnostic.</p>
+
+<h2>2. Ce qu'a fait un juge de 0,8 milliard, mesuré</h2>
+<p>Sur 77 vrais mails à trier, un juge de 0,8 milliard de paramètres sur le processeur a atteint 0,87 de précision dans son meilleur réglage, en 0,05 s par mail, sans un seul échec en 924 appels. Sa confiance est honnête : au-dessus de 0,8, il a tranché seul 38 % des mails, tous correctement. Faire remonter le reste vers un modèle plus gros a donné 0,96, mieux que le gros modèle seul.</p>
+
+<h2>3. C'est le code qui route, pas le prompt</h2>
+<p>Nous avons d'abord dit à notre agent 9B, dans ses instructions, de demander ses décisions au juge. Il l'a fait 0 fois sur 3. Avec un exemple travaillé, il a recopié l'exemple et raté chaque nouveau cas. Un routage déterministe doit être dans le code : le programme décide qu'une question va au juge, construit la question typée, et lit la réponse.</p>
+<p class="note">Si vous avez besoin qu'un modèle remplisse la question pour vous, imposez le format : llama.cpp ignore <code>tool_choice</code>, mais il impose <code>response_format</code> avec un schéma JSON, comme une grammaire. Le modèle ne peut alors pas répondre sous une autre forme.</p>
+
+<h2>Pièges</h2>
+<p class="note">Trop d'options perdent le petit juge : prié de choisir un tuto parmi trente, il doutait ; parmi les quatre meilleurs présélectionnés par une règle de mots communs, il a choisi avec assurance. Préfiltrez avec des règles, puis laissez le juge choisir.</p>
+<p class="note">Le petit juge lit environ 2 000 jetons au plus. Donnez-lui les faits qui comptent pour la question, pas tout le contexte : en rajouter rend le verdict pire, pas plus sûr.</p>
+<p class="note">Un doute est une réponse. Ne transformez jamais un 0,55 en oui : faites-le remonter la cascade (voir <a href="/fr/homelab-n8n.html">Homelab 14</a>).</p>

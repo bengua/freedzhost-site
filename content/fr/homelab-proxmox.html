@@ -1,0 +1,61 @@
+<!-- {"title": "Homelab 1 : Proxmox, la base sous chaque service", "summary": "Une machine, plusieurs serveurs isolés, des instantanés et des sauvegardes. Le socle de la série qui remplace Google et les abonnements.", "order": 6, "series": "homelab", "level": "beginner", "time": "1–2 h", "requires": ["hardware"]} -->
+<p class="lead">Cette série remplace un par un les services que vous louez : stockage, photos, bureautique, recherche, mots de passe. Il leur faut un endroit où vivre. Cet endroit, c'est Proxmox VE : un hyperviseur libre et open source qui transforme une machine en plusieurs serveurs isolés, chacun facile à sauvegarder, à figer en instantané et à jeter.</p>
+
+{{diagram:proxmox}}
+
+<h2>Un peu d'histoire</h2>
+<p>Proxmox VE a été publié pour la première fois en 2008 par une petite entreprise autrichienne, sur une base Debian. Il réunit deux technologies Linux sous une seule interface web : KVM pour les vraies machines virtuelles, et LXC pour les conteneurs légers. Libre et gratuit, avec un support payant facultatif, il est devenu l'hyperviseur par défaut des homelabs à mesure que d'autres options gratuites disparaissaient ou devenaient payantes.</p>
+
+<h2>Ce qu'une machine peut porter</h2>
+<p>Un exemple de répartition pour un nœud comme le nôtre (Proxmox VE 9.2, 16 threads, 30 Go de RAM, un SSD NVMe pour les invités, un gros disque pour les sauvegardes) :</p>
+<div class="table"><table>
+<tr><th>Invité</th><th>Rôle</th><th>RAM</th></tr>
+<tr><td>VM</td><td>proxy inverse avec HTTPS</td><td>2–4 Go</td></tr>
+<tr><td>VM</td><td>bureautique, recherche, tâches, photos</td><td>8–10 Go</td></tr>
+<tr><td>VM</td><td>forge de code et sa CI</td><td>4–6 Go</td></tr>
+<tr><td>VM</td><td>automatisation et domotique</td><td>4 Go</td></tr>
+<tr><td>conteneur</td><td>un petit service chacun</td><td>0,5–2 Go</td></tr>
+</table></div>
+<p>Un vieux PC de bureau ou un mini PC suffit pour commencer. Ce qui compte : la RAM (16 Go minimum, 32 Go confortable), un SSD pour les invités, et un second disque pour les sauvegardes.</p>
+
+<h2>1. Installer</h2>
+<ol>
+<li>Téléchargez l'ISO de Proxmox VE sur <a href="https://www.proxmox.com/en/downloads">proxmox.com/downloads</a>.</li>
+<li>Écrivez-la sur une clé USB. Sous Linux : <code>sudo dd if=proxmox-ve.iso of=/dev/sdX bs=4M status=progress</code>, où <code>/dev/sdX</code> est la clé (vérifiez deux fois avec <code>lsblk</code> : <code>dd</code> efface ce que vous lui désignez).</li>
+<li>Démarrez la machine sur la clé et suivez l'installateur : disque cible, pays, mot de passe root, e-mail, et une <strong>adresse IP fixe</strong> sur votre réseau.</li>
+<li>Depuis un autre ordinateur, ouvrez <code>https://&lt;cette-adresse&gt;:8006</code> et connectez-vous en <code>root</code>. Le navigateur prévient au sujet du certificat : il est auto-signé, c'est normal sur votre propre réseau.</li>
+</ol>
+
+<h2>2. Le canal de mises à jour gratuit</h2>
+<p>Par défaut, Proxmox pointe vers son dépôt « enterprise », qui demande un abonnement payant : les mises à jour échouent avec une erreur. Pour un homelab, passez sur le canal gratuit <code>pve-no-subscription</code>, comme le documente Proxmox.</p>
+<p>Désactivez le dépôt enterprise : dans <code>/etc/apt/sources.list.d/pve-enterprise.sources</code>, ajoutez la ligne</p>
+<pre><code>Enabled: no</code></pre>
+<p>Puis créez <code>/etc/apt/sources.list.d/proxmox.sources</code> :</p>
+<pre><code>Types: deb
+URIs: http://download.proxmox.com/debian/pve
+Suites: trixie
+Components: pve-no-subscription
+Signed-By: /usr/share/keyrings/proxmox-archive-keyring.gpg</code></pre>
+<p>Et mettez à jour :</p>
+<pre><code>apt update && apt full-upgrade</code></pre>
+<p class="note">Proxmox ne recommande pas ce canal pour des serveurs de production : ses paquets sont moins testés que ceux du dépôt enterprise. Pour la maison, c'est le bon choix ; si Proxmox fait tourner votre entreprise, prenez l'abonnement, il finance aussi le projet.</p>
+
+<h2>3. Votre premier conteneur</h2>
+<p>Les conteneurs (LXC) sont plus légers que les machines virtuelles : parfaits pour un service chacun. Téléchargez un modèle, puis créez le conteneur :</p>
+<pre><code>pveam update
+pveam available --section system | grep debian
+pveam download local &lt;le nom du modèle affiché ci-dessus&gt;</code></pre>
+<p>Puis dans l'interface web : <strong>Create CT</strong>, choisissez le modèle, donnez-lui 1 CPU, 512 Mo de RAM et 8 Go de disque pour commencer. Les trois s'agrandissent plus tard.</p>
+
+<h2>4. Votre première machine virtuelle</h2>
+<p>Pour un service qui a besoin de son propre noyau (Docker avec beaucoup de conteneurs, un autre système d'exploitation) : envoyez une ISO dans <strong>local → ISO Images</strong>, puis <strong>Create VM</strong>. Même règle : commencer petit, agrandir ensuite.</p>
+
+<h2>5. Les sauvegardes, avant tout le reste</h2>
+<p>Dans <strong>Datacenter → Backup</strong>, programmez une sauvegarde nocturne de chaque invité vers un <strong>second disque</strong>. Puis restaurez-en une, une fois, pour vérifier que ça marche.</p>
+<p class="note">Une sauvegarde sur le même disque que les invités n'est pas une sauvegarde : elle meurt avec ce disque. Une sauvegarde jamais restaurée est un espoir, pas une sauvegarde.</p>
+
+<h2>Un piège que nous évitons</h2>
+<p class="note">N'ouvrez jamais le port 8006 sur Internet. Pour administrer Proxmox de l'extérieur, passez par un réseau privé comme Tailscale ou WireGuard : la page d'administration reste invisible depuis Internet.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://www.proxmox.com/" rel="noopener">Proxmox VE, official site</a></li><li><a href="https://pve.proxmox.com/pve-docs/" rel="noopener">Proxmox VE documentation</a></li></ul>

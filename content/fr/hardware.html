@@ -1,0 +1,27 @@
+<!-- {"title": "Avant de commencer : le matériel, honnêtement", "summary": "Ce qui tient sur quelle carte, chiffres mesurés à l'appui, et quoi acheter en premier.", "order": 2, "series": "start", "level": "read", "time": "10 min", "requires": []} -->
+<p class="lead">La première question de tout le monde : de quoi ai-je besoin ? Voici ce que nous avons mesuré sur notre propre machine, deux cartes NVIDIA de 16 Go (une RTX 5080 et une RTX 4070 Ti SUPER).</p>
+
+<h2>La règle : la mémoire vidéo décide</h2>
+<p>Un modèle tourne vite quand il tient entièrement dans la mémoire de la carte (la VRAM). La taille du fichier du modèle donne une bonne première estimation de ce qu'il demande, plus de la place pour le contexte (le « cache KV ») et une marge.</p>
+
+{{diagram:hardware}}
+
+<div class="table"><table>
+<tr><th>Modèle</th><th>Fichier / VRAM</th><th>Tient sur</th></tr>
+<tr><td>Qwen3 8B, Q4_K_M</td><td>fichier de 5,0 Go</td><td>une carte de 8 Go</td></tr>
+<tr><td>Un modèle 9B, Q8, long contexte</td><td>9,4 Go utilisés, mesuré</td><td>une carte de 12 Go</td></tr>
+<tr><td>Un modèle 27B, IQ3_XXS, contexte 64k</td><td>14,2 Go utilisés, mesuré</td><td>une carte de 16 Go, tout juste</td></tr>
+<tr><td>Qwen3.6 35B-A3B (mélange d'experts), Q4_K_M</td><td>fichier de 22,1 Go</td><td>carte de 16 Go + les experts en RAM</td></tr>
+</table></div>
+
+<h2>La RAM compte aussi</h2>
+<p>Les modèles à « mélange d'experts » n'utilisent qu'une petite partie de leurs poids pour chaque mot : leurs experts peuvent vivre en RAM pendant que le reste reste sur la carte. On échange de la VRAM contre de la RAM : comptez 20 Go de RAM libre pour le 35B ci-dessus.</p>
+
+<h2>Quoi acheter en premier</h2>
+<ul>
+<li><strong>Une carte NVIDIA avec autant de VRAM que possible.</strong> La VRAM compte plus que la vitesse brute. 12 Go est un départ confortable, 16 Go ouvre la catégorie des 27B.</li>
+<li><strong>32 Go de RAM ou plus</strong> si vous voulez des modèles à mélange d'experts.</li>
+<li><strong>Un SSD rapide avec de la place</strong> : quelques modèles prennent 50 à 100 Go.</li>
+<li><strong>Linux.</strong> Tout dans cette série tourne sous Linux : c'est là que les outils arrivent en premier.</li>
+</ul>
+<p class="note">Les prix changent chaque mois, nous ne les citons donc pas. Comparez la VRAM par euro, pas les scores de benchmark.</p>

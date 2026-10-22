@@ -1,0 +1,42 @@
+<!-- {"title": "SwarmFox : vos agents dans la poche", "summary": "Le portable dort, le téléphone non. Une console Android native qui suit les sessions de code en direct, parle à un orchestrateur local et garde la seule décision qui reste humaine : le go sur une tâche. Construite sans Google, publiée sans magasin.", "order": 49, "series": "agents", "level": "advanced", "time": "un week-end", "requires": ["agent-openfox", "homelab-ntfy", "android-self-publish"]} -->
+<p class="lead">Dès que des agents travaillent seuls, la question n'est plus « comment les lancer » mais « comment savoir ce qu'ils font, et dire oui ou non depuis le canapé ». SwarmFox est notre réponse : une appli Android native qui est la console de toute la pile. Elle est libre ; voici comment elle est construite, pour que vous construisiez la vôtre.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Tout votre labo dans la poche : des sessions suivies en direct, un orchestrateur qui lit tout, et chaque décision d'un seul tap. Simple à construire : une petite API et une appli native.</p>
+
+{{diagram:wiring}}
+
+<h2>1. Une petite API, pas une ligne directe</h2>
+<p>Le téléphone ne parle jamais directement à un agent ni à une base. Une petite API HTTP tourne sur l'hôte qui porte déjà la table des événements du parc. Elle :</p>
+<ul>
+<li>n'écoute que sur une adresse, celle de votre réseau privé ;</li>
+<li>refuse toute route sauf <code>/v1/health</code> sans son jeton porteur ;</li>
+<li>lit ses sources avec des accès en lecture seule : les événements, les issues de la Forge, quel modèle tourne sur quelle carte ;</li>
+<li>n'a qu'une écriture : poser l'étiquette <strong>go</strong> sur une issue, ce qui lance un agent dessus.</li>
+</ul>
+<p>Chaque source tombe seule : si la Forge ne répond pas, le résumé porte une erreur dans ce champ, jamais une page blanche.</p>
+<p class="note">La règle « aucun code ne pose go » reste vraie : cette route porte le tap d'un humain, authentifié, depuis le téléphone. La décision de dépenser la soirée d'un modèle sur une tâche vous appartient.</p>
+
+<h2>2. Les onglets qui ont gagné leur place</h2>
+<ul>
+<li><strong>Sessions</strong> : les sessions de code d'<a href="/fr/agent-openfox.html">OpenFox</a>, suivies en direct, avec votre accord demandé quand l'agent veut lancer quelque chose de sensible.</li>
+<li><strong>Essaim</strong> : un chat avec un orchestrateur local qui lit le parc tout seul et propose des actions sur des cartes.</li>
+<li><strong>Runs</strong> et <strong>Contrôle</strong> : les journaux des agents pendant qu'ils écrivent, la file, quel modèle est sur quelle carte.</li>
+<li><strong>Issues</strong> : les tâches qui vous attendent, avec le bouton Go.</li>
+<li><strong>Salles</strong> : des conversations longues qui survivent à l'appli fermée (voir <a href="/fr/agent-rooms-foxdesk.html">salles et FoxDesk</a>).</li>
+</ul>
+
+<h2>3. L'orchestrateur désigne, le code agit</h2>
+<p>L'orchestrateur local est un modèle de 9B à 27B avec une liste fermée d'outils. Les outils de lecture s'exécutent seuls. Les outils d'action (lancer une session, changer de modèle, relancer un workflow) ne s'exécutent jamais : ils renvoient une carte, et seul votre tap l'exécute. La carte dit exactement ce qu'elle va faire, y compris ce qu'elle va décharger.</p>
+<p>Mesuré sur un 9B : il a annoncé une action sans appeler l'outil une fois sur trois, et lisait des compteurs à l'envers. Les corrections étaient dans les outils, pas dans le prompt : chaque outil renvoie son propre mode de lecture, et le filtrage par date est fait par le code. Avant de croire à une nouvelle capacité, un banc de dix cas joués trois fois, toute action refusée.</p>
+
+<h2>4. Sans Google</h2>
+<ul>
+<li>Kotlin natif et Jetpack Compose, sans bibliothèque réseau : le client HTTP et le parseur JSON de la plateforme.</li>
+<li>Le jeton chiffré par le Keystore Android, l'appli verrouillée par l'empreinte, HTTPS seulement.</li>
+<li>Notifications par <a href="/fr/homelab-ntfy.html">ntfy</a>, pas Firebase. Une notification porte un lien qui ouvre précisément la session qui vous attend.</li>
+<li>Publiée par le serveur lui-même, <a href="/fr/android-self-publish.html">hors de tout magasin</a>.</li>
+</ul>
+
+<h2>Pièges</h2>
+<p class="note">Ne décidez pas seul du périmètre d'une version 1. Notre première version était un tableau de bord ; ce qui était voulu, c'était « un agent de code dans la poche, en local seulement ». Montrez une esquisse avant de construire.</p>
+<p class="note">Un double tap ne doit pas lancer deux tâches. Générez un identifiant de requête sur le téléphone, et laissez le serveur renvoyer le même reçu pour le même identifiant.</p>

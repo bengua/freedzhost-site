@@ -1,0 +1,23 @@
+<!-- {"title": "Un navigateur par agent : une automatisation du web qui ne se marche pas dessus", "summary": "Vingt agents dans un seul navigateur, ça avait l'air efficace et ça produisait de faux résultats. Des navigateurs séparés, des profils propres et un DNS chiffré ont tout réglé ; voici l'installation et la limite d'un portable.", "order": 21, "series": "ai", "level": "advanced", "time": "1 h", "requires": []} -->
+<p class="lead">Les agents qui utilisent le web (vérifier un site, remplir un formulaire, lire une page) pilotent souvent un navigateur par son port de débogage à distance. L'installation tentante, c'est un navigateur pour tout le monde, chaque agent dans son onglet. Nous avons fait tourner vingt agents et six scripts ainsi, et les résultats mentaient.</p>
+
+{{diagram:browsers}}
+
+<h2>Ce qui n'allait pas, mesuré</h2>
+<ul>
+<li><strong>Un onglet emballé gelait tout le monde</strong> : un moteur de rendu à 10,7 Go et 162 % de CPU faisait attendre la connexion de chaque agent 180 secondes. Une fois tué, la connexion suivante prenait 0,4 s.</li>
+<li><strong>Les navigations s'interrompaient entre elles</strong> : 11 chargements de page sur 20 échouaient sur « navigation interrompue », une course entre onglets, pas un refus du site.</li>
+<li><strong>Des domaines sains déclarés morts</strong> : les rafales de requêtes DNS du navigateur partagé étaient bridées par notre propre filtre DNS, si bien que de grands sites revenaient en « ne résout pas ».</li>
+</ul>
+
+<h2>L'installation qui marche</h2>
+<p>Lancez un navigateur par agent, chacun avec son propre dossier de profil, son propre port de débogage et son propre processus. Donnez à chacun son DNS chiffré, pour que ses requêtes ne passent plus par le résolveur de la maison :</p>
+<pre><code>chromium --headless=new --user-data-dir=/tmp/agent-1 \
+  --remote-debugging-port=9301 \
+  --dns-over-https-mode=secure</code></pre>
+<p>Un profil vierge supprime aussi un faux positif subtil : « je suis connecté » ne peut plus venir d'une session qu'un autre passage a laissée ouverte.</p>
+
+<h2>Pièges</h2>
+<p class="note">Les onglets s'accumulent d'un passage à l'autre. Fermez-les entre deux vagues : fermer 100 onglets a fait passer une machine de 28 Go utilisés à 19.</p>
+<p class="note">Connaissez votre plafond. Sur un portable de 30 Go, 16 navigateurs et 16 agents remplissaient la mémoire ; à 24 navigateurs, le système a commencé à tuer les nouveaux, et chaque processus tué ressemblait à un « site bloqué » instantané : 47 faux échecs en 29 secondes. Déplacez les navigateurs vers une plus grosse machine avant d'aller plus loin.</p>
+<p class="note">Des profils de navigateur dans un petit dossier en mémoire (comme <code>$XDG_RUNTIME_DIR</code>) peuvent le remplir, et d'autres programmes y gardent des choses importantes. Mettez les profils sur le disque.</p>

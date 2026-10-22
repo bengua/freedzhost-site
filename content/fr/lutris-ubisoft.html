@@ -1,0 +1,34 @@
+<!-- {"title": "Vos jeux PC hors Steam sous Linux : Lutris et Ubisoft Connect", "summary": "Steam n'est pas la seule boutique. Lutris installe les lanceurs d'Ubisoft, EA, GOG et Epic dans Proton, sur le disque de votre choix, et ils tournent comme sous Windows. Le nôtre porte Assassin's Creed Valhalla, Immortals Fenyx Rising et Star Wars Outlaws, prêts à jouer depuis le canapé.", "order": 60, "series": "ai", "level": "beginner", "time": "1 h + téléchargements", "requires": ["headless-gaming-node"]} -->
+<p class="lead">En passant à Linux, la question vient toujours : « et mes jeux achetés ailleurs que sur Steam ? » Ils reviennent depuis vos comptes, pas depuis votre ancien disque. Lutris installe le lanceur de chaque éditeur dans son propre environnement Windows, animé par Proton, la même couche de compatibilité que Steam. Vous vous connectez, vous téléchargez, vous jouez.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Ubisoft Connect sous Linux en un seul installateur, avec trois gros jeux installés (Assassin's Creed Valhalla, Immortals Fenyx Rising, Star Wars Outlaws : 165 Go en tout) et plus de treize heures de jeu.</p>
+
+<h2>1. Lutris, pas Heroic, pour Ubisoft et EA</h2>
+<p>Heroic est excellent pour GOG, Epic et Amazon, mais il ne gère ni Ubisoft ni EA. Lutris les couvre tous, avec des installateurs communautaires qui font les étapes délicates à votre place. Installez-le avec les pièces dont Wine a besoin pour lancer des installateurs Windows, et l'assistant du mode jeu :</p>
+<pre><code># base Arch (CachyOS, EndeavourOS) ; mêmes noms sur la plupart des distributions
+sudo pacman -S lutris umu-launcher wine-mono wine-gecko gamemode lib32-gamemode</code></pre>
+<p><code>umu-launcher</code> lance des programmes Windows par Proton en dehors de Steam, avec les mêmes correctifs que Steam.</p>
+
+<h2>2. Mettre la bibliothèque là où il y a de la place</h2>
+<p>Un jeu pèse de 30 à 70 Go. Avant toute installation, pointez Lutris vers un disque qui a de la place, dans <em>Préférences → Système → Dossier d'installation par défaut</em>, ce qui écrit :</p>
+<pre><code># ~/.config/lutris/system.yml
+system:
+  game_path: /mnt/jeux</code></pre>
+
+<h2>3. Installer le lanceur</h2>
+<p>Dans Lutris, cherchez « Ubisoft Connect », prenez l'installateur marqué <em>Latest</em>, et laissez-le faire. Voici ce qu'il fait, pour savoir quoi vérifier s'il échoue :</p>
+<ol>
+<li>il crée un préfixe Windows 64 bits (son propre lecteur <code>C:</code>) dans votre dossier de bibliothèque ;</li>
+<li>il ajoute deux composants Windows qu'attendent les jeux : <code>d3dcompiler_43</code> et les polices de base ;</li>
+<li>il télécharge l'installateur officiel et le lance en silencieux ;</li>
+<li>il écrit un fichier de réglages qui <strong>coupe la surcouche du lanceur</strong>, source fréquente de plantages et de saccades sous Proton.</li>
+</ol>
+<p>Connectez-vous à votre compte dans le lanceur, puis installez vos jeux depuis lui, comme sous Windows. Ils atterrissent dans le préfixe, sur votre gros disque.</p>
+
+<h2>4. Jouer depuis le canapé</h2>
+<p>La tour n'a pas d'écran ici : les jeux sont diffusés sur une console portable Android avec Moonlight (voir <a href="/fr/headless-gaming-node.html">le PC de jeu devenu serveur d'IA</a>). Lancez Lutris depuis le bureau diffusé, ou ajoutez le lanceur à la liste d'applications de la diffusion.</p>
+
+<h2>Pièges</h2>
+<p class="note">Rien à récupérer sur un ancien disque Windows : les lanceurs retéléchargent depuis votre compte. Nous avons cherché : 278 Go d'anciennes sauvegardes contenaient des émulateurs et des outils, pas un seul jeu PC.</p>
+<p class="note">Vous ouvrez Lutris à distance ? Jamais par <code>systemd-run --user --collect</code> : fermer Lutris a alors tué le lanceur, le jeu en cours et un téléchargement de 84 Go à mi-chemin. Lancez-le détaché avec l'environnement de la session (voir <a href="/fr/ssh-for-agents.html">SSH pour un poste agentique</a>).</p>
+<p class="note">Sur une machine qui sert aussi des modèles d'IA, un jeu a besoin de récupérer sa carte. Ne laissez le jeu prendre une carte que pendant que vous jouez (voir <a href="/fr/gpu-for-ai.html">libérer ses cartes pour l'IA, et jouer quand même</a>).</p>

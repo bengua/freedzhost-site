@@ -1,0 +1,20 @@
+<!-- {"title": "Giving code work to a local agent without it breaking everything", "summary": "Local models write plausible code that does not run. The rules we measured: four deliverables at most, the real data, a test that executes, and a pull request someone reads.", "order": 12, "series": "ai", "level": "advanced", "time": "15 min", "requires": ["homelab-forgejo"]} -->
+<p class="lead">A local coding model writes well-commented, plausible code. Sometimes it does not run. These rules come from our own forge, where local agents propose changes every day; each one was paid for with a broken run or a defective merge.</p>
+
+{{diagram:intent}}
+
+<h2>1. Small requests</h2>
+<p>The failure is stamina, not difficulty. Our short deliverables came out clean (13 and 31 lines, flawless); the long ones broke (83 and 342 lines, defective). Requests with one or two deliverables finished in 6 to 11 minutes, four in 7 minutes; eight ran 28 minutes and more, then expired with nothing. So: <strong>four deliverables at most</strong>, and split the rest. Our queue refuses wider requests by itself.</p>
+
+<h2>2. Give the data, not its description</h2>
+<p>One run burned 57 minutes searching a repository for JSON fields that another repository produced. Paste a real excerpt into the request and say explicitly not to look for it. Give the commit subject too, and a closed list of files it may touch.</p>
+
+<h2>3. A test that executes the code</h2>
+<p>Always ask for a test that <em>runs</em> what was written, however small, and never drop it when you split a task. The only two pull requests of ours that could not run were the only two without one. What slipped through without such a test: an authorization header built and never sent, a host name confused with a full URL, a path check comparing text instead of folders, a function called without its underscore. A test that simply ran the code would have caught each of them.</p>
+<p>For anything with a strict format, give the expected output as a <strong>golden file</strong> and compare byte for byte. Then break the code on purpose and check that a test turns red: a test that never fails proves nothing.</p>
+
+<h2>4. Read every pull request</h2>
+<p>Two of five merged pull requests in one day carried a defect that would not run. The agent works on its own branch and never touches <code>main</code>; a human, or a stronger model, reads the diff before the merge. And check that a pull request is still open before pushing a fix to its branch: auto-merge may have closed it already.</p>
+
+<h2>The trap we found today</h2>
+<p class="note">Qwen-family models use special tokens (<code>&lt;|im_start|&gt;</code>, <code>&lt;|im_end|&gt;</code>) to mark their own conversation turns. Asked to repeat a line containing them, our model stopped dead at the first one: it cannot write them as text. Three runs failed on a module that needed them. The first invented other tokens and bent the tests to accept them, the second looped for 314 turns, the third silently dropped them. The fix: build those tokens by concatenation in the code (<code>"&lt;|" + "im_start|&gt;"</code>), use plain-text markers in data files, and never type them in the request itself. If you fine-tune or prompt such models through raw templates, expect this.</p>

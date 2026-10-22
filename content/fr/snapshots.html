@@ -1,0 +1,33 @@
+<!-- {"title": "Annuler n'importe quel changement : des instantanés de votre dossier personnel avec snapper", "summary": "Au lieu de copies .bak partout, une photo de votre dossier avant chaque modification risquée, prise en une seconde, et une annulation en une ligne.", "order": 40, "series": "desk", "level": "beginner", "time": "20 min", "requires": []} -->
+<p class="lead">Avant de modifier un fichier de configuration, on le copie en <code>.bak</code>. Un mois plus tard, le dossier personnel en contient quarante, personne ne sait lequel est le bon, et certains traînent là où ils s'exécutent par erreur. Si votre système utilise le système de fichiers btrfs (Fedora, openSUSE, CachyOS et beaucoup d'autres le font par défaut), il existe mieux : les instantanés.</p>
+
+{{diagram:snapshots}}
+
+<h2>Un peu d'histoire</h2>
+<p>btrfs a été lancé en 2007 par Chris Mason, alors chez Oracle, comme système de fichiers Linux moderne fondé sur la copie à l'écriture : les données ne sont jamais écrasées sur place, si bien qu'un instantané de tout le disque ne coûte presque rien et prend une seconde. snapper, développé chez SUSE, planifie ces instantanés et en prend un avant et après chaque modification du système.</p>
+
+<h2>1. Une configuration pour votre dossier personnel</h2>
+<p>Snapper gère les instantanés btrfs. Créez une configuration pour <code>/home</code>, autorisez votre utilisateur à s'en servir sans sudo, et gardez un historique raisonnable :</p>
+<pre><code>sudo snapper -c home create-config /home
+sudo snapper -c home set-config ALLOW_USERS=$USER SYNC_ACL=yes \
+     TIMELINE_CREATE=yes TIMELINE_LIMIT_DAILY=7 TIMELINE_LIMIT_WEEKLY=2</code></pre>
+<p>Puis vérifiez que les deux minuteries tournent : l'une prend les instantanés horaires, l'autre efface les anciens.</p>
+<pre><code>sudo systemctl enable --now snapper-timeline.timer snapper-cleanup.timer</code></pre>
+
+<h2>2. Avant une modification risquée</h2>
+<pre><code>snapper -c home create -d "avant modification de la config ssh"</code></pre>
+<p>Une seconde, aucune copie. La commande n'affiche rien ; <code>snapper -c home list</code> montre l'instantané et son numéro.</p>
+
+<h2>3. Annuler</h2>
+<p>Voir ce qui a changé depuis l'instantané 42, puis faire revenir un fichier :</p>
+<pre><code>snapper -c home status 42..0
+snapper -c home undochange 42..0 $HOME/.ssh/config</code></pre>
+<p>Ou lisez simplement l'ancienne version : chaque instantané est un dossier normal, <code>/home/.snapshots/42/snapshot/</code>.</p>
+
+<h2>Pièges que nous avons payés</h2>
+<p class="note">Si la minuterie de nettoyage ne tourne pas, les instantanés s'empilent pour toujours. Les nôtres dépassaient 800 ; les fichiers supprimés gardaient leur place parce que de vieux instantanés les retenaient encore. Activer le nettoyage a rendu plus de 200 Go d'un coup.</p>
+<p class="note">Ne laissez pas les données de Docker dans un volume photographié. Chaque instantané garde les images que vous supprimez : effacer 160 Go de modèles a libéré 5 Go. Donnez à <code>/var/lib/docker</code> son propre sous-volume btrfs, que les instantanés ignorent.</p>
+<p class="note">Les gros fichiers de modèles vont dans un dossier non photographié, pour la même raison : un téléchargement de 40 Go que vous supprimez doit revenir en espace libre, pas rester deux semaines dans un instantané.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://btrfs.readthedocs.io/" rel="noopener">Btrfs documentation</a></li><li><a href="http://snapper.io/" rel="noopener">snapper</a></li></ul>

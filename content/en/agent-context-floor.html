@@ -1,0 +1,33 @@
+<!-- {"title": "The context floor: where an agent's tokens really go", "summary": "We measured an agent run token by token. The conversation was 1 % of the bill; the rest was the same 30,939 tokens of instructions and tool descriptions, sent again at every turn. How to measure your own floor, and which levers actually move it.", "order": 55, "series": "agents", "level": "intermediate", "time": "1 h", "requires": ["agent-claude-code"]} -->
+<p class="lead">Everyone tries to save tokens by trimming what the agent reads: shorter files, smaller tool outputs. We measured before cutting. Those savings act on about 1 % of the bill. The other 99 % is a floor you pay at every turn, and you can measure it in five minutes.</p>
+
+<p class="proof"><strong>What you get.</strong> A clear map of where your context goes, a method you can reuse on any agent, and the one lever that counts: on our setup, a single tool server cost 17.6 % of every run, and removing it cost nothing.</p>
+
+{{diagram:floor}}
+
+<h2>1. The floor</h2>
+<p>Before your first word, an agent sends the model its system prompt and the description of every tool it can call. We call that the floor. Measure it with a trivial prompt ("say ok") and read the input tokens the server reports. Ours: <strong>30,939 tokens</strong>, a fifth of the model's window, gone before any work.</p>
+
+<h2>2. Why it dominates the bill</h2>
+<p>The floor is sent again at every turn. A run of 11 tool calls costs 11 floors: about 340,000 tokens. We measured 345,811. The whole transcript of that run, everything the agent actually read and wrote, weighed 4,408. The arithmetic closes: the floor explains about 98 % of the bill.</p>
+<p class="note">Trimming file reads acts on the 4,408. Trimming the floor acts on 30,939 × the number of turns. Measure before choosing your battle.</p>
+
+<h2>3. Find what is in it, by substitution</h2>
+<p>Change one thing, measure again, put it back. For Claude Code, start it with an empty tool server list (<code>--strict-mcp-config</code> with an empty config):</p>
+<ul>
+<li>30,939 with our tool server, 25,420 without: that server cost <strong>5,519 tokens per turn</strong>, about 60,700 per run, 17.6 % of the bill;</li>
+<li>the remaining 25,400 are the agent's own prompt and built-in tools: not reducible;</li>
+<li>removing three sub-agents and a skill changed <strong>nothing</strong>: 30,939 before and after. They are loaded on demand, not at start.</li>
+</ul>
+
+<h2>4. The method, so the numbers hold</h2>
+<ol>
+<li>One variable per measurement.</li>
+<li>Three runs at least; report the median and the min–max.</li>
+<li>The same starting point every time: test pull requests are closed, never merged.</li>
+<li>A failed run is data: keep it.</li>
+</ol>
+
+<h2>Traps</h2>
+<p class="note">A test task that is already done gives "no changes" three times and looks like a bug. Check that your witness task is not already in the main branch.</p>
+<p class="note">Estimates lie: we had priced the sub-agents at about 2,700 tokens from their file size, then measured zero. A file size is not a context cost; only the server's counter is a fact.</p>

@@ -1,0 +1,63 @@
+<!-- {"title": "Before you open a website to the internet: a security audit in ten checks", "summary": "We audited a self-hosted site before trusting it, without attacking anything: headers, encryption, DNS, the neighbours that share its door, the tools that are supposed to defend it. The site was clean; what sat next to it was not, and the ban tool had never banned anyone. The method, the commands, and the fix for each finding.", "order": 93, "series": "homelab", "level": "intermediate", "time": "2 h", "requires": ["homelab-proxy", "homelab-fail2ban"]} -->
+<p class="lead">A website at home rarely gets hacked through the site itself. It gets hacked through what shares its door: an admin console published by habit, a tool that runs as root, a defence that is installed but does not work. We audited one of ours with nothing but reading and measuring, no attack. The site passed. Three things next to it did not, and we closed them the same night.</p>
+
+<p class="proof"><strong>What you get.</strong> A non-destructive audit you can run on your own site in two hours, the command for each check, and the fix for every classic finding. Applied here, it turned up a remote code editor running as root and open to the internet, and a ban tool that had recognised 0 log lines out of 67,079. Both are fixed: admin consoles now answer 403 from outside, and the repaired filter banned its first scanner within minutes.</p>
+
+<h2>1. Look like a visitor: the headers</h2>
+<pre><code>curl -s -o /dev/null -D - https://your-site.example/</code></pre>
+<ul>
+<li><code>Strict-Transport-Security</code>: forces HTTPS for returning visitors. Often missing.</li>
+<li><code>Content-Security-Policy</code>: which scripts, styles and images the page may load. The strongest single header against injected scripts.</li>
+<li><code>X-Frame-Options: DENY</code>, <code>X-Content-Type-Options: nosniff</code>, <code>Referrer-Policy</code>, <code>Permissions-Policy</code>.</li>
+<li>No version in <code>Server</code> (<code>server_tokens off</code>).</li>
+</ul>
+<pre><code>Content-Security-Policy: default-src 'self'; img-src 'self' data:; script-src 'self';
+  style-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'</code></pre>
+<p class="note">In nginx, an <code>add_header</code> inside a <code>location</code> cancels every <code>add_header</code> of the server block for that location. Our <code>/media/</code> folder silently lost its security headers that way. Put the headers in a file and include it everywhere.</p>
+
+<h2>2. Encryption</h2>
+<pre><code>for v in tls1 tls1_1 tls1_2 tls1_3; do echo | openssl s_client -connect your-site.example:443 -$v 2&gt;&amp;1 | grep -m1 Protocol; done</code></pre>
+<p>Only TLS 1.2 and 1.3 should answer. Check the certificate names too: one of the hosts we looked at served a certificate made for another name, which every browser refuses.</p>
+
+<h2>3. DNS</h2>
+<ul>
+<li><strong>DNSSEC</strong>: are answers signed? A DNS-over-HTTPS query shows the <code>AD</code> flag.</li>
+<li><strong>CAA</strong>: which certificate authorities may issue for your domain. Without it, any may.</li>
+<li><strong>SPF and DMARC</strong>: without DMARC, anyone can send mail pretending to be your domain.</li>
+<li><strong>A wildcard record</strong> (<code>*.your-site.example</code>) sends every invented name to your house: replace it with explicit records.</li>
+</ul>
+<pre><code>curl -s -H 'accept: application/dns-json' "https://cloudflare-dns.com/dns-query?name=your-site.example&amp;type=CAA"</code></pre>
+
+<h2>4. The neighbours: everything behind the same door</h2>
+<p>List every hostname your reverse proxy publishes, and for each ask: <em>who besides me needs this from the internet?</em> Admin consoles (the proxy's own panel, a DNS filter, a hypervisor, a web IDE) never do. Put them behind an access list that only allows your local network and your private network, in one click in Nginx Proxy Manager.</p>
+<p class="note">The worst case we met: a web code editor running as root on the machine that hosts the code forge, protected by a password alone. A web terminal must never run as root, and never be on the public internet.</p>
+
+<h2>5. Does the ban tool actually ban?</h2>
+<p>A fail2ban jail can be enabled, running, and blind. Test the filter against your real log:</p>
+<pre><code>fail2ban-regex /var/log/npm/proxy-host-1_access.log /etc/fail2ban/filter.d/npm.conf
+# Lines: 67079 lines, 0 ignored, 0 matched   &lt;- blind</code></pre>
+<p>Two traps explained our zero. First, fail2ban <strong>removes the date</strong> from each line before applying the filter, so a pattern starting with the date never matches. Second, Nginx Proxy Manager writes the client address at the end, not the start. A filter that works on its format:</p>
+<pre><code>[Definition]
+failregex = \] - (?:401|403|404|429) \d+ - \S+ \S+ \S+ "[^"]*" \[Client &lt;HOST&gt;\]
+
+[npm]
+ignoreip = 127.0.0.1/8 YOUR-LAN/24 YOUR-TAILNET-RANGE</code></pre>
+<p class="note">The <code>ignoreip</code> line matters: once repaired, the filter matched thousands of lines, and many came from our own machines (a CI runner getting 404s). Without it, the fixed jail would ban your own infrastructure. With Docker, ban in the <code>DOCKER-USER</code> chain (see <a href="/homelab-fail2ban.html">fail2ban</a>).</p>
+
+<h2>6. Read the logs once</h2>
+<p>Count what reaches you. On the site we audited: 9,901 requests answered 401, 403 or 404 out of about 76,000, and hundreds of probes for <code>/.env</code> and <code>/.git/config</code>, from cloud servers. Those are robots looking for leaked secrets: make sure such paths do not exist in what you publish, and ban on the first probe.</p>
+
+<h2>7. The rest of the checklist</h2>
+<ol>
+<li><strong>Least privilege</strong>: no web service as root; container ports bound to <code>127.0.0.1</code> behind the proxy.</li>
+<li><strong>Host firewall</strong> on the proxy machine: 80 and 443 for everyone, the rest for your private network only.</li>
+<li><strong>Look from outside</strong>: from a phone on mobile data, scan your public address. Ports that seem open from home may just be your router answering itself.</li>
+<li><strong>Rate limits and short timeouts</strong> at the proxy, against password guessing and floods (see <a href="/ddos-at-home.html">resisting DDoS at home</a>).</li>
+</ol>
+
+<h2>Traps</h2>
+<p class="note">Audit without attacking: reading headers, DNS and your own configuration finds most problems. Never scan or test someone else's site without written permission.</p>
+<p class="note">Write the audit down, and keep the report private until the fixes are in: it is a map for whoever reads it.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy" rel="noopener">MDN, Content-Security-Policy</a></li><li><a href="https://www.rfc-editor.org/rfc/rfc6797" rel="noopener">RFC 6797, HTTP Strict Transport Security</a></li><li><a href="https://www.rfc-editor.org/rfc/rfc8659" rel="noopener">RFC 8659, DNS CAA records</a></li><li><a href="https://owasp.org/www-project-secure-headers/" rel="noopener">OWASP Secure Headers Project</a></li></ul>

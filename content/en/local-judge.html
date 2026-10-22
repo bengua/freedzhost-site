@@ -1,0 +1,25 @@
+<!-- {"title": "A tiny local judge for the small decisions", "summary": "Yes or no, which of these, how much: a sub-1B model on the processor answers typed questions in 0.05 s with an honest confidence. And why the code, not the prompt, must send it the question.", "order": 18, "series": "ai", "level": "intermediate", "time": "45 min", "requires": ["model-gateway"]} -->
+<p class="lead">Most decisions in an agent network are small: is this e-mail a bill or a newsletter, which of these four tutorials answers that question, is this change risky. Asking a large model each time is slow and wasteful. A tiny model trained to answer typed questions does it in a twentieth of a second, on the processor, and says how sure it is.</p>
+
+{{diagram:judge}}
+
+<h2>1. Typed questions, not free text</h2>
+<p>A judge does not chat. It answers one of three shapes, with probabilities:</p>
+<ul>
+<li><strong>yes/no</strong>: a probability that the answer is yes;</li>
+<li><strong>choice</strong>: which option, among a few, each with its probability;</li>
+<li><strong>score</strong>: a level on a scale you define.</li>
+</ul>
+<p>The format matters to the letter. With the API we use, a choice takes its options as an object (<code>{"a": "the certificate", "b": "the typo"}</code>), and a yes/no takes a plain <code>instructions</code> sentence. The wrong shape returns an HTTP error, not a diagnosis.</p>
+
+<h2>2. What a 0.8B judge did, measured</h2>
+<p>On 77 real e-mails to sort, a 0.8-billion-parameter judge on the processor reached 0.87 accuracy at its best setting, in 0.05 s per e-mail, with zero failure in 924 calls. Its confidence is honest: above 0.8, it settled 38 % of the e-mails alone, all correctly. Sending the rest up to a larger model gave 0.96, better than the larger model alone.</p>
+
+<h2>3. The code routes, not the prompt</h2>
+<p>We first told our 9B agent, in its instructions, to ask the judge for its decisions. It did so 0 times out of 3. With a worked example, it copied the example and missed every new case. Deterministic routing must be in the code: the program decides that a question goes to the judge, builds the typed question, and reads the answer.</p>
+<p class="note">If you need a model to fill in the question for you, force the format: llama.cpp ignores <code>tool_choice</code>, but it enforces <code>response_format</code> with a JSON schema, as a grammar. The model then cannot answer in any other shape.</p>
+
+<h2>Traps</h2>
+<p class="note">Too many options lose the small judge: asked to pick one tutorial among thirty, it doubted; among the four best pre-selected by a word-overlap rule, it chose confidently. Pre-filter with rules, then let the judge choose.</p>
+<p class="note">The small judge reads about 2,000 tokens at most. Give it the facts that bear on the question, not the whole context: padding makes the verdict worse, not safer.</p>
+<p class="note">A doubt is an answer. Never turn a 0.55 into a yes: send it up the cascade (see <a href="/homelab-n8n.html">Homelab 14</a>).</p>

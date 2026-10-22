@@ -1,0 +1,25 @@
+<!-- {"title": "Homelab 17 : vos erreurs vous trouvent, avec GlitchTip au lieu de Sentry", "summary": "Un traqueur d'erreurs auto-hébergé en trois conteneurs, compatible avec les SDK de Sentry : chaque plantage de chaque service arrive au même endroit, regroupé et daté.", "order": 25, "series": "homelab", "level": "intermediate", "time": "1 h", "requires": ["homelab-proxmox"]} -->
+<p class="lead">Quand un service plante à 3 h du matin, vous l'apprenez des jours plus tard, par hasard, dans un journal. Un traqueur d'erreurs renverse ça : chaque service envoie ses erreurs au même endroit, regroupées pour que mille plantages identiques fassent une ligne, avec le moment où ça a commencé et la dernière fois. Sentry est la référence ; auto-hébergé, il demande une douzaine de conteneurs et 16 Go de RAM. GlitchTip parle le même protocole avec trois.</p>
+
+{{diagram:errors}}
+
+<h2>Un peu d'histoire</h2>
+<p>Sentry a commencé en 2008 comme un petit greffon pour Django qui collectait les erreurs du code en production ; il est devenu la référence du suivi d'erreurs, et sa licence a changé par la suite. GlitchTip, lancé en 2020, est une alternative libre qui parle le protocole de Sentry, si bien que les bibliothèques officielles de Sentry lui envoient leurs erreurs sans rien changer à votre code.</p>
+
+<h2>1. Le lancer</h2>
+<p>GlitchTip tourne en un conteneur web, PostgreSQL et Valkey (ou Redis). Suivez l'installation Docker Compose officielle, épinglez les versions, et fermez les inscriptions une fois votre compte créé. Deux réglages nous ont évité une panne silencieuse :</p>
+<ul>
+<li><code>GLITCHTIP_EMBED_WORKER=true</code> sur le conteneur web si vous ne lancez pas de worker séparé. Sans worker, les événements sont acceptés et jamais traités.</li>
+<li>un service <strong>migrate</strong> ponctuel dans le fichier compose : la base n'est pas migrée toute seule au démarrage.</li>
+</ul>
+<p>Gardez-le sur votre réseau domestique ou votre réseau privé (Homelab 6) : vos erreurs décrivent vos points faibles.</p>
+
+<h2>2. Brancher vos services</h2>
+<p>Créez un projet par service ; chacun reçoit son propre DSN, l'adresse à laquelle son SDK signale. N'importe quel SDK Sentry marche : réglez le DSN et initialisez-le au démarrage. Un script shell sans SDK peut signaler par une seule requête vers la route d'enregistrement du projet, par exemple quand une tâche de nuit échoue.</p>
+
+<h2>Pièges</h2>
+<p class="note">Prouvez-le de bout en bout le jour de l'installation : envoyez un événement de test depuis chaque service et voyez-le arriver en ticket. Un traqueur qui perd des événements en silence est pire que rien, parce que vous croyez que personne n'a planté.</p>
+<p class="note">Gardez les DSN hors de vos dépôts : mettez-les dans l'environnement de chaque service. Un DSN permet à n'importe qui d'inonder votre traqueur.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://glitchtip.com/" rel="noopener">GlitchTip</a></li><li><a href="https://sentry.io/" rel="noopener">Sentry</a></li></ul>

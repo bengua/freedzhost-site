@@ -1,0 +1,33 @@
+<!-- {"title": "A fully local judge in two passes: Tev1 first, Nimble when in doubt", "summary": "A 0.8B model answers in a twentieth of a second; a 9B one is slower but surer. Code sends every question to the small one, keeps its answer when it is confident, and only wakes the large one for the rest. On real e-mails, the pair matches the hosted judge, with nothing leaving the house.", "order": 66, "series": "ai", "level": "intermediate", "time": "45 min", "requires": ["local-judge"]} -->
+<p class="lead">A small judge is fast and honest about its doubts. A larger one is surer but costs memory and time. Rather than choose, chain them, and let code decide who answers. Our judge service speaks the same API as a hosted judge: callers changed one address and stopped sending their questions outside.</p>
+
+<p class="proof"><strong>What you get.</strong> Decisions on your own data with nothing sent out: 0.87 to 0.91 on 77 real e-mails, against 0.86 to 0.95 for the hosted service. At rest the memory is empty: each model loads on demand and leaves.</p>
+
+<h2>1. The two passes, decided by code</h2>
+<ol>
+<li>Every question goes to the fast model: Tev1, 0.8B, about 1 GB, 0.05 s per decision on the processor.</li>
+<li>Its answer is kept when its confidence reaches 0.8. At that level it was never wrong on our e-mails, and it settled 38 % of them alone.</li>
+<li>The rest go to the slow model: Nimble, 9B, about 10 GB, 0.8 s per decision, loaded on demand and freed 60 s later, so a burst shares one load.</li>
+<li>If the slow model cannot answer (its machine asleep), the fast answer comes back marked <code>"confirmed": false</code>. The caller decides. Nothing is guessed.</li>
+</ol>
+<p>Every answer says who decided (<code>decided_by</code>) and whether it is confirmed.</p>
+
+<h2>2. Serve both models with Ollama, on the processor</h2>
+<pre><code>OLLAMA_HOST=127.0.0.1:11435 OLLAMA_KEEP_ALIVE=0 ollama serve
+fh-judge serve      # http://127.0.0.1:8475/v1/systemone, GET /health
+fh-judge ask &lt; question.json</code></pre>
+<p>No graphics card involved: the cards stay for the agents and the images.</p>
+
+<h2>3. Measured</h2>
+<table>
+<tr><th>Setup</th><th>Lexical criteria</th><th>Conceptual criteria</th></tr>
+<tr><td>Tev1 alone, best setting</td><td>0.87</td><td>0.81</td></tr>
+<tr><td>Nimble alone</td><td>0.91</td><td>0.84</td></tr>
+<tr><td>Tev1 then Nimble</td><td>0.91</td><td>0.87</td></tr>
+<tr><td>Hosted judge, for reference</td><td>0.95</td><td>0.86</td></tr>
+</table>
+<p>The local pair matches the hosted judge on conceptual questions and stays four points behind on lexical ones. That was our condition before letting a judge read personal documents.</p>
+
+<h2>Traps</h2>
+<p class="note">The question goes in <code>instructions</code>, not <code>question</code>: the wrong field returns an error 400. And the small model reads about 2,000 tokens at most: send the facts, not the file.</p>
+<p class="note">Place the small judge where it never sleeps. The large one can stay on the big machine; the small one must answer at night too, for the automations.</p>

@@ -1,0 +1,35 @@
+<!-- {"title": "Strata : un modèle de 177 milliards de paramètres sur une seule carte de jeu", "summary": "Strata est un moteur libre fait pour faire tourner Qwen3.8-Flash-Next sur un PC ordinaire : une carte de 12 à 16 Go et assez de RAM pour les experts. Comment nous l'avons branché dans notre grille GPU comme une case de plus, et les trois détails qui décident s'il démarre.", "order": 75, "series": "ai", "level": "advanced", "time": "une soirée + téléchargements", "requires": ["big-moe-two-cards", "gpu-grid"]} -->
+<p class="lead">Flash-Next est un modèle à mélange d'experts de 177 milliards de paramètres : pour chaque jeton, il n'en utilise qu'une petite partie. Strata, un moteur libre, est construit autour de ce fait : la partie active sur la carte graphique, les experts en RAM système, lus au besoin. Résultat : un modèle de taille serveur sur un PC de jeu, sans que rien ne sorte de la maison.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Un grand modèle de raisonnement sur une seule carte de 16 Go, à côté d'une seconde carte qui continue de servir vos agents. Chez nous, il a été branché comme modèle des tours « information » de l'orchestrateur du téléphone, pendant qu'un modèle plus petit traite les actions sur l'autre carte.</p>
+
+<h2>1. Ce qu'il lui faut</h2>
+<ul>
+<li>Une carte NVIDIA récente (RTX 20 à 50) ou AMD avec 12 Go ou plus.</li>
+<li><strong>De la RAM</strong> : 32 Go minimum ; 64 Go font tourner toutes les tailles. Chez nous, la version 2 bits garde environ 38 Go d'experts en RAM.</li>
+<li>Environ 80 Go de disque, sur SSD si possible : le premier démarrage lit beaucoup.</li>
+</ul>
+<p>Les auteurs de Strata publient leurs propres vitesses : sur une RTX 5070 (12 Go), la version 2 bits écrit 94 jetons par seconde et lit un prompt à 2 650. Mesurez sur votre machine avant de croire un chiffre, le leur compris.</p>
+
+<h2>2. Une case de plus dans la grille</h2>
+<p>Nous ne lançons pas Strata à la main : c'est une case de plus dans notre <a href="/fr/gpu-grid.html">grille GPU</a>, sur la première carte seulement. Choisir cette case décharge ce qui occupait la carte et démarre Strata dans son conteneur ; choisir une autre case remet tout en place.</p>
+<pre><code>docker run -d --name flashnext-strata-c0 --network host \
+  --gpus device=GPU-xxxxxxxx \             # la carte par son UUID, jamais par son numéro
+  -v strata-data:/data \
+  -e FAMILY=qwen -e MODEL=Q2_0 -e CONTEXT=32768 -e HOST=127.0.0.1 -e PORT=8129 \
+  strata:local</code></pre>
+<p>Déclarez ensuite la case dans la passerelle de modèles et dans la configuration des agents, sinon la grille et les agents ne sont plus d'accord, ce que notre contrôle de dérive signale par une alerte sur le téléphone.</p>
+
+<h2>3. Trois détails qui décident s'il démarre</h2>
+<ol>
+<li><strong>La carte doit être vraiment libre.</strong> Notre premier essai a échoué sur « cudaMalloc impossible » : un autre modèle tenait encore la mémoire. La grille décharge d'abord, puis démarre.</li>
+<li><strong>Lisez sa ligne « prêt » telle qu'il l'écrit.</strong> Strata annonce <code>ready: http://...</code> sur une ligne sans le préfixe habituel. Notre grille attendait une ligne préfixée et déclarait un délai dépassé sur un serveur pourtant démarré.</li>
+<li><strong>Attachez-le à la machine elle-même</strong> (<code>HOST=127.0.0.1</code>) : la passerelle est la seule porte, avec son propre contrôle d'accès.</li>
+</ol>
+
+<h2>Pièges</h2>
+<p class="note">Quand un rôle retombe sur « le premier modèle servi », c'est l'ordre alphabétique qui décide. Privé de son petit modèle habituel, notre orchestrateur a envoyé ses tours au mauvais. Nommez le repli explicitement.</p>
+<p class="note">Projetez les experts en mémoire, ne les épinglez jamais : des poids résidents en RAM ne peuvent pas être libérés, et la machine gèle (voir <a href="/fr/big-moe-two-cards.html">le 177B sur deux cartes</a>).</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/Niko1221/Strata" rel="noopener">Strata, official repository</a></li></ul>

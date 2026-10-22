@@ -1,0 +1,39 @@
+<!-- {"title": "Tailscale comme colonne vertébrale : tout en privé, joignable de partout", "summary": "La passerelle de modèles, l'API de la console sur téléphone, le relais d'empreinte, la diffusion de jeux, les rapports de santé d'un portable en déplacement : tout cela passe par un réseau privé, rien n'est sur internet. Comment publier un service sur le seul réseau privé, avec un vrai HTTPS, et les réglages par défaut à resserrer.", "order": 97, "series": "homelab", "level": "intermediate", "time": "1 h", "requires": ["homelab-remote"]} -->
+<p class="lead">La meilleure façon de sécuriser un service, c'est de ne pas le publier. Un réseau privé maillé comme Tailscale (ou son équivalent auto-hébergé, Headscale) relie votre portable, votre téléphone et vos serveurs où qu'ils soient, comme s'ils partageaient un même réseau local. Dans notre labo, la plupart des services vivent <em>seulement</em> là. Voici ce qui y passe, et comment.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Tout votre labo dans la poche, depuis n'importe quel réseau, sans rien ouvrir sur votre box : la passerelle de modèles, la console sur téléphone, la diffusion de jeux, les consoles d'administration. Chaque service du réseau privé reçoit une vraie adresse HTTPS, et l'internet public n'en voit aucun.</p>
+
+<h2>Un peu d'histoire</h2>
+<p>Pendant des décennies, joindre la maison depuis l'extérieur voulait dire un serveur VPN, un port ouvert et des certificats à gérer, ou une redirection de port par service. WireGuard, écrit par Jason Donenfeld et intégré au noyau Linux en 2020, a rendu les tunnels chiffrés petits, rapides et simples. Tailscale, fondé en 2019, a ajouté ce que WireGuard vous laisse faire : échanger les clés, trouver chaque appareil derrière sa box, nommer les machines. Chaque appareil parle directement aux autres ; un serveur de coordination ne fait que les présenter. Headscale est une réimplémentation libre de ce serveur de coordination, pour qui veut l'héberger aussi. Les adresses viennent d'une plage réservée en 2012 aux opérateurs (RFC 6598), si bien qu'elles n'entrent jamais en collision avec votre réseau local.</p>
+
+<h2>1. Ce qui ne vit que sur le réseau privé ici</h2>
+<ul>
+<li>La <a href="/fr/model-gateway.html">passerelle de modèles</a> : elle n'écoute que sur l'interface du réseau privé.</li>
+<li>L'API derrière la <a href="/fr/agent-swarmfox.html">console sur téléphone</a>, et les sessions des agents.</li>
+<li>Le <a href="/fr/fingerprint-everywhere.html">relais d'empreinte</a> qui valide un sudo sur le serveur.</li>
+<li>La diffusion de jeux depuis le <a href="/fr/headless-gaming-node.html">PC de jeu sans écran</a>.</li>
+<li>Les rapports de santé du portable quand il est loin de la maison : ils rejoignent le labo par le réseau privé, pas par une adresse publique.</li>
+<li>Les consoles d'administration : derrière le proxy, elles ne répondent qu'au réseau local et au réseau privé (voir <a href="/fr/web-exposure-audit.html">l'audit</a>).</li>
+</ul>
+
+<h2>2. Publier un service avec un vrai HTTPS, en privé</h2>
+<pre><code>tailscale serve --bg --https=443 http://127.0.0.1:8460</code></pre>
+<p>Le service continue d'écouter sur la machine elle-même ; Tailscale lui donne une adresse de la forme <code>https://machine.votre-tailnet.ts.net</code> avec un certificat valide, joignable par vos seuls appareils. Pas de proxy, pas de port ouvert, pas de certificat à renouveler à la main.</p>
+
+<h2>3. Ouvrir un port au seul réseau privé</h2>
+<pre><code>ufw allow in on tailscale0 to any port 4000 proto tcp</code></pre>
+<p>Les règles sur l'interface <code>tailscale0</code> ne s'appliquent jamais au réseau local ni à internet. Combinées à un service attaché à l'adresse privée, une erreur dans une couche est rattrapée par l'autre.</p>
+
+<h2>4. Resserrer les réglages par défaut</h2>
+<ul>
+<li><strong>Les règles d'accès</strong> : la politique par défaut laisse chaque appareil joindre tous les autres. Écrivez des règles par étiquette : le téléphone peut joindre la console et la passerelle, un appareil invité rien.</li>
+<li><strong>Les noms</strong> : activez MagicDNS, et sur le téléphone « utiliser les réglages DNS de Tailscale », sinon les noms ne se résolvent pas.</li>
+<li><strong>Les listes blanches ailleurs</strong> : la plage d'adresses du réseau privé (dans le bloc <code>100.64/10</code>) peut être autorisée dans les listes d'accès de votre proxy, l'<code>ignoreip</code> de fail2ban et vos limites de débit.</li>
+</ul>
+
+<h2>Pièges</h2>
+<p class="note">Une machine endormie ne répond même pas à un <code>tailscale ping</code>. Réveillez-la d'abord (voir <a href="/fr/sleep-and-wake.html">dormir et se réveiller</a>) avant de conclure que le réseau est cassé.</p>
+<p class="note">Ne confondez pas « sur le réseau privé » et « en sécurité » : un portable compromis y est aussi. Gardez les connexions, et gardez des règles d'accès serrées.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://www.wireguard.com/" rel="noopener">WireGuard</a></li><li><a href="https://tailscale.com/kb" rel="noopener">Tailscale documentation</a></li><li><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale</a></li><li><a href="https://www.rfc-editor.org/rfc/rfc6598" rel="noopener">RFC 6598, shared address space</a></li></ul>

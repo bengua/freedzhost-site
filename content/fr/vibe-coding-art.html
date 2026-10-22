@@ -1,0 +1,37 @@
+<!-- {"title": "Le vibe coding et l'art numérique : quand décrire devient faire", "summary": "Dites ce que vous voulez, laissez un modèle écrire le code, jugez par ce qui apparaît à l'écran. Le vibe coding est né comme une boutade sur la programmation ; dans l'art numérique, c'est un vrai basculement. Visuels génératifs, shaders, musique codée en direct, motion design en code, tout devient accessible par la description, avec un modèle local. Ce que ça ouvre, ce que ça coûte, et où nous traçons la limite.", "order": 52.6, "series": "create", "level": "read", "time": "15 min", "requires": []} -->
+<p class="lead">Début 2025, Andrej Karpathy a donné un nom à une façon de travailler que beaucoup avaient commencé à pratiquer : le <em>vibe coding</em>. Vous décrivez ce que vous voulez en langage courant, une IA écrit le code, vous le lancez, vous regardez, vous demandez des changements, et vous cessez tout simplement de lire le code. Pour un serveur en production, c'est un risque. Pour un artiste, c'est une porte : la distance entre une idée et une image en mouvement n'a jamais été aussi courte.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Une carte des usages créatifs du vibe coding (visuels, shaders, musique, mouvement, interaction), la façon de les pratiquer avec vos propres modèles locaux et sans abonnement, et la règle simple que nous suivons pour que les esquisses restent un plaisir et que rien de fragile ne finisse en production.</p>
+
+<h2>1. Ce qui change pour les créateurs</h2>
+<p>Le creative coding existe depuis des décennies : écrire des programmes dont le résultat est une image, un son, un mouvement. Il a toujours eu une barrière : il fallait apprendre le langage avant de créer quoi que ce soit. Le vibe coding abaisse cette barrière. Le savoir-faire passe de la syntaxe à <strong>l'intention et au jugement</strong> : décrire une ambiance avec précision, reconnaître ce qui fonctionne, demander le bon changement.</p>
+
+<h2>2. Les déclinaisons dans l'art numérique</h2>
+<ul>
+<li><strong>Les visuels génératifs</strong> : des esquisses en p5.js ou Processing, décrites plutôt que tapées : « des particules qui dérivent comme de la cendre, montent lentement, couleurs de la braise au gris ». Changez la graine, obtenez une série.</li>
+<li><strong>Les shaders</strong> : de petits programmes pour la carte graphique qui calculent chaque pixel, l'art de Shadertoy. Réputés durs à écrire à la main, étonnamment abordables par la description et l'itération.</li>
+<li><strong>La musique codée en direct</strong> : des environnements comme Strudel, TidalCycles ou Sonic Pi, où un motif de texte est un rythme. Un modèle propose un motif, vous le modifiez en direct, sur scène si vous voulez : la scène algorave le fait depuis des années.</li>
+<li><strong>Les visuels en direct</strong> : de la synthèse vidéo dans le navigateur à la manière de Hydra, branchée par le code et jouée comme un instrument.</li>
+<li><strong>Le motion design en code</strong> : une vidéo écrite comme une composition HTML, minutée et animée, puis rendue. Nos clips explicatifs utilisent cette approche (voir <a href="/fr/agent-skills.html">les skills créatives</a>).</li>
+<li><strong>Les œuvres interactives et les mascottes</strong> : le moteur d'animation de notre FoxBot, ses planches et ses humeurs ont été construits avec des agents, en décrivant des comportements plutôt qu'en dessinant des images (voir <a href="/fr/inframagotchi.html">le chat du homelab</a> pour la même idée).</li>
+<li><strong>Les générateurs d'images, de vidéo et de musique</strong> : pas du code, mais la même posture : décrire, regarder, affiner (voir <a href="/fr/create-tour.html">le studio</a>).</li>
+</ul>
+
+<h2>3. Le pratiquer en local</h2>
+<ol>
+<li>Ouvrez un agent de code sur votre propre modèle (<a href="/fr/agent-openfox.html">OpenFox</a>) dans un dossier vide.</li>
+<li>Demandez un seul fichier HTML avec p5.js et une seule esquisse ; ouvrez-le dans le navigateur.</li>
+<li>Décrivez ce que vous voyez et ce que vous voulez à la place, en sensations et en contraintes, pas en code : « plus lent », « plus d'espace pour respirer », « les couleurs d'un matin d'hiver ».</li>
+<li>Gardez les graines et les versions qui vous plaisent : une esquisse est une série, pas une image unique.</li>
+</ol>
+<p class="note">Un petit modèle local suffit pour des esquisses de quelques dizaines de lignes. Les programmes longs et structurés sont là où il peine ; c'est aussi là que le vibe coding cesse d'être le bon outil.</p>
+
+<h2>4. Où nous traçons la limite</h2>
+<p>Le vibe coding est parfait quand le prix d'une erreur est une image ratée. Il est dangereux quand le code tourne sans surveillance, détient des données ou fait face à internet : un modèle écrit du code plausible qui n'a peut-être jamais tourné, et « ça a l'air bien » n'est pas un test. Notre règle, tirée de la <a href="/fr/deterministic-doctrine.html">doctrine déterministe</a> : <strong>du vibe pour les esquisses et l'art ; lire, tester et mesurer pour tout ce qui tourne seul.</strong></p>
+
+<h2>Pièges</h2>
+<p class="note">Les droits comptent toujours. Générer « à la manière de » un artiste vivant, ou à partir de son travail, soulève des questions auxquelles l'outil ne répond pas pour vous. Construisez votre propre style ; citez ce qui vous inspire.</p>
+<p class="note">Une page web faite en vibe coding et publiée telle quelle peut contenir une clé, une route de débogage ou un formulaire ouvert. Avant de publier, lisez-la une fois (voir <a href="/fr/web-exposure-audit.html">l'audit</a>).</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://en.wikipedia.org/wiki/Vibe_coding" rel="noopener">Vibe coding (overview and origin)</a></li><li><a href="https://p5js.org/" rel="noopener">p5.js</a></li><li><a href="https://strudel.cc/" rel="noopener">Strudel</a></li><li><a href="https://tidalcycles.org/" rel="noopener">TidalCycles</a></li><li><a href="https://sonic-pi.net/" rel="noopener">Sonic Pi</a></li><li><a href="https://hydra.ojack.xyz/" rel="noopener">Hydra</a></li><li><a href="https://www.shadertoy.com/" rel="noopener">Shadertoy</a></li></ul>

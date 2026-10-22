@@ -1,0 +1,35 @@
+<!-- {"title": "Long context on a 16 GB card: KVMem, and the build we run", "summary": "Agents read long conversations. KVMem keeps the whole history in system RAM and only the relevant blocks on the card: 48 out of 48 recall checks, flat speed past 100k tokens, 4.9 GB of VRAM saved. And what our build adds: one binary for two card generations, experts in host memory, token probabilities, a GPU expert cache that runs a 177B model from a single card.", "order": 63, "series": "ai", "level": "advanced", "time": "an evening", "requires": ["kv-cache-trap", "big-moe-two-cards"]} -->
+<p class="lead">A coding agent's conversation grows to 100,000 tokens and more. A normal server keeps the attention cache of all of it on the card, and slows down as it grows. KVMem, an open-source extension of llama.cpp, keeps the history in system RAM and brings back to the card only the blocks relevant to the current step. We measured it against plain llama.cpp on our own cards, then built our own version for our machine.</p>
+
+<p class="proof"><strong>What you get.</strong> Measured here: 48 recall checks out of 48 at 44k and 130k tokens; at 103k tokens, 150.9 tokens per second against 132.1 for plain llama.cpp; 4.9 GB of VRAM freed. And a 177B mixture-of-experts model served from a single 16 GB card.</p>
+
+<h2>1. The idea</h2>
+<p>Finished blocks of the attention cache go to system RAM. At each step, KVMem picks the blocks that matter for the current question and places them, in order, in a bounded working set on the card. The paper behind it reports that a 32k resident window is essentially lossless against the full 256k history.</p>
+<pre><code>llama-kvmem-server -m model.gguf -c 262144 --kvmem-budget 8192 \
+  --kvmem-gen-reserve 16384 --spec-type draft-mtp</code></pre>
+<p class="note">One generation cannot exceed <code>--kvmem-gen-reserve</code> tokens, thinking included. Size it for your longest answer.</p>
+
+<h2>2. Measure before switching</h2>
+<ul>
+<li><strong>Recall</strong>: 48/48 for llama.cpp, KVMem unbounded and KVMem bounded to 8,192, with questions about the start and the end of the conversation.</li>
+<li><strong>Speed</strong>: plain llama.cpp is faster on short contexts (178.9 against 151.0 at 39k); KVMem stays flat and overtakes it around 70k tokens on our faster card, 53k on the other.</li>
+<li><strong>Switching</strong> engines mid-conversation cost 17.9 s, mostly re-reading the context: the crossover is not the right switching point.</li>
+</ul>
+<p>Our rule: KVMem for agents (long contexts), plain llama.cpp for chat and short calls. Two presets, no automatic switch.</p>
+
+<h2>3. What our build changes, and why</h2>
+<ul>
+<li><strong>One binary for two card generations.</strong> Upstream compiles for the newest architecture only; a host with an older second card loads the model and fails there, silently. We build for both (<code>89-real;120a-real</code>), so we can compare cards changing nothing else.</li>
+<li><strong>Experts in host memory</strong>: <code>--cpu-moe</code>, <code>--n-cpu-moe</code>, <code>-ot</code> and <code>--no-repack</code> in the KVMem server, so the experts of a huge MoE model stay in evictable page cache instead of 21 GB of pinned memory.</li>
+<li><strong>A crash fixed</strong> for the Flash-Next architecture: the memory context handed to the graph was of the wrong type and the server asserted at start.</li>
+<li><strong>Token probabilities</strong> (<code>logprobs</code>, <code>top_logprobs</code>) on the chat endpoint: the model's hesitation, per token, for an agent that decides when to ask for help.</li>
+<li><strong>A GPU expert cache</strong>, by rebasing on a llama.cpp fork that has one: the busy experts stay on the card. That fork's newer tip decoded at 28.6 tokens per second, the commit we pinned at 36.9: we kept the faster one.</li>
+</ul>
+
+<h2>Traps</h2>
+<p class="note">Skip <code>scripts/apply-patches.sh</code> after the submodule update and the build fails deep inside, on missing members, which looks like a wrong submodule version. It is not. Running it twice is safe.</p>
+<p class="note">A comment placed between two lines of a <code>\</code> continuation silently cuts the command: our CMake call lost its CUDA flags and <code>bash -n</code> said the file was fine. Only running the script caught it; the test now checks the arguments CMake really receives.</p>
+<p class="note">Some model families are not supported (sliding-window attention, for instance): they stay on plain llama.cpp.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://arxiv.org/abs/2609.04852" rel="noopener">KVMem paper</a></li><li><a href="https://github.com/kvmem/kvmem" rel="noopener">KVMem + llama.cpp, upstream repository</a></li></ul>

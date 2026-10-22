@@ -1,0 +1,29 @@
+<!-- {"title": "Does your test catch anything? Prove it by breaking the code (mutation testing)", "summary": "A green test only says it found nothing, which is also what a broken test does. Inject defects one by one and check that each one turns a test red.", "order": 20, "series": "ai", "level": "advanced", "time": "1 h", "requires": ["agent-intents"]} -->
+<p class="lead">When an agent writes code and its tests, both can share the same blind spot: the test was written alongside the code and checks what the code does, not what it should do. A green result then proves nothing. Mutation testing asks a simpler question: if I break this line, does any test notice?</p>
+
+{{diagram:mutation}}
+
+<h2>A bit of history</h2>
+<p>Mutation testing was proposed by Richard Lipton in the early 1970s and formalised in 1978 with DeMillo and Sayward: to judge a test suite, plant small deliberate bugs in the code and see whether the tests notice. A surviving mutant is a bug your tests would have let through. Long considered too costly, it is cheap today, and more useful than ever when code is written by models.</p>
+
+<h2>1. The method</h2>
+<ol>
+<li>Run the tests on the real code: they must all be <strong>green</strong>. If one is already red, every mutation will look "caught" for an unrelated reason.</li>
+<li>Change one small thing: <code>==</code> into <code>!=</code>, <code>-eq</code> into <code>-ne</code>, <code>&lt;</code> into <code>&lt;=</code>, a condition into "always true", <code>|| exit</code> into <code>|| true</code>.</li>
+<li>Run the tests. Red: the defect is caught. Green: it survived, the tests are blind there.</li>
+<li>Restore the code exactly, and go to the next mutation.</li>
+</ol>
+<p>Tools exist for most languages (mutmut for Python, for example). Our homelab is mostly shell scripts, so we wrote a small one that also mutates Bash operators; a mutation tool that only bites on Python measures nothing in a shell-script fleet.</p>
+
+<h2>2. What it found for us</h2>
+<p>A test suite of 68 checks, all green. Five mutations later, two blind spots: two failure paths were never exercised. Once filled, one mutation looked caught, but by a scenario that was already red before the mutation: a false detection. Final version: 81 checks, 11 defects injected, 11 caught.</p>
+<p>Another time, a test checked that a word appeared in a file. Inverting one comparison in the code swapped two verdicts entirely, and the test stayed green. The fix was to make the test <em>run</em> the function that decides, not grep its output.</p>
+
+<h2>Traps we paid for</h2>
+<p class="note">In Python, restoring a mutant with a file copy in the same second can leave the mutant's compiled <code>.pyc</code> in place: the next run tests the mutant again. Delete <code>__pycache__</code> after each mutant, or run with <code>PYTHONDONTWRITEBYTECODE=1</code>.</p>
+<p class="note">In shell tests, <code>OUT=$(my_function)</code> runs the function in a subshell: an exit code it stores there is lost, and every refusal scenario passes green. Send the output through a file and keep the exit code in the current shell.</p>
+<p class="note">A surviving mutant is not always a defect: some changes cannot be detected by any test (an "equivalent mutant"). Read a low score as coverage, not as a grade, and look at each survivor before concluding.</p>
+<p class="note">Fixtures written from memory prove nothing about the real system: our tests were green on invented data while the code read fields that did not exist in the real API answer. Build fixtures from measured responses.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://doi.org/10.1109/C-M.1978.218136" rel="noopener">DeMillo, Lipton, Sayward (1978), Hints on Test Data Selection</a></li></ul>

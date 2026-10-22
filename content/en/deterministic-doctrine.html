@@ -1,0 +1,51 @@
+<!-- {"title": "The deterministic doctrine: the model proposes, the code decides", "summary": "The one idea running through every layer of this stack: let models do what has many right answers, and give everything with one right answer to plain code. Why it makes small local models reliable, why a good tool is often worth more than a skill, and the numbers that convinced us, layer by layer.", "order": 89, "series": "agents", "level": "read", "time": "20 min", "requires": []} -->
+<p class="lead">Ask a language model the same question twice and you may get two answers. That is a gift when you want ideas, wording, a plan. It is a disaster when you want a verdict: does this test pass, is this file valid, may this command run. Our whole stack rests on one separation: <strong>the model proposes, the code decides.</strong> Everything that has one right answer is done by a program that answers the same way every time.</p>
+
+<p class="proof"><strong>What you get.</strong> Small local models that deliver real work, because they are never asked to do what code does better. Verdicts you can replay, audit and trust. And a bill that shrinks, because a deterministic tool costs no thinking and almost no context.</p>
+
+<h2>1. Two kinds of questions</h2>
+<table>
+<tr><th>Many right answers: a model</th><th>One right answer: code</th></tr>
+<tr><td>split a project into stories</td><td>does this split respect the schema?</td></tr>
+<tr><td>write the shot list of a film</td><td>does every shot use a framing from the list?</td></tr>
+<tr><td>choose which tool fits a request</td><td>are the arguments of that call valid?</td></tr>
+<tr><td>word the reply to a customer</td><td>does the reply contain a credential?</td></tr>
+<tr><td>propose a fix</td><td>do the tests pass now?</td></tr>
+</table>
+<p>The left column is creative, so a model is the right tool. The right column is a check, so a model is the wrong tool: it would answer "probably" where you need "yes" or "no".</p>
+
+<h2>2. The doctrine, layer by layer</h2>
+<ul>
+<li><strong>Tools</strong>: a tool reads JSON, writes JSON, and its exit code carries the meaning: 0 success, 1 a negative verdict, 2 a refusal, 3 and above a technical error, never a verdict. Replayed three times, it must give the same bytes three times (see <a href="/fh-tools.html">fh-tools</a>).</li>
+<li><strong>Agents</strong>: the model designates a function from a closed table; the code checks the arguments and runs it (see <a href="/workstation-assistant.html">the workstation assistant</a>).</li>
+<li><strong>Projects</strong>: the model proposes the split, a linter judges it, you approve; scenarios run as plain tests (see <a href="/agent-bmad.html">BMAD</a>).</li>
+<li><strong>Routing</strong>: deciding which model answers is code, not a sentence in a prompt (see <a href="/local-judge.html">the local judge</a>).</li>
+<li><strong>Authority</strong>: the account that reasons holds no secret; a daemon accepts only a name from a closed list (see <a href="/agent-authority.html">agents and authority</a>).</li>
+<li><strong>Creation</strong>: the model writes the shot list, the code refuses it before a card lights up (see <a href="/studio-film.html">a sentence becomes a film</a>).</li>
+</ul>
+
+<h2>3. The numbers that convinced us</h2>
+<ul>
+<li>Told in its instructions to ask the judge, an agent did it <strong>0 times out of 3</strong>. Routed by code, every time.</li>
+<li>Asked "why does this fail?", a 27B model scored <strong>2.75/5 in 9 minutes</strong>; handed the facts by a tool, <strong>5/5 in 72 seconds</strong>.</li>
+<li>Shot lists checked by code before rendering: <strong>4 valid out of 4</strong> on the first try; a bad list found after rendering costs two hours.</li>
+<li>Coding agents deliver merged pull requests with <strong>six tools, 2,182 tokens</strong>, where a catalogue of 58 tools weighed 19,157 tokens at every turn.</li>
+</ul>
+
+<h2>4. A good tool is often worth more than a skill</h2>
+<p>A <a href="/agent-skills.html">skill</a> teaches the model a procedure; the model still has to read it, understand it and apply it, with its usual variance. A tool <em>is</em> the procedure: the model only has to call it.</p>
+<table>
+<tr><th></th><th>Skill</th><th>Tool</th></tr>
+<tr><td>cost while idle</td><td>its description</td><td>its description (120 characters at most here)</td></tr>
+<tr><td>cost when used</td><td>the whole procedure, read into the context</td><td>one call, one JSON answer</td></tr>
+<tr><td>result</td><td>as good as the model's reading</td><td>the same every time, testable from outside</td></tr>
+<tr><td>works with a small model</td><td>sometimes</td><td>yes: it only has to choose and fill the arguments</td></tr>
+</table>
+<p>So: when a procedure has a single right outcome, write the tool. Keep skills for what needs judgement: wording, design, splitting, review. The smaller your model, the more this matters.</p>
+
+<h2>5. A bug becomes code, never a note</h2>
+<p>A rule written in a guide in the morning was broken in the evening by the person who wrote it. Notes are read and forgotten; code runs every time. When something fails once, the fix is a check, a lock, a refusal, a test, ideally one you have seen go red (see <a href="/mutation-testing.html">mutation testing</a>). What cannot become code becomes a journal entry you can search.</p>
+
+<h2>Traps</h2>
+<p class="note">A confidence score measures how sure a model is, never whether it is right. Two options within 0.05 of each other compete: ask, do not pick in silence.</p>
+<p class="note">Do not bend the contract for convenience. A "tool" that calls a model is not deterministic; say so in its name, or every other guarantee is worth less.</p>

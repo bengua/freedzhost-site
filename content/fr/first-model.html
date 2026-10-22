@@ -1,0 +1,41 @@
+<!-- {"title": "Votre premier modèle local avec llama.cpp", "summary": "Télécharger un modèle ouvert, le servir sur votre carte, lui parler avec la même API que les grands clouds.", "order": 5, "series": "ai", "level": "beginner", "time": "30 min", "requires": ["docker-gpu"]} -->
+<p class="lead">llama.cpp est le moteur open source qui fait tourner la plupart des modèles locaux. Son serveur parle la même API que les grands fournisseurs du cloud : la plupart des outils peuvent l'utiliser sans modification.</p>
+
+<h2>Un peu d'histoire</h2>
+<p>En mars 2023, quelques jours après la diffusion des poids de LLaMA de Meta, Georgi Gerganov publiait llama.cpp : du C et du C++ tout simples qui faisaient tourner un grand modèle de langage sur le processeur d'un portable. La quantification, stocker les poids sur 4 ou 5 bits au lieu de 16, le faisait tenir dans une mémoire ordinaire. En août 2023, le projet a introduit le format de fichier GGUF, devenu la monnaie commune des modèles locaux.</p>
+
+<h2>1. Télécharger un modèle</h2>
+<p>Qwen3 8B, compressé sur 4 bits (Q4_K_M), 5,0 Go : il tient sur une carte de 8 Go.</p>
+<pre><code>mkdir -p ~/models
+curl -L -o ~/models/Qwen3-8B-Q4_K_M.gguf \
+  https://huggingface.co/unsloth/Qwen3-8B-GGUF/resolve/main/Qwen3-8B-Q4_K_M.gguf</code></pre>
+
+<h2>2. Le servir</h2>
+<pre><code>docker run --rm --gpus all \
+  -p 127.0.0.1:8080:8080 \
+  -v ~/models:/models \
+  ghcr.io/ggml-org/llama.cpp:server-cuda \
+  -m /models/Qwen3-8B-Q4_K_M.gguf \
+  -ngl 99 -c 8192 -fa on \
+  --host 0.0.0.0 --port 8080</code></pre>
+<ul>
+<li><code>-ngl 99</code> : toutes les couches sur la carte.</li>
+<li><code>-c 8192</code> : le contexte, la quantité de texte que le modèle garde en tête d'un coup. Plus de contexte, plus de VRAM.</li>
+<li><code>-fa on</code> : flash attention, plus rapide et plus léger en mémoire.</li>
+<li><code>-p 127.0.0.1:8080:8080</code> : joignable depuis cette machine seulement. Ne l'ouvrez pas à votre réseau avant d'avoir mis quelque chose devant.</li>
+</ul>
+
+{{diagram:request}}
+
+<h2>3. Lui parler</h2>
+<pre><code>curl http://127.0.0.1:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"messages": [{"role": "user", "content": "Dis bonjour en une phrase."}]}'</code></pre>
+<p>Ou ouvrez <code>http://127.0.0.1:8080</code> dans un navigateur : le serveur fournit une petite page de discussion.</p>
+
+<h2>Un piège que nous avons mesuré</h2>
+{{diagram:kv}}
+<p class="note">Pour gagner de la mémoire, on peut compresser le cache de contexte avec <code>-ctk q8_0 -ctv q8_0</code>. N'allez pas plus loin côté V : avec <code>-ctv q4_0</code>, flash attention se désactive sans prévenir et la lecture d'un long prompt est devenue <strong>21 fois plus lente</strong> sur notre carte (62,7 au lieu de 1 330 jetons par seconde), alors que la vitesse de génération n'a pas bougé. Un test qui ne mesure que la génération ne l'aurait jamais vu.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/ggml-org/llama.cpp" rel="noopener">llama.cpp, official repository</a></li><li><a href="https://github.com/ggml-org/ggml/blob/master/docs/gguf.md" rel="noopener">GGUF format specification</a></li></ul>

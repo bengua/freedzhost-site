@@ -1,0 +1,44 @@
+<!-- {"title": "Un PC gamer devenu serveur IA, qui joue toujours", "summary": "Pas d'écran sur la tour : un écran virtuel, le streaming de jeu encodé par le GPU intégré, et une console Android comme manette.", "order": 10, "series": "ai", "level": "advanced", "time": "2–3 h", "requires": ["gpu-for-ai"]} -->
+<p class="lead">Notre nœud de calcul était un PC gamer. Il fait désormais tourner des modèles d'IA jour et nuit, n'a pas d'écran, et nous jouons toujours dessus : depuis une console portable Android, partout dans la maison ou dehors, grâce à un serveur de streaming. L'astuce : donner un seul travail à chaque partie de la machine.</p>
+
+{{diagram:stream}}
+
+<h2>Un peu d'histoire</h2>
+<p>La diffusion de jeux à la maison a commencé avec GameStream de NVIDIA en 2013, conçu pour ses appareils Shield. Moonlight, un client libre, a retrouvé le protocole par rétro-ingénierie et l'a porté sur tous les téléphones et ordinateurs ; Sunshine a ensuite réimplémenté le côté hôte en libre, et Apollo l'a étendu. Une tour dans un coin peut désormais jouer sur une console portable partout dans la maison.</p>
+
+<h2>Un travail par puce</h2>
+<ul>
+<li><strong>Les cartes NVIDIA</strong> : les modèles, ou le jeu pendant que vous jouez (voir <a href="/fr/gpu-for-ai.html">Libérer vos cartes graphiques pour l'IA</a>).</li>
+<li><strong>Le GPU intégré</strong> : le bureau, et l'encodage du flux vidéo. Son moteur vidéo est distinct des cartes NVIDIA : le streaming ne prend rien à l'IA.</li>
+<li><strong>Un écran virtuel</strong> : le serveur de streaming a besoin d'un écran à capturer. Nous lui en donnons un qui n'existe pas physiquement.</li>
+</ul>
+
+<h2>1. Un écran qui n'existe pas</h2>
+<p>On peut dire au noyau qu'un écran est branché sur une sortie, et quel est cet écran, grâce à un fichier EDID (la carte d'identité qu'envoie un vrai écran). Deux paramètres du noyau, sur une sortie du GPU intégré :</p>
+<pre><code>video=HDMI-A-1:e drm.edid_firmware=HDMI-A-1:edid/virtual-1080p120.bin</code></pre>
+<p>Placez le fichier EDID dans <code>/usr/lib/firmware/edid/</code>. Générez-le en 1920×1080 à 120 Hz avec blanking réduit, et faites de ce mode le mode préféré, sinon le bureau ne le choisira pas par défaut. Il existe des générateurs d'EDID open source ; vérifiez le résultat avant de redémarrer.</p>
+<ul>
+<li>La sortie se désigne par son connecteur (<code>HDMI-A-1</code>, <code>DP-3</code>…), pas par sa carte : les numéros de carte peuvent changer d'un démarrage à l'autre, le nom du connecteur non.</li>
+<li>L'EDID n'est lu qu'au démarrage : tout changement demande un redémarrage.</li>
+<li>Une sortie forcée n'a ni HDR ni taux de rafraîchissement variable.</li>
+<li>Avec le pilote propriétaire NVIDIA chargé, <code>drm.edid_firmware</code> seul est ignoré sans prévenir : il faut aussi <code>video=…:e</code>.</li>
+</ul>
+
+<h2>2. Le serveur de streaming</h2>
+<p>Sunshine est le serveur open source de streaming de jeux ; Apollo en est un fork avec des extras. Trois réglages font la différence sur une machine comme celle-ci :</p>
+<pre><code>capture = kms              # capture l'affichage directement, latence minimale, tout bureau
+encoder = vaapi            # encode sur le GPU intégré
+adapter_name = /dev/dri/renderD128   # le nœud de rendu du GPU intégré, vérifiez le vôtre</code></pre>
+<p>La capture <code>kms</code> demande une capacité supplémentaire (<code>cap_sys_admin</code>) que les paquets posent en général. Le numéro du nœud de rendu change d'une machine à l'autre : trouvez celui du GPU intégré avec <code>ls -l /dev/dri/by-path/</code>.</p>
+
+<h2>3. La console</h2>
+<p>Sur une console portable Android (la nôtre est une AYN Odin 2 Portal), installez Moonlight, ou Artemis, un fork fait pour s'appairer avec Apollo. Appairez avec le code PIN affiché dans la page web du serveur, choisissez le jeu, jouez. Hors de chez vous, passez par votre réseau privé (Tailscale, WireGuard) : n'ouvrez jamais les ports de streaming sur Internet.</p>
+
+<h2>Pièges que nous avons payés</h2>
+<p class="note">Un GPU intégré de la génération Ryzen 7000 décode l'AV1 mais ne sait pas l'encoder. Utilisez le HEVC : l'image est excellente et la console le décode en matériel.</p>
+<p class="note">L'interface web du serveur n'enregistrait pas toujours nos modifications. Éditez le fichier de configuration service arrêté, puis lisez le journal pour voir ce qui a vraiment été chargé.</p>
+<p class="note">Le réglage <code>output_name</code> est un index dans la liste des écrans du serveur, pas un nom de connecteur. Une mauvaise valeur fait échouer tous les encodeurs à la suite, et le client ne reçoit qu'une erreur.</p>
+<p class="note">Oubliez les vieux tutos d'« écran factice » avec <code>xrandr</code> : ils ne marchent que sous X11, pas dans une session Wayland.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://moonlight-stream.org/" rel="noopener">Moonlight</a></li><li><a href="https://github.com/LizardByte/Sunshine" rel="noopener">Sunshine</a></li><li><a href="https://github.com/ClassicOldSong/Apollo" rel="noopener">Apollo</a></li></ul>

@@ -1,0 +1,75 @@
+<!-- {"title": "L'atelier : chaque outil derrière ce site, une ligne chacun", "summary": "Une quarantaine de dépôts construits et utilisés ici, rangés par métier, chacun en une phrase, avec le tutoriel qui l'explique. Des licences libres ; la méthode de chacun est à vous de copier.", "order": 74, "series": "start", "level": "read", "time": "10 min", "requires": []} -->
+<p class="lead">Tout ce que décrit ce site tourne sur des outils que nous avons écrits, petits et spécialisés, un dépôt chacun. Les voici par métier, une phrase chacun, avec le tutoriel qui les montre au travail. La plupart sont sous licence MIT, quelques-uns GPL ou AGPL ; les idées, elles, sont libres à prendre dans tous les cas.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> La carte d'une pile d'agents complète et souveraine, de l'allocateur de cartes graphiques à la console du téléphone. Trouvez la brique qu'il vous faut, puis suivez son tutoriel.</p>
+
+<h2>Consoles et agents</h2>
+<ul>
+<li><strong>SwarmFox</strong> : la console de toute la pile sur le téléphone, Android native, et sa petite API (<a href="/fr/agent-swarmfox.html">tutoriel</a>).</li>
+<li><strong>CloudFoxRoom</strong> : des conversations durables et rejouables sur plusieurs instances d'agents (<a href="/fr/agent-rooms-foxdesk.html">tutoriel</a>).</li>
+<li><strong>foxroom</strong> et <strong>FoxDesk</strong> : un cœur d'agents libre, jamais modifié, avec nos adaptateurs, et son client de bureau (<a href="/fr/agent-rooms-foxdesk.html">tutoriel</a>).</li>
+<li><strong>fh-dev</strong> : confier une tâche de développement à un agent de code local ; elle revient en demande de fusion (<a href="/fr/agent-claude-code.html">tutoriel</a>).</li>
+<li><strong>fh-assistant</strong> : un assistant de poste qui désigne une fonction et ne tape jamais (<a href="/fr/workstation-assistant.html">tutoriel</a>).</li>
+<li><strong>fh-coder-mode</strong> : comment Claude Code est câblé et réglé ici, avec les réglages mesurés et les pannes déjà payées.</li>
+</ul>
+
+<h2>Modèles et cartes</h2>
+<ul>
+<li><strong>turnstile</strong> : un allocateur déterministe de cartes graphiques pour les modèles locaux (<a href="/fr/gpu-grid.html">tutoriel</a>).</li>
+<li><strong>kvmem-llama-cpp</strong> : notre version de KVMem pour les longs contextes, deux générations de cartes, les experts en mémoire hôte (<a href="/fr/kvmem-long-context.html">tutoriel</a>).</li>
+<li><strong>fh-bench</strong> : une carte mesurée de ce qu'on peut demander à chaque modèle local (<a href="/fr/model-bench.html">tutoriel</a>).</li>
+<li><strong>fh-judge</strong> : un juge de décision local en deux passes, Tev1 puis Nimble (<a href="/fr/judge-two-passes.html">tutoriel</a>).</li>
+<li><strong>Strata</strong> (pas de nous, intégré ici) : Flash-Next sur une seule carte de jeu, comme une case de plus dans la grille (<a href="/fr/strata-flash-next.html">tutoriel</a>).</li>
+<li><strong>billion-context</strong> (pas de nous, mesuré ici) : un proxy de compression de contexte, et pourquoi nous ne l'avons pas gardé (<a href="/fr/billion-context.html">tutoriel</a>).</li>
+<li><strong>fh-egpu</strong> : dit quel lien PCIe le micrologiciel a vraiment donné à chaque carte (<a href="/fr/second-gpu-oculink.html">tutoriel</a>).</li>
+</ul>
+
+<h2>Surveiller, diagnostiquer, prouver</h2>
+<ul>
+<li><strong>fh-why</strong> et <strong>fh-probes</strong> : des faits pour un diagnostic, et une machine qui se souvient de ce qu'elle a vécu (<a href="/fr/facts-before-diagnosis.html">tutoriel</a>).</li>
+<li><strong>fh-detective</strong> et <strong>fh-mutant</strong> : un juge qui désigne où regarder, et des mutations qui prouvent qu'un test sert à quelque chose (<a href="/fr/mutation-testing.html">tutoriel</a>).</li>
+<li><strong>fh-rag-service</strong> : une recherche locale et déterministe dans votre propre journal (<a href="/fr/journal-rag.html">tutoriel</a>).</li>
+<li><strong>knowledge-packs</strong> : des faits avec une source, un test et une date de péremption (<a href="/fr/knowledge-packs.html">tutoriel</a>).</li>
+<li><strong>parc</strong> : inventorier ses machines par scan, et voir ce qui a bougé (<a href="/fr/workstation-small-tools.html">tutoriel</a>).</li>
+</ul>
+
+<h2>Forge et déploiement</h2>
+<ul>
+<li><strong>fh-deploy</strong> : un démon root qui déploie un composant tiré d'une liste fermée, sans mot de passe (<a href="/fr/agent-authority.html">tutoriel</a>).</li>
+<li><strong>forgejo-bootstrap</strong> : d'un dépôt neuf à sa première version en un appel, jamais sans sa protection (<a href="/fr/agent-authority.html">tutoriel</a>).</li>
+<li><strong>fh-push</strong> et <strong>fh-forge-tools</strong> : publier une branche en demande de fusion par l'assistant de forge.</li>
+<li><strong>fh-backups</strong> : garde une copie hors machine des sauvegardes nocturnes de l'hyperviseur (<a href="/fr/homelab-backups.html">tutoriel</a>).</li>
+<li><strong>fh-compute</strong> : reconstruire les postes depuis une déclaration (<a href="/fr/ansible-workstation.html">tutoriel</a>).</li>
+</ul>
+
+<h2>Poste, son et jeu</h2>
+<ul>
+<li><strong>purrd</strong> : de la musique pendant que l'agent travaille, le silence quand il a fini (<a href="/fr/purrd.html">tutoriel</a>).</li>
+<li><strong>inframagotchi</strong> : un chat manga dont la santé est celle de votre homelab (<a href="/fr/inframagotchi.html">tutoriel</a>).</li>
+<li><strong>claude-archive</strong> : votre historique Claude.ai en fichiers, sans rien perdre (<a href="/fr/claude-archive.html">tutoriel</a>).</li>
+<li><strong>openfox-omarchy</strong> : une jauge de contexte dans la barre d'état (<a href="/fr/workstation-small-tools.html">tutoriel</a>) ; et Omarchy lui-même, en profondeur (<a href="/fr/omarchy-deep.html">tutoriel</a>).</li>
+<li><strong>fh-kill</strong> : arrêter des processus par motif sans tuer votre propre shell (<a href="/fr/ssh-for-agents.html">tutoriel</a>).</li>
+</ul>
+
+<h2>Studio et voix</h2>
+<ul>
+<li><strong>fh-seq</strong> : un studio de musique local qui garde le projet (<a href="/fr/fh-seq-music.html">tutoriel</a>).</li>
+<li><strong>ACE-Step</strong> (pas de nous, utilisé chaque jour) : trois minutes de musique en 27 secondes (<a href="/fr/ace-step-music.html">tutoriel</a>).</li>
+<li><strong>studio-media</strong> : d'une phrase à des images et des plans vidéo (<a href="/fr/comfyui-studio.html">tutoriel</a>).</li>
+<li><strong>house-voice</strong> : la parole de la maison pour Home Assistant, en local (<a href="/fr/homelab-voice.html">tutoriel</a>).</li>
+<li><strong>fh_voice_coder_console</strong> : parler à votre agent de code local depuis le téléphone ; en alpha.</li>
+</ul>
+
+<h2>Doctrine et outils</h2>
+<ul>
+<li><strong>La doctrine déterministe</strong> : le modèle propose, le code décide (<a href="/fr/deterministic-doctrine.html">tutoriel</a>).</li>
+<li><strong>fh-tools</strong> : quatorze outils déterministes pour les agents de code (<a href="/fr/fh-tools.html">tutoriel</a>).</li>
+<li><strong>La suite fh-</strong> : soixante petites commandes qui font tourner le labo (<a href="/fr/fh-suite.html">tutoriel</a>).</li>
+<li><strong>La création</strong> : tout le studio, des images aux films (<a href="/fr/create-tour.html">tutoriel</a>), et ArtCraft compilé depuis les sources (<a href="/fr/artcraft.html">tutoriel</a>).</li>
+</ul>
+
+<h2>Apprendre</h2>
+<ul>
+<li><strong>tutorat</strong> : une méthode d'apprentissage et un tuteur socratique local qui ne donne jamais la réponse : il nomme l'erreur et guide la correction.</li>
+<li><strong>freedzhost-site</strong> : ce site, bilingue, généré par un seul script, dessins en code.</li>
+</ul>

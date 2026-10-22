@@ -1,0 +1,25 @@
+<!-- {"title": "A second graphics card through OCuLink: more VRAM without a new motherboard", "summary": "When the motherboard has one big slot, an M.2 slot can lend its four lanes to an external card. What worked, what did not, and how to read the link.", "order": 16, "series": "ai", "level": "intermediate", "time": "2 h", "requires": ["hardware", "nvidia-driver"]} -->
+<p class="lead">More VRAM is what lets bigger models run, and a second card is the cheapest way to get it. Most consumer motherboards have only one full-speed slot, though. Our second card lives in an external enclosure, connected through an OCuLink cable to an M.2 slot: four PCIe lanes, which is plenty for running models.</p>
+
+{{diagram:egpu}}
+
+<h2>1. Know your lanes before buying</h2>
+<p>Read your motherboard's manual: which slots are wired to the processor, which to the chipset, and which disable another when used. An M.2 slot wired to the processor gives the external card its own four lanes. A chipset slot shares four lanes with every disk and USB port behind it.</p>
+<p>Four lanes are enough for inference: the model is loaded once, then most of the work happens inside the card. They matter more for loading speed and for splitting one model across two cards.</p>
+
+<h2>2. The parts</h2>
+<ul>
+<li>an <strong>M.2 to OCuLink adapter with a ReDriver</strong> (a signal amplifier);</li>
+<li>a short OCuLink cable;</li>
+<li>an enclosure with its own power supply.</li>
+</ul>
+<p class="note">A passive adapter, without ReDriver, was not enough at PCIe Gen4 speed: the link was unstable. The ReDriver version solved it.</p>
+
+<h2>3. Order of operations</h2>
+<p>OCuLink is not hot-plug: <strong>switch the enclosure on before the computer</strong>, and never unplug it while the system runs. One driver serves both cards; check that the system sees them both:</p>
+<pre><code>nvidia-smi --query-gpu=name,pcie.link.gen.current,pcie.link.width.current --format=csv</code></pre>
+<p>An idle card can report a lower generation to save power: check the width under load, or with <code>sudo lspci -vv</code> (<code>LnkSta</code>).</p>
+
+<h2>Traps we paid for</h2>
+<p class="note">Our big card once came up at x4 instead of x16. The firmware had split its slot during one boot. Nothing in the BIOS had changed, and a <strong>full power cycle</strong> (everything off, enclosure first on, then the PC) brought x16 back. Do not "fix" it by picking an 8x/8x bifurcation mode: on our board, <em>Auto</em> is the x16, and 8x/8x is meant for riser cards.</p>
+<p class="note">Check the link after any hardware change, with a script that says x16 or not. A slow link does not fail, it just makes everything slower without a word.</p>

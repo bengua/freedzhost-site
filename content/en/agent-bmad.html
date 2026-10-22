@@ -1,0 +1,50 @@
+<!-- {"title": "BMAD with small models: the model proposes, code decides", "summary": "A planning method for agent work, adapted to local models: stories with a schema, scenarios written as data and run by pytest, one story alive at a time, and no model ever delivering a verdict.", "order": 51, "series": "agents", "level": "advanced", "time": "2 h", "requires": ["agent-claude-code", "mutation-testing"]} -->
+<p class="lead">BMAD is a method for driving AI agents through a project: split the work into stories, give each story its acceptance scenarios, have agents implement them one by one. With a frontier model, a loose version works. With a 9B or 27B model on your own card, it drifts within the hour. Here is the strict version we run, where everything that can be checked is checked by code.</p>
+
+<p class="proof"><strong>What you get.</strong> Small local models that deliver real projects, story after story, without drifting: because everything that can be checked is checked by code, and you keep the final word.</p>
+
+<h2>0. The BMAD method in one minute</h2>
+<p>BMAD (an open-source method for AI-driven agile development) gives each phase of a project to a specialised agent persona, each producing a document the next one reads:</p>
+<ul>
+<li><strong>Analyst</strong>: explores the idea and writes a project brief.</li>
+<li><strong>Product manager</strong>: turns the brief into requirements (a PRD).</li>
+<li><strong>Architect</strong>: designs the system that meets them.</li>
+<li><strong>Scrum master</strong>: shards those documents into small, self-contained stories.</li>
+<li><strong>Developer</strong> and <strong>QA</strong>: implement one story at a time, then review it.</li>
+</ul>
+<p>Its strength is the chain of documents: each agent starts from written context, not from a vague chat. Its weakness with small models is that every hand-off is judged by another model. Below is how we kept the chain and replaced every judgement that has one right answer with code.</p>
+
+{{diagram:bmad}}
+
+<h2>1. Stories with a schema</h2>
+<p>A story is not a paragraph. It is a record with fields: an identifier, a rationale, the files it may touch, the stories it depends on, its scenarios. We write the backlog in TOML and validate it with a small program, a story linter, that refuses by name:</p>
+<ul>
+<li>a missing field, a wrong type, a duplicate identifier;</li>
+<li>an unknown or cyclic dependency;</li>
+<li>more than one story in progress;</li>
+<li>a story without a rationale;</li>
+<li>a file that is neither in the repository nor declared new, or declared new but already there.</li>
+</ul>
+<p>The linter has no network and no model: run it three times, you get the same bytes three times.</p>
+
+<h2>2. The model proposes the split, you approve it</h2>
+<p>Splitting a project has many right answers, so it stays a model's job. But its output is a proposal: the linter checks it, then you approve it, file list included. A constraint written by a model and applied without review is only a suggestion with good manners.</p>
+
+<h2>3. One story alive at a time</h2>
+<p>The next story starts only when the previous one is merged. And the backlog's state is never stored: it is derived on every call from the runs that reference each story. A stored "in progress" survives a dead run and lies in silence; a derived one cannot.</p>
+
+<h2>4. Scenarios are data, run by pytest</h2>
+<p>No BDD framework, no matching a sentence to a step. A scenario is a small object, Given / When / Then, sitting beside the code that carries it out, and the suite runs them as parametrized pytest. The verdict is pytest's: passed or failed, with the failing line.</p>
+<pre><code>Scenario("S4", given="a story with a cyclic dependency",
+         when="the linter reads the backlog",
+         then="it refuses and names both stories")</code></pre>
+
+<h2>5. The merge stays human</h2>
+<p>Automatic merging is an exception, off by default, with a list of forbidden zones: the test judge itself, the code that holds Git rights, the sandbox. A change there always waits for a human.</p>
+
+<h2>Traps</h2>
+<p class="note">Re-read the rules at every task. An agent keeps freedom of implementation and loses freedom to drift only if the doctrine is in front of it each time, not once at the start.</p>
+<p class="note">A scenario that never fails proves nothing. Break the code on purpose and check it goes red (see <a href="/mutation-testing.html">tests validated by mutation</a>).</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/bmad-code-org/BMAD-METHOD" rel="noopener">BMAD Method, official repository</a></li></ul>

@@ -1,0 +1,30 @@
+<!-- {"title": "ACE-Step: three minutes of music in 27 seconds, on your own card", "summary": "An open-source music model fast enough to be a tool: whole tracks from a few style tags, repaint of a passage, variations. How we use it for an ambience bank, a soundtrack for automatic videos, and why it never runs while the music plays.", "order": 77, "series": "create", "level": "intermediate", "time": "1 h + downloads", "requires": ["comfyui-studio"]} -->
+<p class="lead">ACE-Step is an open-source model that writes music from style tags and, if you want, lyrics. Its strength is speed: on our card, three minutes of music in 27 seconds. Fast enough to generate twenty candidates, listen, and keep three. It also reworks a passage without touching the rest.</p>
+
+<p class="proof"><strong>What you get.</strong> Royalty-free music made at home: ambience tracks for focus, soundtracks for videos, sketches for songs. No subscription, no upload, and a bank of finished tracks that plays later with no model at all.</p>
+
+<h2>1. What it does</h2>
+<ul>
+<li><strong>Generate</strong>: a full track from tags (<code>soft piano and warm pads, meditative, no drums, no vocals</code>).</li>
+<li><strong>Repaint</strong>: redo a time range, the rest stays identical.</li>
+<li><strong>Retake</strong>: a variation of the whole, same idea, different take.</li>
+</ul>
+<p>Run it in its own Python environment: its PyTorch and CUDA versions rarely match those of your other tools. We call it through a small bridge, the single place that adapts to its interface when it changes (see <a href="/fh-seq-music.html">fh-seq</a>).</p>
+
+<h2>2. Three uses here</h2>
+<ol>
+<li><strong>An ambience bank.</strong> Twenty instrumental tracks per style in one call, listened to, sorted, the best kept. <a href="/purrd.html">Purrd</a> then plays them while an agent works, with no model running.</li>
+<li><strong>Video soundtracks.</strong> In our automatic video chain, the music for a three-minute film takes 27 seconds, next to minutes per video shot.</li>
+<li><strong>Song sketches</strong>, reworked passage by passage.</li>
+</ol>
+
+<h2>3. Generate before, play without AI</h2>
+<p>The structuring choice: the model only runs <em>ahead of time</em>. The program that plays the music reads files, at random, with zero graphics memory and zero dependency on a model. The AI makes the bank; nothing in the playback path needs it.</p>
+
+<h2>Traps</h2>
+<p class="note">Size the storage: 32-bit stereo WAV at 48 kHz, three minutes weigh 69 MB. Converted to Opus at 128 kbit/s: about 3 MB, no audible loss for ambience.</p>
+<p class="note">Know which card it renders on. We believed it shared nothing with our language models; it rendered on the same card, and a model started during a render stayed on the processor for an hour after.</p>
+<p class="note">Tags do the work. For an "end of task" track, words like <code>resolving to silence, decaying piano notes</code> gave what we wanted; vague tags give vague music.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/ace-step/ACE-Step" rel="noopener">ACE-Step, official repository</a></li></ul>
