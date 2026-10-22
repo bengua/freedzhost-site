@@ -125,6 +125,24 @@
   hero.addEventListener("pointerdown", onPointer, { passive: true });
   hero.addEventListener("pointerleave", function () { pUntil = 0; }, { passive: true });
 
+  // Tapping the fox is pure play: an ember burst at the tap and a wag of the
+  // nine tails. The fox is decor, so the gesture must never move focus.
+  var bursts = [];
+  svg.style.pointerEvents = "auto";
+  svg.addEventListener("pointerdown", function (ev) {
+    var cr = canvas.getBoundingClientRect();
+    var bx = ev.clientX - cr.left, by = ev.clientY - cr.top;
+    for (var bi = 0; bi < 14; bi++) {
+      var ang = (bi / 14) * Math.PI * 2 + Math.random() * 0.4;
+      bursts.push({ x: bx, y: by,
+        vx: Math.cos(ang) * (40 + Math.random() * 70),
+        vy: Math.sin(ang) * (40 + Math.random() * 70) - 30,
+        size: 4 + Math.random() * 7, tone: TONES[(Math.random() * TONES.length) | 0],
+        life: 0, span: 0.7 + Math.random() * 0.5 });
+    }
+    for (var si = 0; si < springs.length; si++) springs[si].vel += (si % 2 ? 1 : -1) * (16 + si * 2);
+  }, { passive: true });
+
   // Inari's tails: a light spring per tail, a breathing sway plus a shy
   // retreat when the pointer comes near the tail tips.
   var tails = svg.querySelectorAll(".inari-tail");
@@ -181,6 +199,15 @@
       var fade = Math.min(1, p.life / 1.2) * Math.max(0, 1 - p.life / p.span);
       var flicker = 0.55 + 0.45 * Math.sin(t * p.freq * 3 + p.phase);
       ctx.globalAlpha = fade * flicker * 0.9;
+      ctx.drawImage(p.tone, p.x - p.size, p.y - p.size, p.size * 2, p.size * 2);
+    }
+    for (i = bursts.length - 1; i >= 0; i--) {
+      p = bursts[i];
+      p.life += dt;
+      if (p.life > p.span) { bursts.splice(i, 1); continue; }
+      p.vx *= 0.94; p.vy = p.vy * 0.94 + 90 * dt;
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      ctx.globalAlpha = (1 - p.life / p.span) * 0.95;
       ctx.drawImage(p.tone, p.x - p.size, p.y - p.size, p.size * 2, p.size * 2);
     }
     ctx.globalAlpha = 1;

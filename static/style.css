@@ -318,7 +318,11 @@ body.home .top { position: relative; z-index: 4; }
 
 @media (max-width: 760px) {
   .hero-stage { grid-template-columns: 1fr; align-content: center; }
-  .hero-inari { position: absolute; right: -22%; bottom: 0; width: 92%; height: 60%; opacity: .45; z-index: 1; }
+  /* Watermark composition: the whole fox stays inside the viewport (no severed tails),
+     and this opacity doubles as the parallax fade — it must reference --sc here, after
+     the generic parallax rule above, or the fox hangs half-faded over the content. */
+  .hero-inari { position: absolute; right: -4%; bottom: 0; width: 78%; height: 58%; z-index: 1;
+    opacity: max(0, calc(.5 - var(--sc, 0) * 1.1)); transform: translateY(calc(var(--sc, 0) * 20%)); }
   .hero-copy { position: relative; z-index: 2; }
   .hero-title { font-size: clamp(3rem, 15vw, 4.6rem); }
 }
