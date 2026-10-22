@@ -78,8 +78,12 @@
     canvas.width = Math.round(W * DPR);
     canvas.height = Math.round(H * DPR);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    var cr = canvas.getBoundingClientRect(), fr = svg.getBoundingClientRect();
-    foxZone = { x: fr.left - cr.left - 30, y: fr.top - cr.top - 30, w: fr.width + 60, h: fr.height + 60 };
+    if (svg) {
+      var cr = canvas.getBoundingClientRect(), fr = svg.getBoundingClientRect();
+      foxZone = { x: fr.left - cr.left - 30, y: fr.top - cr.top - 30, w: fr.width + 60, h: fr.height + 60 };
+    } else {
+      foxZone = null; // no cutout fox: the embers drift over the whole key art
+    }
   }
   resize();
   addEventListener("resize", resize);
@@ -133,27 +137,31 @@
   hero.addEventListener("pointerdown", onPointer, { passive: true });
   hero.addEventListener("pointerleave", function () { pUntil = 0; }, { passive: true });
 
-  // Tapping the fox is pure play: an ember burst at the tap and a wag of the
-  // nine tails. The fox is decor, so the gesture must never move focus.
+  // Tapping the fox (the vector silhouette when present, the key art otherwise)
+  // is pure play: an ember burst at the tap and a wag of the nine tails.
   var bursts = [];
-  svg.style.pointerEvents = "auto";
-  svg.addEventListener("pointerdown", function (ev) {
-    var cr = canvas.getBoundingClientRect();
-    var bx = ev.clientX - cr.left, by = ev.clientY - cr.top;
-    for (var bi = 0; bi < 14; bi++) {
-      var ang = (bi / 14) * Math.PI * 2 + Math.random() * 0.4;
-      bursts.push({ x: bx, y: by,
-        vx: Math.cos(ang) * (40 + Math.random() * 70),
-        vy: Math.sin(ang) * (40 + Math.random() * 70) - 30,
-        size: 4 + Math.random() * 7, tone: TONES[(Math.random() * TONES.length) | 0],
-        life: 0, span: 0.7 + Math.random() * 0.5 });
-    }
-    for (var si = 0; si < springs.length; si++) springs[si].vel += (si % 2 ? 1 : -1) * (16 + si * 2);
-  }, { passive: true });
+  var burstTarget = svg || hero.querySelector(".hero-art");
+  if (burstTarget) {
+    burstTarget.style.pointerEvents = "auto";
+    burstTarget.addEventListener("pointerdown", function (ev) {
+      var cr = canvas.getBoundingClientRect();
+      var bx = ev.clientX - cr.left, by = ev.clientY - cr.top;
+      for (var bi = 0; bi < 14; bi++) {
+        var ang = (bi / 14) * Math.PI * 2 + Math.random() * 0.4;
+        bursts.push({ x: bx, y: by,
+          vx: Math.cos(ang) * (40 + Math.random() * 70),
+          vy: Math.sin(ang) * (40 + Math.random() * 70) - 30,
+          size: 4 + Math.random() * 7, tone: TONES[(Math.random() * TONES.length) | 0],
+          life: 0, span: 0.7 + Math.random() * 0.5 });
+      }
+      for (var si = 0; si < springs.length; si++) springs[si].vel += (si % 2 ? 1 : -1) * (16 + si * 2);
+    }, { passive: true });
+  }
 
   // Inari's tails: a light spring per tail, a breathing sway plus a shy
-  // retreat when the pointer comes near the tail tips.
-  var tails = svg.querySelectorAll(".inari-tail");
+  // retreat when the pointer comes near the tail tips. Without the vector
+  // silhouette (key-art hero) there are no springs — the art carries the fox.
+  var tails = svg ? svg.querySelectorAll(".inari-tail") : [];
   var TIPS = [[253, 309], [317, 245], [404, 201], [504, 190], [602, 217],
               [682, 279], [731, 365], [747, 457], [731, 532]];
   var springs = [];
