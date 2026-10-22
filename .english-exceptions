@@ -11,3 +11,4 @@ tools/revue-jour.py # French-language internal tool for drafting the daily brief
 docs/STRATEGIE.md # internal lab reference notes written in French, same category as docs/CONVENTIONS.md
 docs/UNIVERS.md # transversal design constitution written in French, same category as docs/CONVENTIONS.md
 docs/INARI.md # the Inari character charter, a French design document in the same category as docs/UNIVERS.md
+docs/REFS.md # design direction references, a French design document like docs/UNIVERS.md

@@ -10,6 +10,13 @@
 
 Cette direction prévaut sur toute tentation gadget (référence de retenue : sunmetalon.com).
 
+### Amendement 2 (22/10 nuit) : l’expérience immersive narrative
+
+Au-delà de l’énergie manga : le site devient une expérience de motion design
+interactif (doctrine utsubo, voir docs/REFS.md) — arc narratif en 5 scènes max
+avec de vrais points d’interaction, accroche percutante, hybride éditorial dense
+en dessous. Le spectacle sert le propos ; l’interaction n’est jamais décorative.
+
 ### Amendement (22/10 soir) : l'énergie manga / jeu vidéo japonais
 
 La retenue est une exigence de craft, PAS une invitation au froid. L'imaginaire de
