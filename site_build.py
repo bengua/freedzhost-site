@@ -47,9 +47,16 @@ LANGS = {
            "foot_fox": "Found this useful? Tell us what to measure next.",
            "hero_kicker": "Tutorials · Homelab · Local AI",
            "hero_tag": "Your own swarm of AI agents, at home.",
-           "hero_team": [["zen", "the local way"], ["merica", "claudz, the Anthropic room"],
+           "hero_team": [["inari", "Inari, your guide"], ["zen", "the local way"],
+                         ["merica", "claudz, the Anthropic room"], ["rebel", "the unfiltered rebel"],
+                         ["artiste", "the studio"], ["militaire", "the sentinel"],
                          ["groq", "free-tier speed"], ["mistral", "the European breath"],
-                         ["militaire", "the sentinel"], ["artiste", "the studio"]],
+                         ["cerebras", "wafer lightning"], ["cloudflare", "the network edge"],
+                         ["cohere", "the scribe"], ["gemini", "the Google gaze"],
+                         ["google", "undercover"], ["grok", "the cyberpunk"],
+                         ["meta", "the plushy"], ["nvidia", "the CUDA force"],
+                         ["openai", "the elegant one"], ["openrouter", "the gatekeeper"],
+                         ["umans", "the augmented human"]],
            "hero_down": "Skip to the content",
            "footer":
            "Content under CC BY-SA 4.0. No trackers, no cookies, no third-party fonts."},
@@ -78,9 +85,16 @@ LANGS = {
            "foot_fox": "Utile ? Dites-nous ce qu'il faut mesurer ensuite.",
            "hero_kicker": "Tutos · Homelab · IA locale",
            "hero_tag": "Votre essaim d'agents IA, à la maison.",
-           "hero_team": [["zen", "la voie locale"], ["merica", "claudz, la room Anthropic"],
+           "hero_team": [["inari", "Inari, ton guide"], ["zen", "la voie locale"],
+                         ["merica", "claudz, la room Anthropic"], ["rebel", "le rebelle sans filtre"],
+                         ["artiste", "le studio"], ["militaire", "la sentinelle"],
                          ["groq", "la vitesse gratuite"], ["mistral", "le souffle européen"],
-                         ["militaire", "la sentinelle"], ["artiste", "le studio"]],
+                         ["cerebras", "la foudre wafer"], ["cloudflare", "le bord du réseau"],
+                         ["cohere", "le scribe"], ["gemini", "le regard de Google"],
+                         ["google", "l'incognito"], ["grok", "le cyberpunk"],
+                         ["meta", "le pelucheux"], ["nvidia", "la force CUDA"],
+                         ["openai", "l'élégant"], ["openrouter", "le passeur"],
+                         ["umans", "l'humain augmenté"]],
            "hero_down": "Aller au contenu",
            "footer":
            "Contenu sous licence CC BY-SA 4.0. Ni traceur, ni cookie, ni police externe."},
@@ -486,8 +500,7 @@ def hero(lang):
             f'<h1 class="hero-title">FreedzHost</h1>'
             f'<p class="hero-tag">{html.escape(t["hero_tag"])}</p>'
             f'</div></div>'
-            f'<video class="hero-parade" muted playsinline preload="none" aria-hidden="true"></video>'
-            f'<span class="hero-parade-tag" aria-hidden="true"></span>'
+            f'<span class="hero-parade-tag hero-anchor-tag" aria-hidden="true"></span>'
             f'<script type="application/json" class="hero-team">{json.dumps(t["hero_team"])}</script>'
             f'<a class="hero-down" href="#hero-end" aria-label="{html.escape(t["hero_down"])}">'
             f'<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">'
