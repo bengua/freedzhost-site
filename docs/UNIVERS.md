@@ -1,5 +1,16 @@
 # Univers FreedzHost — constitution transversale
 
+## Direction esthétique (actée le 22/10) : ÉLÉGANT · LUXE · POST-MODERNE
+
+- **Élégant** = retenue : espace, Fraunces, un seul accent cuivre à la fois, rien qui crie.
+- **Luxe** = détails finis : matières mates, transitions physiques douces, zéro bruit visuel,
+  ombres fines ; les états vides, les erreurs et les chargements sont aussi soignés que le reste.
+- **Post-moderne** = asymétrie maîtrisée, typographie expressive qui peut casser la grille avec
+  intention, clins d'œil assumés jamais kitsch. Le renard reste chic, pas cartoon.
+
+Cette direction prévaut sur toute tentation gadget (référence de retenue : sunmetalon.com).
+
+
 Un seul univers visuel et éditorial pour toutes les surfaces et tous les
 projets de l'enseigne **FreedzHost** (freedzhost.cloud). Toute évolution se
 mesure à cette constitution. Nom de code : « le terrier ».
