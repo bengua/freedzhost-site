@@ -493,7 +493,7 @@ def hero(lang):
     return (f'<section class="hero">'
             f'<img class="hero-art" src="/media/hero-bg.webp" alt="" width="1600" height="914" '
             f'fetchpriority="high" decoding="async">'
-            f'<video class="hero-mascot" src="/media/personas/inari.webm" autoplay muted playsinline loop aria-hidden="true"></video>'
+            f'<video class="hero-mascot" muted playsinline preload="auto" aria-hidden="true"></video>'
             f'<canvas class="hero-embers" aria-hidden="true"></canvas>'
             f'<div class="hero-stage"><div class="hero-copy">'
             f'<p class="hero-kicker">{html.escape(t["hero_kicker"])}</p>'
