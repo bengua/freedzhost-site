@@ -100,6 +100,49 @@ LANGS = {
            "Contenu sous licence CC BY-SA 4.0. Ni traceur, ni cookie, ni police externe."},
 }
 OTHER = {"en": "fr", "fr": "en"}
+CAMPUS = json.loads((ROOT / "content" / "campus.json").read_text(encoding="utf-8"))
+# Campus strings: rendered by the build and handed to progress.js in campus-<lang>.json.
+# {xp}, {n}, {level}, {name}, {hint} are filled in by progress.js.
+CAMPUS_T = {
+    "en": {"chip": "Your progress", "chip_aria": "Your progress: level {level}, {xp} XP", "lv": "Lv.",
+           "profile": "Your progress", "level": "Level", "xp": "XP",
+           "next": "{n} XP to level {level}: {name}", "top": "Highest level reached.",
+           "private": "Your progress lives in this browser only. No account, no server, nothing sent.",
+           "badges": "Badges", "earned": "earned", "to_earn": "to earn",
+           "no_step": "Its proof step arrives with a future tutorial.",
+           "proof": "The proof", "proved_on": "Proved on", "matched": "Matched line", "hash": "SHA-256 of the pasted output",
+           "tips": "Unlocked tips", "tips_none": "Tips unlock when you prove a step: each proof opens what to do next with your new setup.",
+           "apps": "Open-source apps for this step",
+           "quest": "Quest", "quest_xp": "XP earned on this quest:",
+           "prove": "Prove this step", "prove_intro": "Run this command on your machine and paste its output. Your browser checks it: nothing is sent.",
+           "paste": "Command output", "check": "Check the proof",
+           "ok": "Proof accepted: +{xp} XP.", "ko": "This output does not match yet. {hint}",
+           "gained": "+{xp} XP", "lost": "−{xp} XP", "level_up": "Level {level} reached: {name}.",
+           "save": "Your save", "export": "Export my progress (JSON)", "import": "Import a save",
+           "reset": "Erase my progress", "reset_confirm": "Erase all your progress in this browser? Export it first if you want to keep it.",
+           "import_ok": "Save imported.", "import_ko": "This file is not a FreedzHost progress save.",
+           "steps": "Steps done:", "paths": "Learning paths",
+           "noscript": "Your progress is computed in your browser: this page needs JavaScript."},
+    "fr": {"chip": "Votre progression", "chip_aria": "Votre progression : niveau {level}, {xp} XP", "lv": "Niv.",
+           "profile": "Votre progression", "level": "Niveau", "xp": "XP",
+           "next": "Encore {n} XP avant le niveau {level} : {name}", "top": "Niveau le plus haut atteint.",
+           "private": "Votre progression vit dans ce navigateur seulement. Ni compte, ni serveur, rien n'est envoyé.",
+           "badges": "Badges", "earned": "gagné", "to_earn": "à gagner",
+           "no_step": "Son étape de preuve arrive avec un prochain tuto.",
+           "proof": "La preuve", "proved_on": "Prouvé le", "matched": "Ligne retenue", "hash": "SHA-256 de la sortie collée",
+           "tips": "Astuces débloquées", "tips_none": "Les astuces se débloquent quand vous prouvez une étape : chaque preuve ouvre la suite à faire avec votre nouvelle installation.",
+           "apps": "Applis open source pour cette étape",
+           "quest": "Quête", "quest_xp": "XP gagnés sur cette quête :",
+           "prove": "Prouver cette étape", "prove_intro": "Lancez cette commande sur votre machine et collez sa sortie. Votre navigateur la vérifie : rien n'est envoyé.",
+           "paste": "Sortie de la commande", "check": "Vérifier la preuve",
+           "ok": "Preuve acceptée : +{xp} XP.", "ko": "Cette sortie ne correspond pas encore. {hint}",
+           "gained": "+{xp} XP", "lost": "−{xp} XP", "level_up": "Niveau {level} atteint : {name}.",
+           "save": "Votre sauvegarde", "export": "Exporter ma progression (JSON)", "import": "Importer une sauvegarde",
+           "reset": "Effacer ma progression", "reset_confirm": "Effacer toute votre progression dans ce navigateur ? Exportez-la d'abord pour la garder.",
+           "import_ok": "Sauvegarde importée.", "import_ko": "Ce fichier n'est pas une sauvegarde de progression FreedzHost.",
+           "steps": "Étapes faites :", "paths": "Parcours",
+           "noscript": "Votre progression se calcule dans votre navigateur : cette page a besoin de JavaScript."},
+}
 
 
 def read_page(path):
@@ -247,16 +290,116 @@ def parcours_html(lang, meta, pages):
     missing = [s for s in meta["steps"] if s not in pages]
     if missing or not 3 <= len(meta["steps"]) <= 7:
         raise ValueError(f"path {meta['title']!r}: 3 to 7 existing steps required, got {meta['steps']} (missing {missing})")
+    c = CAMPUS_T[lang]
     items = "\n".join(
         f'<li data-step="{html.escape(s)}"><span class="num">{i}</span>'
         f'<a href="{url(lang, s)}"><strong>{html.escape(pages[s][0]["title"])}</strong>'
         f'<span>{html.escape(pages[s][0]["summary"])}</span></a>'
-        f'<input type="checkbox" aria-label="{html.escape(t["progress"])}: {html.escape(pages[s][0]["title"])}"></li>'
+        f'<input type="checkbox" aria-label="{html.escape(t["progress"])}: {html.escape(pages[s][0]["title"])}">'
+        f'{proof_html(lang, s)}</li>'
         for i, s in enumerate(meta["steps"], 1))
-    return (f'<div class="parcours" data-total="{len(meta["steps"])}">\n'
+    badges = [b for b in CAMPUS["badges"] if b["step"] in meta["steps"]]
+    total = sum(step_xp(pages, s) for s in meta["steps"]) + sum(b["xp"] for b in badges)
+    seals = "".join(
+        f'<li data-badge="{html.escape(b["id"])}"><span class="seal" aria-hidden="true"></span>'
+        f'<span><strong>{html.escape(b[f"nom_{lang}"])}</strong> <span class="bxp">+{b["xp"]} XP</span>'
+        f'<span class="state" data-state>{html.escape(c["to_earn"])}</span></span></li>'
+        for b in badges)
+    return (f'<aside class="quest" aria-labelledby="quest-title">\n'
+            f'<h2 id="quest-title">{html.escape(c["quest"])}</h2>\n'
+            f'<p class="quest-xp" hidden>{html.escape(c["quest_xp"])} <strong data-quest-xp>0</strong> / {total} XP</p>\n'
+            f'<ul class="seals">{seals}</ul>\n'
+            f'<p class="quest-status" role="status" aria-live="polite"></p>\n</aside>\n'
+            f'<div class="parcours" data-total="{len(meta["steps"])}">\n'
             f'<p class="progress-line"><progress value="0" max="{len(meta["steps"])}" hidden></progress> '
-            f'<span class="count" hidden></span></p>\n<ol class="track">\n{items}\n</ol>\n</div>\n'
-            f'<script defer src="/progress.js"></script>\n')
+            f'<span class="count" hidden></span></p>\n<ol class="track">\n{items}\n</ol>\n</div>\n')
+
+
+def step_xp(pages, slug):
+    """XP for doing a step: set by the tutorial's level (campus.json "xp")."""
+    return CAMPUS["xp"].get(pages[slug][0].get("level"), CAMPUS["xp"]["beginner"])
+
+
+def badge_of(slug):
+    return next((b for b in CAMPUS["badges"] if b["step"] == slug), None)
+
+
+def unlocked_html(lang, slug):
+    """Tips and open-source apps a proof unlocks for one step."""
+    c, s = CAMPUS_T[lang], CAMPUS["steps"][slug]
+    tips = "".join(f"<li>{html.escape(tip)}</li>" for tip in s[f"tips_{lang}"])
+    apps = "".join(f'<li><a href="{html.escape(a["url"])}" rel="noopener">{html.escape(a["name"])}</a></li>' for a in s["apps"])
+    return f'<ul class="tips">{tips}</ul>\n<h4>{html.escape(c["apps"])}</h4>\n<ul class="apps">{apps}</ul>'
+
+
+def proof_html(lang, slug):
+    """The guided proof of a step: a command, its pasted output checked in the browser, then the tips it unlocks."""
+    if slug not in CAMPUS["steps"]:
+        return ""
+    c, s, b = CAMPUS_T[lang], CAMPUS["steps"][slug], badge_of(slug)
+    bonus = f' · <span class="bxp">+{b["xp"]} XP</span>' if b else ""
+    return (f'<details class="proof" hidden><summary>{html.escape(c["prove"])}{bonus}</summary>\n'
+            f'<p>{html.escape(c["prove_intro"])}</p>\n<pre><code>{html.escape(s["cmd"])}</code></pre>\n'
+            f'<label for="proof-{slug}">{html.escape(c["paste"])}</label>\n'
+            f'<textarea id="proof-{slug}" rows="4" spellcheck="false" autocomplete="off"></textarea>\n'
+            f'<button type="button" class="btn" data-check>{html.escape(c["check"])}</button>\n'
+            f'<p class="verdict" role="status" aria-live="polite"></p>\n'
+            f'<div class="unlocked" hidden>\n<h4>{html.escape(c["tips"])}</h4>\n{unlocked_html(lang, slug)}\n</div>\n'
+            f'</details>')
+
+
+def campus_json(lang, pages):
+    """What progress.js needs to score, in one language: written to /campus-<lang>.json."""
+    return json.dumps({
+        "t": CAMPUS_T[lang],
+        "levels": [{"n": lv["niveau"], "name": lv[f"nom_{lang}"], "xp": lv["xp_requis"]} for lv in CAMPUS["levels"]],
+        "steps": {s: {"xp": step_xp(pages, s), "pattern": CAMPUS["steps"].get(s, {}).get("pattern"),
+                      "hint": CAMPUS["steps"].get(s, {}).get(f"hint_{lang}", "")}
+                  for s in sorted(pages) if pages[s][0].get("level") or s in CAMPUS["steps"]},
+        "badges": [{"id": b["id"], "name": b[f"nom_{lang}"], "xp": b["xp"], "step": b["step"]} for b in CAMPUS["badges"]],
+    }, ensure_ascii=False, separators=(",", ":"))
+
+
+def profil_html(lang, pages):
+    """The progress page: score, level ladder, badges with their proof, unlocked tips, save."""
+    c = CAMPUS_T[lang]
+    levels = "".join(
+        f'<li data-level="{lv["niveau"]}"><strong>{lv["niveau"]} · {html.escape(lv[f"nom_{lang}"])}</strong> '
+        f'<span class="bxp">{lv["xp_requis"]} XP</span><span class="why">{html.escape(lv[f"preuve_{lang}"])}</span></li>'
+        for lv in CAMPUS["levels"])
+    badges = []
+    for b in CAMPUS["badges"]:
+        where = (f'<a href="{url(lang, b["step"])}">{html.escape(pages[b["step"]][0]["title"])}</a>'
+                 if b["step"] in pages else html.escape(c["no_step"]))
+        badges.append(
+            f'<li data-badge="{html.escape(b["id"])}"><span class="seal" aria-hidden="true"></span><div>'
+            f'<strong>{html.escape(b[f"nom_{lang}"])}</strong> <span class="bxp">+{b["xp"]} XP</span> '
+            f'<span class="state" data-state>{html.escape(c["to_earn"])}</span>'
+            f'<p>{html.escape(b[f"desc_{lang}"])}</p><p class="where">{where}</p>'
+            f'<details class="proof-view" hidden><summary>{html.escape(c["proof"])}</summary><dl>'
+            f'<dt>{html.escape(c["proved_on"])}</dt><dd data-at></dd>'
+            f'<dt>{html.escape(c["matched"])}</dt><dd><code data-line></code></dd>'
+            f'<dt>{html.escape(c["hash"])}</dt><dd><code data-hash></code></dd></dl></details></div></li>')
+    tips = "\n".join(
+        f'<section class="tip-card" data-tips-step="{s}" hidden><h3><a href="{url(lang, s)}">{html.escape(pages[s][0]["title"])}</a></h3>\n'
+        f'{unlocked_html(lang, s)}</section>'
+        for s in CAMPUS["steps"] if s in pages)
+    return (f'<div class="profile">\n<noscript><p>{html.escape(c["noscript"])}</p></noscript>\n'
+            f'<section class="score" data-score hidden aria-labelledby="score-title">\n'
+            f'<h2 id="score-title" class="visually-hidden">{html.escape(c["xp"])}</h2>\n'
+            f'<p class="lvl"><span>{html.escape(c["level"])}</span> <strong data-level-n>1</strong> <em data-level-name></em></p>\n'
+            f'<p class="xp"><strong data-xp>0</strong> XP</p>\n'
+            f'<progress data-next-bar value="0" max="1"></progress>\n<p data-next></p>\n'
+            f'<p class="stat">{html.escape(c["steps"])} <strong data-steps>0</strong></p>\n</section>\n'
+            f'<p class="private">{html.escape(c["private"])}</p>\n'
+            f'<h2>{html.escape(c["badges"])}</h2>\n<ul class="badges">{"".join(badges)}</ul>\n'
+            f'<h2>{html.escape(c["tips"])}</h2>\n<p data-tips-none>{html.escape(c["tips_none"])}</p>\n{tips}\n'
+            f'<h2>{html.escape(c["level"])}</h2>\n<ol class="levels">{levels}</ol>\n'
+            f'<h2>{html.escape(c["save"])}</h2>\n<div class="save" data-save hidden>'
+            f'<button type="button" class="btn" data-export>{html.escape(c["export"])}</button> '
+            f'<label class="btn">{html.escape(c["import"])}<input type="file" accept="application/json,.json" data-import class="visually-hidden"></label> '
+            f'<button type="button" class="btn ghost" data-reset>{html.escape(c["reset"])}</button>'
+            f'<p role="status" aria-live="polite" data-save-status></p></div>\n</div>\n')
 
 
 def sprite(name, size, cls="sprite"):
@@ -425,6 +568,8 @@ def drawer(lang, slug, pages, series_members, revue_date=None):
     return (f'<nav id="menu" class="drawer" aria-label="{html.escape(t["drawer"])}">'
             f'<a class="close" href="#">{t["close"]} ✕</a>'
             f'<a class="brand" href="{url(lang, "index")}">freedzhost<span>.cloud</span></a>'
+            f'<a class="xp-chip" href="{url(lang, "profil")}"{CURRENT if slug == "profil" else ""} data-chip>'
+            f'<span class="seal" aria-hidden="true"></span><span data-chip-text>{html.escape(CAMPUS_T[lang]["chip"])}</span></a>'
             f'{search_form(lang, "drawer")}'
             f'<div class="tree">'
             f'<a href="{url(lang, "actualites")}"{CURRENT if slug == "actualites" else ""}>'
@@ -559,7 +704,8 @@ def layout(lang, slug, title, body, description, side="", jsonld=None):
 </main>
 <footer><video class="mascot" src="/media/foxbot-coucou.mp4" autoplay loop muted playsinline aria-hidden="true"></video>
 <p>{t['footer']}</p></footer>
-{peek}<script defer src="/search.js"></script>
+{peek}<script defer src="/progress.js"></script>
+<script defer src="/search.js"></script>
 <script defer src="/den.js"></script>
 </body>
 </html>
@@ -643,6 +789,7 @@ def build(out):
         cards = "\n".join(groups)
         (out / LANGS[lang]["prefix"]).mkdir(parents=True, exist_ok=True)
         (out / LANGS[lang]["prefix"] / "search-index.json").write_text(search_index(lang, pages, articles), encoding="utf-8")
+        (out / f"campus-{lang}.json").write_text(campus_json(lang, pages), encoding="utf-8")
         series_members = {key: [a for a in articles if pages[a][0].get("series") == key] for key in LANGS[lang]["series"]}
         for slug, (meta, body) in pages.items():
             body = re.sub(r"\{\{diagram:([a-z0-9]+)\}\}", lambda m, lang=lang: diagrams.render(m.group(1), lang), body)
@@ -656,6 +803,7 @@ def build(out):
             body = body.replace("{{search}}", search_form(lang, "page"))
             body = body.replace("{{series-filter}}", filter_chips_html(lang, series_members))
             body = body.replace("{{articles}}", cards)
+            body = body.replace("{{profil}}", profil_html(lang, pages))
             if slug == "index":
                 body = hero(lang) + body
             if meta.get("layout") == "parcours":

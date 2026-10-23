@@ -52,7 +52,7 @@ def test_tutos_page_lists_every_article(out):
     for home, folder in ((out / "tutos.html", out), (out / "fr" / "tutos.html", out / "fr")):
         text = home.read_text(encoding="utf-8")
         for article in folder.glob("*.html"):
-            if article.name not in ("index.html", "help.html", "tutos.html") and not article.name.startswith("parcours-"):
+            if article.name not in ("index.html", "help.html", "tutos.html", "profil.html") and not article.name.startswith("parcours-"):
                 assert article.name in text, f"{home} misses {article.name}"
 
 
@@ -115,7 +115,7 @@ def test_sitemap_and_feeds_list_every_page(out):
     for feed, folder in ((out / "feed.xml", out), (out / "fr" / "feed.xml", out / "fr")):
         links = {e.text for e in ET.parse(feed).getroot().iter("link")}
         for article in folder.glob("*.html"):
-            if article.name not in ("index.html", "help.html", "tutos.html") and not article.name.startswith("parcours-"):
+            if article.name not in ("index.html", "help.html", "tutos.html", "profil.html") and not article.name.startswith("parcours-"):
                 assert any(link.endswith("/" + article.name) for link in links), (feed, article.name)
 
 
@@ -128,7 +128,7 @@ def test_every_page_has_canonical_and_description(out):
 
 def test_every_article_has_a_level_and_reaches_the_glossary(out):
     for page in pages(out):
-        if page.name in ("index.html", "glossary.html", "help.html", "tutos.html") or page.name.startswith("parcours-"):
+        if page.name in ("index.html", "glossary.html", "help.html", "tutos.html", "profil.html") or page.name.startswith("parcours-"):
             continue
         text = page.read_text(encoding="utf-8")
         assert 'class="fiche level-' in text, page
@@ -230,3 +230,36 @@ def test_every_diagram_figure_has_a_caption(out):
     for page in pages(out):
         for fig in re.findall(r'<figure class="diagram".*?</figure>', page.read_text(encoding="utf-8"), re.DOTALL):
             assert "<figcaption>" in fig, page
+
+
+def test_campus_data_and_xp_chip(out):
+    import json
+    for lang, home in (("en", out / "index.html"), ("fr", out / "fr" / "index.html")):
+        text = home.read_text(encoding="utf-8")
+        assert 'class="xp-chip"' in text and "profil.html" in text, home
+        assert '<script defer src="/progress.js"></script>' in text, home
+        data = json.loads((out / f"campus-{lang}.json").read_text(encoding="utf-8"))
+        assert [lv["xp"] for lv in data["levels"]] == sorted(lv["xp"] for lv in data["levels"])
+        assert data["levels"][0]["xp"] == 0
+        for badge in data["badges"]:
+            assert badge["step"] is None or badge["step"] in data["steps"], badge
+        for slug, step in data["steps"].items():
+            assert step["xp"] > 0, slug
+            if step["pattern"]:
+                assert step["hint"], slug
+
+
+def test_learning_paths_carry_quest_and_proofs(out):
+    for page in (out / "parcours-model-7b.html", out / "fr" / "parcours-cloud-exit.html"):
+        text = page.read_text(encoding="utf-8")
+        assert 'class="quest"' in text and "data-quest-xp" in text, page
+        assert text.count('<details class="proof"') == text.count('<input type="checkbox"'), page
+        assert "data-check" in text and 'role="status"' in text, page
+
+
+def test_profile_page_renders_in_both_languages(out):
+    for page in (out / "profil.html", out / "fr" / "profil.html"):
+        text = page.read_text(encoding="utf-8")
+        for hook in ("data-score", "data-xp", "data-badge=", "data-tips-step=", "data-export", "data-import", "<noscript>"):
+            assert hook in text, (page, hook)
+        assert text.count("data-level=") == 8, page

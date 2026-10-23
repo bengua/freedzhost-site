@@ -1,0 +1,106 @@
+{
+  "_doc": "Campus progression data. Levels and badges are the swarm-reviewed versions (swarm-out/review-report.json, verdicts.*.final). A step earns the XP of its tutorial level when checked; a badge needs the step's proof: the reader pastes the output of the proof command, progress.js checks it against the pattern locally, keeps the matched line and the SHA-256 of the whole output. Nothing leaves the browser.",
+  "xp": {"beginner": 50, "intermediate": 100, "advanced": 200},
+  "levels": [
+    {"id": "level-01", "niveau": 1, "nom_fr": "Service local", "nom_en": "Local Service", "xp_requis": 0, "preuve_fr": "Tu as installé un service local sur FreedzHost et vérifié son état de fonctionnement.", "preuve_en": "You have installed a local service on FreedzHost and verified its running state."},
+    {"id": "level-02", "niveau": 2, "nom_fr": "Modèle IA local", "nom_en": "Local AI Model", "xp_requis": 500, "preuve_fr": "Tu as déployé un modèle IA local sur FreedzHost et vérifié une inférence de test.", "preuve_en": "You have deployed a local AI model on FreedzHost and verified a test inference."},
+    {"id": "level-03", "niveau": 3, "nom_fr": "Sauvegarde chiffrée", "nom_en": "Encrypted Backup", "xp_requis": 1500, "preuve_fr": "Tu as créé une sauvegarde chiffrée sur FreedzHost et vérifié sa restauration.", "preuve_en": "You have created an encrypted backup on FreedzHost and verified its restoration."},
+    {"id": "level-04", "niveau": 4, "nom_fr": "Authentification", "nom_en": "Authentication", "xp_requis": 3500, "preuve_fr": "Tu as configuré une authentification sur FreedzHost et vérifié un accès autorisé et un accès refusé.", "preuve_en": "You have configured authentication on FreedzHost and verified an authorized access and a denied access."},
+    {"id": "level-05", "niveau": 5, "nom_fr": "Journalisation", "nom_en": "Logging", "xp_requis": 7000, "preuve_fr": "Tu as activé la journalisation sur FreedzHost et vérifié la présence d'entrées horodatées.", "preuve_en": "You have enabled logging on FreedzHost and verified the presence of timestamped entries."},
+    {"id": "level-06", "niveau": 6, "nom_fr": "Automatisation", "nom_en": "Automation", "xp_requis": 11000, "preuve_fr": "Tu as mis en place une automatisation sur FreedzHost et vérifié son exécution planifiée.", "preuve_en": "You have set up automation on FreedzHost and verified its scheduled execution."},
+    {"id": "level-07", "niveau": 7, "nom_fr": "Migration souveraine", "nom_en": "Sovereign Migration", "xp_requis": 15000, "preuve_fr": "Tu as effectué une migration souveraine sur FreedzHost et vérifié la disponibilité des données après migration.", "preuve_en": "You have performed a sovereign migration on FreedzHost and verified data availability after migration."},
+    {"id": "level-08", "niveau": 8, "nom_fr": "Documentation reproductible", "nom_en": "Reproducible Documentation", "xp_requis": 20000, "preuve_fr": "Tu as produit une documentation reproductible pour FreedzHost et vérifié la reproduction d'un service local.", "preuve_en": "You have produced reproducible documentation for FreedzHost and verified the reproduction of a local service."}
+  ],
+  "badges": [
+    {"id": "first_steps_intro", "step": null, "nom_fr": "Premiers Pas : Premier Ping", "nom_en": "First Steps: First Ping", "desc_fr": "Vous avez soumis la preuve d'un premier ping réussi via VPN/WireGuard vers votre instance FreedzHost.", "desc_en": "You submitted proof of a successful first ping via VPN/WireGuard to your FreedzHost instance.", "xp": 50},
+    {"id": "first_steps_quiz", "step": "homelab-vaultwarden", "nom_fr": "Premiers Pas : Premier Déploiement", "nom_en": "First Steps: First Deployment", "desc_fr": "Vous avez déployé un conteneur et soumis la preuve de son statut actif.", "desc_en": "You deployed a container and submitted proof of its active status.", "xp": 70},
+    {"id": "first_steps_forum", "step": "homelab-immich", "nom_fr": "Premiers Pas : Service Accessible", "nom_en": "First Steps: Accessible Service", "desc_fr": "Vous avez soumis la preuve d'un service homelab accessible avec une réponse HTTP 200.", "desc_en": "You submitted proof of an accessible homelab service with an HTTP 200 response.", "xp": 60},
+    {"id": "first_steps_profile", "step": "homelab-proxy", "nom_fr": "Premiers Pas : Accès Vérifié", "nom_en": "First Steps: Verified Access", "desc_fr": "Vous avez soumis la preuve d'une configuration réseau validée (DNS, reverse proxy ou accès SSH).", "desc_en": "You submitted proof of a validated network configuration (DNS, reverse proxy or SSH access).", "xp": 80},
+    {"id": "first_steps_certificate", "step": "homelab-backups", "nom_fr": "Premiers Pas : Backup Validé", "nom_en": "First Steps: Validated Backup", "desc_fr": "Vous avez soumis la preuve d'un webhook de backup déclenché avec succès.", "desc_en": "You submitted proof of a successfully triggered backup webhook.", "xp": 90},
+    {"id": "local_model_setup", "step": "first-model", "nom_fr": "Modèle Local : Exécution", "nom_en": "Local Model: Execution", "desc_fr": "Vous avez exécuté un LLM local via Ollama ou llama.cpp et soumis la preuve d'une réponse.", "desc_en": "You ran a local LLM via Ollama or llama.cpp and submitted proof of a response.", "xp": 120},
+    {"id": "local_model_training", "step": "model-bench", "nom_fr": "Modèle Local : Mesure Soumise", "nom_en": "Local Model: Submitted Measurement", "desc_fr": "Vous avez soumis une mesure de performance d'un modèle local (latence, tokens/s, mémoire).", "desc_en": "You submitted a performance measurement for a local model (latency, tokens/s, memory).", "xp": 140}
+  ],
+  "steps": {
+    "nvidia-driver": {
+      "cmd": "nvidia-smi",
+      "pattern": "NVIDIA-SMI\\s+\\d+",
+      "hint_fr": "La première ligne du tableau commence par NVIDIA-SMI suivi d'un numéro de version.",
+      "hint_en": "The first line of the table starts with NVIDIA-SMI followed by a version number.",
+      "tips_fr": ["Gardez nvtop ouvert pendant vos essais : vous voyez la mémoire graphique se remplir quand un modèle se charge.", "Notez la mémoire totale affichée : c'est elle qui décide de la taille de modèle que vous pourrez faire tourner."],
+      "tips_en": ["Keep nvtop open while you experiment: you watch the graphics memory fill as a model loads.", "Write down the total memory shown: it decides the size of model you will be able to run."],
+      "apps": [{"name": "nvtop", "url": "https://github.com/Syllo/nvtop"}]
+    },
+    "docker-gpu": {
+      "cmd": "sudo docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi",
+      "pattern": "NVIDIA-SMI\\s+\\d+",
+      "hint_fr": "Le même tableau que sur l'hôte, mais imprimé depuis le conteneur.",
+      "hint_en": "The same table as on the host, but printed from inside the container.",
+      "tips_fr": ["Chaque service GPU que vous ajouterez reprendra ces deux options : --runtime=nvidia et --gpus all.", "lazydocker donne une vue d'ensemble de vos conteneurs dans le terminal, journaux compris."],
+      "tips_en": ["Every GPU service you add will reuse these two options: --runtime=nvidia and --gpus all.", "lazydocker gives an overview of your containers in the terminal, logs included."],
+      "apps": [{"name": "lazydocker", "url": "https://github.com/jesseduffield/lazydocker"}, {"name": "Dozzle", "url": "https://github.com/amir20/dozzle"}]
+    },
+    "first-model": {
+      "cmd": "curl http://127.0.0.1:8080/v1/chat/completions -H 'Content-Type: application/json' -d '{\"messages\": [{\"role\": \"user\", \"content\": \"Say hello in one sentence.\"}]}'",
+      "pattern": "\"choices\"\\s*:",
+      "hint_fr": "La réponse JSON contient un champ \"choices\" avec la phrase du modèle.",
+      "hint_en": "The JSON answer holds a \"choices\" field with the model's sentence.",
+      "tips_fr": ["Votre serveur parle le même protocole que les API payantes : la plupart des outils acceptent une adresse de base, mettez-y http://127.0.0.1:8080/v1.", "Open WebUI pose une interface de discussion sur ce serveur, sans compte externe."],
+      "tips_en": ["Your server speaks the same protocol as paid APIs: most tools accept a base address, give them http://127.0.0.1:8080/v1.", "Open WebUI puts a chat interface on top of this server, with no external account."],
+      "apps": [{"name": "Open WebUI", "url": "https://github.com/open-webui/open-webui"}, {"name": "llama.cpp", "url": "https://github.com/ggml-org/llama.cpp"}]
+    },
+    "model-bench": {
+      "cmd": "curl -s http://127.0.0.1:8080/v1/chat/completions -H 'Content-Type: application/json' -d '{\"messages\": [{\"role\": \"user\", \"content\": \"Count from 1 to 50.\"}]}'",
+      "pattern": "predicted_per_second\"?\\s*[:=]\\s*[\\d.]+|[\\d.]+\\s*(tokens/s|tok/s|t/s)",
+      "hint_fr": "llama.cpp renvoie un bloc \"timings\" : la mesure est predicted_per_second, en jetons par seconde.",
+      "hint_en": "llama.cpp returns a \"timings\" block: the measure is predicted_per_second, in tokens per second.",
+      "tips_fr": ["Refaites la mesure après chaque changement (quantification, contexte, pilote) : un chiffre seul ne dit rien, deux chiffres racontent une histoire.", "Quand vous voulez juger la qualité et pas seulement la vitesse, lm-evaluation-harness fait passer des épreuves standard à votre modèle."],
+      "tips_en": ["Measure again after every change (quantisation, context, driver): one number says nothing, two numbers tell a story.", "When you want to judge quality and not only speed, lm-evaluation-harness runs standard tests against your model."],
+      "apps": [{"name": "lm-evaluation-harness", "url": "https://github.com/EleutherAI/lm-evaluation-harness"}]
+    },
+    "homelab-proxmox": {
+      "cmd": "pveversion",
+      "pattern": "pve-manager/\\d+",
+      "hint_fr": "Une ligne qui commence par pve-manager/ suivi du numéro de version.",
+      "hint_en": "A line starting with pve-manager/ followed by the version number.",
+      "tips_fr": ["Prenez un instantané d'une machine avant chaque mise à jour importante : le retour arrière coûte un clic.", "Les scripts communautaires Proxmox installent un service courant en un conteneur LXC ; lisez-les avant de les lancer."],
+      "tips_en": ["Take a snapshot of a machine before every major update: rolling back costs one click.", "The Proxmox community scripts install a common service as one LXC container; read them before you run them."],
+      "apps": [{"name": "Proxmox VE Helper-Scripts", "url": "https://github.com/community-scripts/ProxmoxVE"}]
+    },
+    "homelab-proxy": {
+      "cmd": "curl -sI https://your-domain.example",
+      "pattern": "HTTP/[\\d.]+\\s+(200|301|302|308)",
+      "hint_fr": "La première ligne de la réponse donne le code HTTP : 200, ou une redirection 301/302/308.",
+      "hint_en": "The first line of the answer gives the HTTP code: 200, or a 301/302/308 redirect.",
+      "tips_fr": ["Chaque nouveau service passe désormais par le proxy : un nom, un certificat, aucun port de plus ouvert sur la box.", "Uptime Kuma surveille vos adresses et vous prévient quand l'une d'elles tombe."],
+      "tips_en": ["Every new service now goes through the proxy: one name, one certificate, no extra port opened on the router.", "Uptime Kuma watches your addresses and tells you when one of them goes down."],
+      "apps": [{"name": "Nginx Proxy Manager", "url": "https://github.com/NginxProxyManager/nginx-proxy-manager"}, {"name": "Uptime Kuma", "url": "https://github.com/louislam/uptime-kuma"}]
+    },
+    "homelab-vaultwarden": {
+      "cmd": "docker compose ps",
+      "pattern": "vaultwarden.*\\b(Up|running)\\b",
+      "hint_fr": "La ligne du conteneur vaultwarden indique Up ou running.",
+      "hint_en": "The vaultwarden container line says Up or running.",
+      "tips_fr": ["Installez l'extension de navigateur et l'application mobile Bitwarden, puis pointez-les vers votre serveur.", "Activez la double authentification sur votre compte avant d'y ranger quoi que ce soit d'important."],
+      "tips_en": ["Install the Bitwarden browser extension and mobile app, then point them at your server.", "Turn on two-factor authentication on your account before you store anything important in it."],
+      "apps": [{"name": "Bitwarden clients", "url": "https://github.com/bitwarden/clients"}]
+    },
+    "homelab-backups": {
+      "cmd": "rsync -a --delete --stats <source> <destination>",
+      "pattern": "Number of (regular )?files transferred|sent [\\d,.]+ bytes",
+      "hint_fr": "Le résumé de rsync donne le nombre de fichiers transférés et les octets envoyés.",
+      "hint_en": "The rsync summary gives the number of files transferred and the bytes sent.",
+      "tips_fr": ["Une sauvegarde ne compte qu'une fois restaurée : choisissez un fichier au hasard chaque mois et rapatriez-le.", "restic ajoute le chiffrement et la déduplication quand votre copie part hors de chez vous."],
+      "tips_en": ["A backup only counts once restored: pick a random file every month and bring it back.", "restic adds encryption and deduplication when your copy leaves your home."],
+      "apps": [{"name": "restic", "url": "https://github.com/restic/restic"}, {"name": "BorgBackup", "url": "https://github.com/borgbackup/borg"}]
+    },
+    "homelab-immich": {
+      "cmd": "curl -sI http://127.0.0.1:2283",
+      "pattern": "HTTP/[\\d.]+\\s+200",
+      "hint_fr": "La première ligne de la réponse donne HTTP 200.",
+      "hint_en": "The first line of the answer gives HTTP 200.",
+      "tips_fr": ["Activez la sauvegarde automatique dans l'application mobile Immich : vos photos quittent le téléphone sans y penser.", "Ajoutez le dossier d'Immich à la sauvegarde de l'étape précédente : des photos sans copie ne sont pas à l'abri."],
+      "tips_en": ["Turn on automatic backup in the Immich mobile app: your photos leave the phone without you thinking about it.", "Add Immich's folder to the backup from the previous step: photos without a copy are not safe."],
+      "apps": [{"name": "Immich", "url": "https://github.com/immich-app/immich"}]
+    }
+  }
+}
