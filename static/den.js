@@ -17,7 +17,8 @@
   }, { passive: true });
 })();
 
-// Scroll reveal: content blocks fade up as they enter, once, everywhere.
+// Scroll reveal: content blocks fade up as they enter, once, everywhere —
+// IntersectionObserver, fade + translateY(16px), staggered 60 ms per batch.
 // Skipped entirely under prefers-reduced-motion.
 (function () {
   "use strict";
@@ -27,11 +28,13 @@
   if (!targets.length) return;
   var seen = new WeakSet();
   var io = new IntersectionObserver(function (entries) {
+    var batch = [];
     for (var i = 0; i < entries.length; i++) {
-      if (entries[i].isIntersecting) {
-        entries[i].target.classList.add("in-view");
-        io.unobserve(entries[i].target);
-      }
+      if (entries[i].isIntersecting) { batch.push(entries[i].target); io.unobserve(entries[i].target); }
+    }
+    for (var j = 0; j < batch.length; j++) {
+      batch[j].style.transitionDelay = (j * 60) + "ms";
+      batch[j].classList.add("in-view");
     }
   }, { rootMargin: "0px 0px -8% 0px", threshold: 0.01 });
   for (var i = 0; i < targets.length; i++) {
@@ -41,6 +44,26 @@
     el.classList.add("will-reveal");
     io.observe(el);
   }
+})();
+
+// FoxBot's typing state: while an agent-worked section (the daily briefing,
+// prepared by the swarm) is on screen, the mascot switches from breathing to
+// typing. Cosmetic only; gated on motion preference.
+(function () {
+  "use strict";
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (!("IntersectionObserver" in window)) return;
+  var sections = document.querySelectorAll("[data-agent]");
+  if (!sections.length) return;
+  var visible = new Set();
+  var io = new IntersectionObserver(function (entries) {
+    for (var i = 0; i < entries.length; i++) {
+      if (entries[i].isIntersecting) visible.add(entries[i].target);
+      else visible.delete(entries[i].target);
+    }
+    document.body.classList.toggle("agent-on", visible.size > 0);
+  }, { threshold: 0.2 });
+  for (var i = 0; i < sections.length; i++) io.observe(sections[i]);
 })();
 
 // Series chips on the tutorials page: filter the groups, one tap, no reload.

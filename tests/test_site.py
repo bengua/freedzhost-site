@@ -56,11 +56,14 @@ def test_tutos_page_lists_every_article(out):
                 assert article.name in text, f"{home} misses {article.name}"
 
 
-def test_home_has_both_paths_and_search(out):
+def test_home_has_the_briefing_paths_latest_and_letter(out):
     for home in (out / "index.html", out / "fr" / "index.html"):
         text = home.read_text(encoding="utf-8")
-        assert 'class="cards paths"' in text and "tutos.html" in text and "formation.html" in text
-        assert 'role="search"' in text
+        assert 'class="revue"' in text
+        assert 'class="cards learning-paths"' in text
+        assert 'class="latest"' in text
+        assert 'class="letter"' in text and "letter-form" in text
+        assert 'role="search"' in text  # the drawer's search box
 
 
 def test_nothing_internal_leaks_into_the_public_site(out):

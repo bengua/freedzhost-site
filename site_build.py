@@ -58,6 +58,17 @@ LANGS = {
                          ["openai", "the elegant one"], ["openrouter", "the gatekeeper"],
                          ["umans", "the augmented human"]],
            "hero_down": "Skip to the content",
+           "hero_cta": "Explore the tutorials",
+           "latest_h2": "The latest tutorial", "latest_go": "Read the tutorial",
+           "news_h2": "The den letter",
+           "news_pitch": "One e-mail when a new tutorial lands — the briefing's picks and the swarm's measurements. No spam, no tracker, leave in one click.",
+           "news_label": "Your e-mail", "news_placeholder": "Your e-mail address", "news_submit": "Subscribe",
+           "news_sending": "Subscribing…",
+           "news_ok": "Welcome to the den — your subscription is in.",
+           "news_err": "The form is unavailable right now. The RSS feed below always works.",
+           "news_note": "Self-hosted, nothing at a third party. Rather use a reader?",
+           "news_rss": "Follow the RSS feed",
+           "news_message": "Newsletter signup (home form).",
            "footer":
            "Content under CC BY-SA 4.0. No trackers, no cookies, no third-party fonts."},
     "fr": {"prefix": "fr/", "name": "Français", "home": "Accueil", "read": "Lire",
@@ -96,6 +107,17 @@ LANGS = {
                          ["openai", "l'élégant"], ["openrouter", "le passeur"],
                          ["umans", "l'humain augmenté"]],
            "hero_down": "Aller au contenu",
+           "hero_cta": "Découvrir les tutos",
+           "latest_h2": "Le dernier tuto", "latest_go": "Lire le tuto",
+           "news_h2": "La lettre du terrier",
+           "news_pitch": "Un e-mail quand un nouveau tuto paraît — les choix de la revue et les mesures du swarm. Ni spam, ni traceur, désinscription en un clic.",
+           "news_label": "Votre e-mail", "news_placeholder": "Votre adresse e-mail", "news_submit": "S'abonner",
+           "news_sending": "Inscription…",
+           "news_ok": "Bienvenue au terrier — votre inscription est bien reçue.",
+           "news_err": "Le formulaire est indisponible pour le moment. Le flux RSS ci-dessous marche toujours.",
+           "news_note": "Auto-hébergé, rien chez un tiers. Vous préférez un lecteur ?",
+           "news_rss": "Suivre le flux RSS",
+           "news_message": "Inscription à la lettre du terrier (formulaire d'accueil).",
            "footer":
            "Contenu sous licence CC BY-SA 4.0. Ni traceur, ni cookie, ni police externe."},
 }
@@ -461,12 +483,76 @@ def revue_section_html(lang, revue):
     if not revue:
         return f'<section class="revue"><h2>{html.escape(t["revue_title"])}</h2><p class="empty">{html.escape(t["revue_empty"])}</p></section>'
     date = revue["date"]
-    items = "".join(revue_item_html(lang, it) for it in revue["items"])
-    return (f'<section class="revue">'
+    # The home briefing shows at most three items; the archive page has them all.
+    items = "".join(revue_item_html(lang, it) for it in revue["items"][:3])
+    return (f'<section class="revue" data-agent>'
             f'<header><h2>{html.escape(t["revue_title"])}</h2><time datetime="{html.escape(date)}">{html.escape(date)}</time></header>'
-            f'<ul class="revue-items">{items}</ul>'
+            f'<ol class="revue-items">{items}</ol>'
             f'<p class="more"><a href="{url(lang, "actualites")}">{html.escape(t["revue_archive"])} →</a></p>'
             f'</section>')
+
+
+def latest_html(lang, pages):
+    """The newest tutorial, featured on the home page."""
+    t = LANGS[lang]
+    candidates = [s for s, (m, _) in pages.items()
+                  if s != "index" and not m.get("nav") and m.get("layout") != "parcours"
+                  and m.get("level") in ("beginner", "intermediate", "advanced")]
+    if not candidates:
+        return ""
+    s = max(candidates, key=lambda k: pages[k][0]["order"])
+    m = pages[s][0]
+    level = str(m.get("level", ""))
+    meta = (f'<span class="meta"><em class="lv-{html.escape(level or "beginner")}">{html.escape(level)}</em>'
+            f'<em>{html.escape(str(m.get("time", "")))}</em></span>')
+    return (f'<section class="latest"><h2>{html.escape(t["latest_h2"])}</h2>\n'
+            f'<a class="latest-card" href="{url(lang, s)}">{fox(m.get("series", ""), 72)}'
+            f'<span class="latest-body"><strong>{html.escape(m["title"])}</strong>'
+            f'<span class="sum">{html.escape(m["summary"])}</span>{meta}</span>'
+            f'<span class="go">{html.escape(t["latest_go"])} →</span></a></section>')
+
+
+def newsletter_html(lang):
+    """The home-page letter: one e-mail per new tutorial, through the site's own contact API
+    (self-hosted, same endpoint as the help form, flagged need=other)."""
+    t = LANGS[lang]
+    texts = html.escape(json.dumps({"sending": t["news_sending"], "ok": t["news_ok"],
+                                    "err": t["news_err"], "message": t["news_message"]},
+                                   ensure_ascii=False), quote=True)
+    script = """
+<script>
+(() => {
+  const f = document.querySelector(".letter-form");
+  if (!f) return;
+  const out = f.querySelector(".form-status");
+  const T = JSON.parse(f.dataset.text);
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = f.querySelector("button");
+    btn.disabled = true; out.textContent = T.sending; out.className = "form-status";
+    try {
+      const r = await fetch("/api/contact", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "Lettre du terrier", email: f.email.value, need: "other",
+          message: T.message, consent: true, website: "", lang: document.documentElement.lang }) });
+      const j = await r.json();
+      if (r.ok && j.ok) { f.reset(); out.textContent = T.ok; out.className = "form-status ok"; }
+      else { out.textContent = T.err; out.className = "form-status bad"; }
+    } catch { out.textContent = T.err; out.className = "form-status bad"; }
+    finally { btn.disabled = false; }
+  });
+})();
+</script>"""
+    return (f'<section class="letter">\n<h2>{html.escape(t["news_h2"])}</h2>\n'
+            f'<p class="pitch">{html.escape(t["news_pitch"])}</p>\n'
+            f'<form class="letter-form" novalidate data-text="{texts}">\n'
+            f'<label class="visually-hidden" for="letter-email">{html.escape(t["news_label"])}</label>\n'
+            f'<input id="letter-email" name="email" type="email" autocomplete="email" maxlength="200" required '
+            f'placeholder="{html.escape(t["news_placeholder"])}">\n'
+            f'<button class="cta" type="submit">{html.escape(t["news_submit"])}</button>\n'
+            f'<p class="form-status" role="status" aria-live="polite"></p>\n</form>\n'
+            f'<p class="letter-note">{html.escape(t["news_note"])} '
+            f'<a href="/{t["prefix"]}feed.xml">{html.escape(t["news_rss"])}</a>.</p>\n'
+            f'{script}\n</section>')
 
 
 def revue_archive_html(lang, revues):
@@ -527,10 +613,12 @@ def learning_paths_html(lang, pages):
     t = LANGS[lang]
     slugs = sorted((s for s, (m, _) in pages.items() if m.get("layout") == "parcours"), key=lambda s: pages[s][0]["order"])
     items = "\n".join(
-        f'<li><a href="{url(lang, s)}"><strong>{html.escape(pages[s][0]["title"])}</strong>'
+        f'<li><a href="{url(lang, s)}">{fox(pages[s][0].get("series", ""), 56)}'
+        f'<strong>{html.escape(pages[s][0]["title"])}</strong>'
         f'<span>{html.escape(pages[s][0]["summary"])}</span>'
         f'<em>{len(pages[s][0]["steps"])} {html.escape(t["step"].lower())}s</em></a></li>' for s in slugs)
-    return f'<h2>{html.escape(t["learning_paths"])}</h2>\n<ul class="cards learning-paths">\n{items}\n</ul>' if items else ""
+    return (f'<section class="home-paths">\n<h2>{html.escape(t["learning_paths"])}</h2>\n'
+            f'<ul class="cards learning-paths">\n{items}\n</ul>\n</section>') if items else ""
 
 
 def series_cards_html(lang, series_members):
@@ -644,6 +732,7 @@ def hero(lang):
             f'<p class="hero-kicker">{html.escape(t["hero_kicker"])}</p>'
             f'<h1 class="hero-title">FreedzHost</h1>'
             f'<p class="hero-tag">{html.escape(t["hero_tag"])}</p>'
+            f'<p class="hero-actions"><a class="cta" href="{url(lang, "tutos")}">{html.escape(t["hero_cta"])}</a></p>'
             f'</div></div>'
             f'<span class="hero-parade-tag hero-anchor-tag" aria-hidden="true"></span>'
             f'<script type="application/json" class="hero-team">{json.dumps(t["hero_team"])}</script>'
@@ -665,7 +754,9 @@ def layout(lang, slug, title, body, description, side="", jsonld=None):
     ld = jsonld_script(jsonld) + "\n" if jsonld else ""
     page_class = {"index": "home", "about": "about"}.get(slug, "")
     body_class = f' class="{page_class}"' if page_class else ""
-    peek = '<img class="sprite peek" src="/media/fox-respire-0.webp" alt="" width="120" height="120" loading="lazy" decoding="async">\n' if slug == "index" else ""
+    peek = ('<span class="peek" aria-hidden="true">'
+            '<img class="sprite" src="/media/fox-respire-0.webp" alt="" width="120" height="120" loading="lazy" decoding="async">'
+            '</span>\n') if slug == "index" else ""
     return f"""<!doctype html>
 <html lang="{lang}">
 <head>
@@ -688,18 +779,23 @@ def layout(lang, slug, title, body, description, side="", jsonld=None):
 <link rel="icon" type="image/png" href="/media/inari-icon.png">
 <link rel="apple-touch-icon" href="/media/inari-icon-180.png">
 <link rel="preload" href="/fonts/fraunces-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/inter-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/style.css">
 {ld}<script defer src="https://analytics.freedzhost.cloud/script.js" data-website-id="23badf50-b8d2-4487-b2ae-f67ab9fd172d"></script>
 </head>
 <body{body_class}>
+<a class="skip" href="#main">{t['hero_down']}</a>
 <div class="den" aria-hidden="true"></div>
 <header class="top">
   <a class="brand" href="{url(lang, 'index')}">freedzhost<span>.cloud</span></a>
   <nav><a class="menu-btn" href="#menu">☰ {t['menu']}</a>
+  <a class="top-link" href="{url(lang, 'actualites')}">{t['news']}</a>
+  <a class="top-link" href="{url(lang, 'tutos')}">{t['tutos']}</a>
+  <a class="top-link" href="{url(lang, 'formation')}">{t['training']}</a>
   <a class="lang" href="{url(other, slug)}" hreflang="{other}">{LANGS[other]['name']}</a></nav>
 </header>
 {side}
-<main>
+<main id="main">
 {body}
 </main>
 <footer><video class="mascot" src="/media/foxbot-coucou.mp4" autoplay loop muted playsinline aria-hidden="true"></video>
@@ -799,6 +895,8 @@ def build(out):
             body = body.replace("{{coups-de-coeur}}", coups_de_coeur_html(lang, meta))
             body = body.replace("{{paths}}", paths_html(lang))
             body = body.replace("{{learning-paths}}", learning_paths_html(lang, pages))
+            body = body.replace("{{latest}}", latest_html(lang, pages))
+            body = body.replace("{{newsletter}}", newsletter_html(lang))
             body = body.replace("{{series-cards}}", series_cards_html(lang, series_members))
             body = body.replace("{{search}}", search_form(lang, "page"))
             body = body.replace("{{series-filter}}", filter_chips_html(lang, series_members))
