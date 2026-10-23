@@ -178,6 +178,8 @@
   var teamEl = hero.querySelector(".hero-team");
   var team = teamEl ? JSON.parse(teamEl.textContent) : [];
   if (mascot && team.length) {
+    // Play the sequence ONCE, then hold the final pose — a title screen,
+    // not a GIF. The banks return to the zero pose, so the freeze is calm.
     var pick = team[(Math.random() * team.length) | 0];
     mascot.src = "/media/personas/" + pick[0] + ".webm";
     var pm = mascot.play();
