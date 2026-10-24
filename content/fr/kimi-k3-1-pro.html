@@ -1,0 +1,48 @@
+<!-- {"title": "Kimi K3.1 Pro est sorti : ce qui change, ce que ça coûte, comment l'essayer", "summary": "Moonshot AI publie Kimi K3.1 Pro, le premier modèle de sa série K3.1 : une version de K3 post-entraînée beaucoup plus longuement, un million de jetons de contexte, des poids ouverts annoncés avant le 4 novembre. Ce qui est annoncé, ce qui est mesuré par qui, ce que ça coûte en API et dans l'abonnement Kimi Code, et un lien de parrainage pour démarrer avec un bonus.", "order": 48.2, "series": "agents", "level": "beginner", "time": "5 min", "requires": ["agent-kimi-code"]} -->
+<p class="lead">Moonshot AI vient de publier <strong>Kimi K3.1 Pro</strong>, le premier modèle de sa nouvelle série K3.1. Ce n'est pas un nouveau modèle de base : c'est Kimi K3, post-entraîné avec beaucoup plus de calcul, pour mieux coder, mieux tenir les longues tâches avec outils et moins inventer. Il garde un million de jetons de contexte, et ses poids seront publiés avant le 4 novembre.</p>
+
+<p class="proof"><strong>En bref.</strong> Disponible dès maintenant sur Kimi (web et applis), Kimi Work, Kimi Code et l'API. Deux variantes : <code>kimi-k3.1-pro</code> et <code>kimi-k3.1-pro-highspeed</code> (2 à 3 fois plus rapide, même capacité annoncée, environ deux fois plus de quota consommé). Vérifié de notre côté : les deux identifiants répondent sur l'API, avec une fenêtre de 1 048 576 jetons.</p>
+
+<h2>Un peu d'histoire</h2>
+<p>Moonshot AI, fondée à Pékin en 2023, s'est fait connaître avec un assistant capable de lire de très longs documents. La série K2 a ensuite popularisé ses modèles auprès des développeurs, notamment pour le code et les agents. K3, sorti cet été, a porté un modèle à poids ouverts à 2,8 billions de paramètres (la « classe 3T » dont parle Moonshot). K3.1 Pro arrive environ trois mois plus tard : même base, entraînement de finition beaucoup plus poussé. C'est une tendance de fond de 2026 : une grande partie des progrès vient désormais de l'après-entraînement, pas seulement de la taille.</p>
+
+<h2>1. Ce qui est annoncé</h2>
+<ul>
+<li><strong>Code et tâches longues</strong> : meilleurs résultats sur les bancs de terminal et de code au long cours.</li>
+<li><strong>Moins d'hallucinations</strong> : sur leur test interne le plus difficile, le taux d'affirmations fausses passe de 23,4 % (K3) à 8,3 %.</li>
+<li><strong>Création 3D et recherche financière</strong> : deux domaines mis en avant, avec une fonction « 3D Make » dans l'appli pour prévisualiser et imprimer des modèles 3D.</li>
+<li><strong>Raisonnement toujours actif</strong> : on ne peut pas le couper ; on règle son effort (<code>low</code>, <code>high</code>, <code>max</code>, par défaut <code>max</code>).</li>
+<li><strong>Poids ouverts avant le 4 novembre</strong>, sans les données d'entraînement liées à la cybersécurité offensive, retirées volontairement.</li>
+</ul>
+
+<h2>2. Les chiffres, et qui les a mesurés</h2>
+<table>
+<tr><th>Banc</th><th>K3.1 Pro</th><th>Comparaison donnée</th><th>Mesuré par</th></tr>
+<tr><td>Terminal-Bench 4.0</td><td>65,7 %</td><td>Claude Opus 5.5 : 66,4 % ; GPT-6 Astra : 58,2 %</td><td>Moonshot</td></tr>
+<tr><td>Kimi Code Bench 3.0 (tâches longues)</td><td>61,2 %</td><td>K3 : 55,95 %</td><td>Moonshot, banc interne</td></tr>
+<tr><td>BenchCAD (avec outils)</td><td>92,7 %</td><td>Claude Opus 5.5 : 96,2 % ; GPT-6 Astra : 95,9 %</td><td>Moonshot</td></tr>
+<tr><td>OfficeQA Pro v2</td><td>64,4</td><td>présenté comme le meilleur score</td><td>Moonshot</td></tr>
+</table>
+<p class="note">Ces chiffres viennent de l'éditeur. Lisez-les comme une promesse à vérifier : un banc choisi par celui qui publie le modèle mesure d'abord ce qu'il veut montrer. Les classements indépendants arrivent en général dans les jours qui suivent.</p>
+
+<h2>3. Combien ça coûte</h2>
+<ul>
+<li><strong>API</strong> : 2 $ par million de jetons en entrée, 10 $ en sortie, 0,20 $ pour l'entrée déjà en cache (prix publiés via OpenRouter le 24 octobre 2026), sans palier selon la longueur du contexte. Sur la plateforme Moonshot, le modèle se débloque après une première recharge d'au moins 1 $.</li>
+<li><strong>Abonnement Kimi Code</strong> : K3.1 Pro à partir de l'offre Plus ; le million de jetons de contexte et la variante Highspeed à partir de l'offre Pro. Dans le terminal, on le choisit avec <code>/model</code>.</li>
+</ul>
+<p class="note">Piège relevé dans la documentation : dans un outil tiers, un identifiant mal tapé ne renvoie pas d'erreur, il bascule silencieusement sur un modèle plus ancien, sans raisonnement. Copiez l'identifiant exact : <code>k3.1-pro</code> dans Kimi Code, <code>kimi-k3.1-pro</code> dans l'API.</p>
+
+<h2>4. Ce que nous en faisons</h2>
+<p>Kimi Code est un de nos agents de tous les jours (voir <a href="/fr/agent-kimi-code.html">notre tutoriel Kimi Code</a>). Une leçon fraîche : l'abonnement a une limite mensuelle, et le jour où elle tombe, un agent qui ne dépend que de lui s'arrête. Chez nous, Kimi passe par une route de la passerelle qui retombe sur nos cartes graphiques puis sur des API gratuites quand le quota est épuisé (voir <a href="/fr/free-models-routes.html">les routes auto-</a>). Nous testerons K3.1 Pro sur nos tâches réelles avant d'en dire plus.</p>
+
+<h2>5. Démarrer avec un bonus : notre lien de parrainage</h2>
+<p>Kimi propose un programme de parrainage. Si vous vous abonnez à Kimi par <strong>notre lien</strong>, vous recevez des avantages de bienvenue, et nous aussi :</p>
+<p><a href="https://kimi.ai/activities/invite/share?scenario=subscribe&amp;from=share_poster&amp;invitation_code=FV9862" rel="noopener sponsored">S'abonner à Kimi avec le code de parrainage FV9862</a></p>
+<ul>
+<li><strong>Il faut s'abonner</strong> pour débloquer les avantages : le lien n'offre rien sans abonnement.</li>
+<li>La page annonce des avantages garantis pour les deux parties, puis un tirage au sort parmi des crédits d'abonnement de 3 jours à 1 an. Elle ne précise ni qui reçoit quoi, ni les plafonds : nous ne pouvons pas vous promettre un montant.</li>
+<li><strong>Transparence</strong> : ce que nous recevons en retour sert à faire tourner ce site et ses machines de test. Aucune obligation : l'abonnement fonctionne de la même façon sans le lien.</li>
+</ul>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://www.kimi.ai/blog/kimi-k3-1-pro" rel="noopener">Kimi, annonce de Kimi K3.1 Pro (blog officiel)</a></li><li><a href="https://platform.kimi.ai/docs/guide/kimi-k3-1-pro-quickstart" rel="noopener">Kimi API Platform, démarrage rapide K3.1 Pro</a></li><li><a href="https://www.kimi.com/code/docs/en/kimi-code/models.html" rel="noopener">Kimi Code, modèles et offres</a></li><li><a href="https://openrouter.ai/moonshotai/kimi-k3.1-pro" rel="noopener">OpenRouter, fiche et prix de Kimi K3.1 Pro</a></li><li><a href="https://en.wikipedia.org/wiki/Moonshot_AI" rel="noopener">Wikipedia, Moonshot AI</a></li></ul>
