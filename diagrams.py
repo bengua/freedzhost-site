@@ -1438,6 +1438,51 @@ def front(lang):
     return figure("front", 760, 200, L["cap"], body)
 
 
+# ── photos in, gaussians out: what a feed-forward splatting model does ──────
+def splat(lang):
+    L = {
+        "en": labels(cap="A feed-forward splatting model replaces the two slow steps of classic 3DGS: the pose estimation (COLMAP) and the per-scene optimisation. One pass through the network predicts cameras, depth and the Gaussians themselves.",
+                     ph="Your photos", phs="12 views, no poses", enc="Geometry encoder", encs="poses + depth",
+                     gauss="3D Gaussians", gausss="1.56 M, voxelised", out="Novel views", outs="rgb.mp4 + .ply",
+                     klass="classic: COLMAP then 30 min of optimisation", ff="feed-forward: 2.1 s measured"),
+        "fr": labels(cap="Un modèle de splatting feed-forward remplace les deux étapes lentes du 3DGS classique : l'estimation des poses (COLMAP) et l'optimisation par scène. Un seul passage dans le réseau prédit caméras, profondeur et les gaussiennes elles-mêmes.",
+                     ph="Vos photos", phs="12 vues, sans poses", enc="Encodeur géométrique", encs="poses + profondeur",
+                     gauss="Gaussiennes 3D", gausss="1,56 M, voxelisées", out="Vues nouvelles", outs="rgb.mp4 + .ply",
+                     klass="classique : COLMAP puis 30 min d'optimisation", ff="feed-forward : 2,1 s mesurées"),
+    }[lang]
+    body = box(20, 60, 170, 54, L["ph"], L["phs"], stroke=ACCENT)
+    body += box(250, 60, 180, 54, L["enc"], L["encs"])
+    body += box(490, 60, 160, 54, L["gauss"], L["gausss"])
+    body += box(700, 60, 150, 54, L["out"], L["outs"], stroke=GOOD)
+    body += arrow(190, 87, 248, 87)
+    body += arrow(430, 87, 488, 87)
+    body += arrow(650, 87, 698, 87, None, GOOD, marker="good")
+    body += t(140, 150, L["klass"], 12, "middle", MUTED)
+    body += t(600, 150, L["ff"], 12, "middle", GOOD)
+    return figure("splat", 870, 175, L["cap"], body)
+
+
+# ── reconstruction keeps what you saw, generation invents the rest ───────────
+def forge3d(lang):
+    L = {
+        "en": labels(cap="Reconstruction (AnySplat, InfiniSplat) rebuilds what the photos saw and nothing more. Generation (TRELLIS, UniForge3D) invents the hidden sides from learned priors. UniForge3D runs both in one shared space: the generated structure guides the choice of the view that best documents each voxel.",
+                     rec="Reconstruction", recs="faithful, hollow where unseen", gen="Generation", gens="complete, invented",
+                     views="unposed views", shared="shared anchor-guided space", asset="complete asset (.glb)"),
+        "fr": labels(cap="La reconstruction (AnySplat, InfiniSplat) rebâtit ce que les photos ont vu, et rien de plus. La génération (TRELLIS, UniForge3D) invente les faces cachées à partir de ce qu'elle a appris. UniForge3D fait les deux dans un espace commun : la structure générée guide le choix de la vue qui documente le mieux chaque voxel.",
+                     rec="Reconstruction", recs="fidèle, creuse où rien n'est vu", gen="Génération", gens="complète, inventée",
+                     views="vues non calibrées", shared="espace commun guidé par ancre", asset="asset complet (.glb)"),
+    }[lang]
+    body = box(330, 20, 180, 50, L["views"], stroke=ACCENT)
+    body += box(120, 120, 240, 54, L["rec"], L["recs"], stroke=GOOD)
+    body += box(480, 120, 240, 54, L["gen"], L["gens"], stroke=LINE)
+    body += arrow(400, 70, 260, 118, None, GOOD, marker="good")
+    body += arrow(440, 70, 580, 118)
+    body += arrow(360, 147, 478, 147, L["shared"], lx=419, ly=139)
+    body += box(330, 215, 180, 50, L["asset"], stroke=ACCENT)
+    body += arrow(420, 174, 420, 213, None, ACCENT, marker="acc")
+    return figure("forge3d", 840, 280, L["cap"], body)
+
+
 DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_path,
             "kv": kv_trap, "hybrid": hybrid, "proxmox": proxmox,
             "proxy": proxy, "vault": vault,
@@ -1454,7 +1499,8 @@ DIAGRAMS = {"hardware": hardware, "docker": docker_stack, "request": request_pat
             "mtp": mtp, "judge": judge, "rag": rag,
             "f2b": f2b, "errors": errors, "drift": drift, "secrets": secrets,
             "mutation": mutation, "browsers": browsers, "placement": placement, "escalation": escalation,
-            "apk": apk, "agents": agents, "wiring": wiring, "bmad": bmad, "kvtrap": kvtrap, "floor": floor, "finger": finger, "front": front}
+            "apk": apk, "agents": agents, "wiring": wiring, "bmad": bmad, "kvtrap": kvtrap, "floor": floor, "finger": finger, "front": front,
+            "splat": splat, "forge3d": forge3d}
 
 
 def render(name, lang):

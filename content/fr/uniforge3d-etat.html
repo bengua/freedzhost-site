@@ -1,0 +1,40 @@
+<!-- {"title": "UniForge3D et la 3D unifiée : état des lieux, et ce qui tourne déjà chez vous", "summary": "UniForge3D joint reconstruction et génération dans un même espace : les photos gardent leur géométrie, le modèle invente les faces cachées. Code et poids sont publiés — nous les avons installés. Récit honnête d'une installation de code frais de recherche, et les alternatives qui tournent aujourd'hui sur votre carte.", "order": 91, "series": "create", "level": "intermediate", "time": "30 min", "requires": ["anysplat-local", "infinisplat-comfyui"]} -->
+<p class="lead">Jusqu'ici, nos deux tutos 3D reconstruisent : AnySplat et InfiniSplat rebâtissent ce que vos photos ont vu, et rien de plus — une face jamais photographiée reste un trou. UniForge3D (Peking University, HKUST, octobre 2026) ajoute la seconde moitié : une branche de <em>génération</em> qui complète l'invisible, pendant qu'une branche de <em>reconstruction</em> préserve le visible, les deux échangeant leurs traits dans un « espace guidé par ancre » commun. C'est la direction que prend le domaine : plus de frontière entre scanner et imaginer.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Un état des lieux vérifié : ce qui est publié, ce qui bloque, et — puisque la doctrine de la maison est de ne rien publier sans l'avoir exécuté — le journal complet de notre tentative d'installation, puis ce que vous pouvez faire <em>aujourd'hui</em> avec AnySplat, InfiniSplat et TRELLIS.</p>
+
+<h2>1. Reconstruction contre génération, en une image</h2>
+{{diagram:forge3d}}
+<p>Retenez la distinction, elle structure tout le domaine : la reconstruction est fidèle mais creuse où rien n'a été vu ; la génération est complète mais invente. UniForge3D prétend les marier sans que l'inventé mange l'observé, grâce à une astuce : la structure générée dit, pour chaque voxel, quelle photo le documente le mieux.</p>
+
+<h2>2. Ce qui est réellement publié (vérifié le 24 octobre 2026)</h2>
+<p>Le dépôt <code>xibushu/UniForge3D</code> est sorti sous MIT avec un script d'inférence, 18 cas d'exemple et les poids sur Hugging Face — 26 Go, téléchargés ici en 232 s. Basé sur TRELLIS.2 (Microsoft) et VGGT (Meta). Donc oui, c'est publié, et non, ce n'est pas un vaporware. Mais « publié » ne veut pas dire « installable un vendredi soir ». Voici ce que notre labo a traversé, dans l'ordre :</p>
+<table>
+<tr><th>Obstacle</th><th>La raison</th><th>Notre contournement testé</th></tr>
+<tr><td>setup.sh exige conda</td><td>pas de conda sur la machine</td><td><code>uv venv --python 3.10</code> — identique, plus rapide</td></tr>
+<tr><td>torch 2.6.0+cu124 épinglé</td><td>pas de kernels pour les cartes Blackwell (sm_120)</td><td>torch 2.14+cu130 à la place</td></tr>
+<tr><td>extensions CUDA refusent de compiler</td><td>toolkit système CUDA 13.4 ≠ cu124, puis GCC 16 vs en-têtes torch 2.6</td><td>avec torch 2.14, seul le <code>-std=c++17</code> codé en dur bloquait → <code>c++20</code></td></tr>
+<tr><td>flash-attn exigé</td><td>l'attention « routée » (le cœur du papier) appelle <code>flash_attn_varlen_func</code> en dur</td><td>compilation depuis les sources — aucune roue n'existe pour torch 2.14</td></tr>
+<tr><td>DINOv3 est un dépôt « gated »</td><td>Meta exige d'accepter sa licence sur Hugging Face</td><td>compte HF + <code>hf auth login</code>, ou miroir communautaire pointé par le fichier de config</td></tr>
+</table>
+<p>Leçon de méthode, valable pour tout code de recherche frais : lisez le <code>setup.sh</code> avant de le lancer, remplacez ce qui est daté sans toucher aux maths du modèle, et attendez-vous à ce que chaque dépendance compilée échoue une première fois pour une raison différente.</p>
+
+<h2>3. Les licences, parce que « sur Hugging Face » ≠ « libre »</h2>
+<p>Le code est MIT. Les poids dérivés de VGGT restent en <strong>CC BY-NC 4.0</strong> (pas d'usage commercial), DINOv3 est gated par Meta, et l'effaceur d'arrière-plan par défaut, BRIA RMBG-2.0, exige une autorisation séparée pour un usage commercial. Pour un homelab et de l'apprentissage : aucun problème. Pour un produit : relisez chaque couche.</p>
+
+<h2>4. Ce qui tourne aujourd'hui sur votre carte</h2>
+<p>Envie de 3D ce soir, sans compiler pendant une heure ? Tout ceci est mesuré dans nos deux tutos précédents, sur la carte de 16 Go du labo :</p>
+<table>
+<tr><th>Besoin</th><th>Outil</th><th>Mesuré ici</th></tr>
+<tr><td>Photos → scène 3D navigable</td><td>AnySplat</td><td>2,1 s, pic 7,0 Gio, 12 vues → .ply de 101 Mo</td></tr>
+<tr><td>Photos calibrées (ou non) → splat propre</td><td>InfiniSplat v2</td><td>7,7 s, pic 13,5 Gio, 32 vues → .ply de 312 Mo</td></tr>
+<tr><td>Image → splat dans un graphe ComfyUI</td><td>nœud ComfyUI-InfiniSplat</td><td>exige ComfyUI ≥ 0.39.2</td></tr>
+<tr><td>Image → mesh texturé complet</td><td>TRELLIS (déjà dans notre tableau <a href="/fr/comfyui-studio.html">ComfyUI</a>)</td><td>décodeurs forme + texture</td></tr>
+</table>
+<p>Et UniForge3D ? Suivez le dépôt : quand une roue flash-attn existera pour votre torch (ou que vous aurez quarante minutes de compilation devant vous), la marche à suivre ci-dessus est celle que nous avons validée jusqu'à l'inférence. Nous mettrons ce tuto à jour avec les chiffres de VRAM et de temps dès que le run complet aura été mesuré — et pas avant.</p>
+
+<h2>Pour aller plus loin</h2>
+<p>La <a href="/fr/formation.html">formation</a> consacre un module à la 3D générative : lire les papiers « reconstruction + génération » sans se perdre, choisir entre splat et mesh selon la destination (visionneuse web, moteur de jeu, impression), et organiser une veille technique qui ne se contente pas des titres.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://xishuxishu.github.io/uniforge3d-project/" rel="noopener">UniForge3D, page du projet</a></li><li><a href="https://github.com/xibushu/UniForge3D" rel="noopener">UniForge3D, dépôt officiel</a></li><li><a href="https://arxiv.org/abs/2610.15357" rel="noopener">UniForge3D: Joint 3D Reconstruction and Generation in a Shared Anchor-Guided Space</a></li><li><a href="https://huggingface.co/xibushu/UniForge3D" rel="noopener">Poids (26 Go)</a></li><li><a href="https://github.com/microsoft/TRELLIS.2" rel="noopener">TRELLIS.2, la brique générative</a></li></ul>

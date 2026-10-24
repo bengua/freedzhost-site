@@ -1,0 +1,50 @@
+<!-- {"title": "InfiniSplat dans ComfyUI : du RGB au splat 3D", "summary": "InfiniSplat v2 reconstruit une scène gaussienne depuis quelques photos, avec ou sans poses de caméra, et un nœud ComfyUI l'embarque dans votre studio. Mesuré : 7,7 s pour 32 vues calibrées, mais 13,5 Gio de VRAM au pic — et notre ComfyUI de production est trop vieux pour le nœud. Les deux chemins, testés.", "order": 90, "series": "create", "level": "intermediate", "time": "45 min + téléchargements", "requires": ["comfyui-studio", "anysplat-local"]} -->
+<p class="lead">InfiniSplat v2 fait la même promesse qu'AnySplat — des photos en entrée, un nuage de gaussiennes en sortie — avec deux différences qui comptent : il accepte vos positions de caméra quand vous les avez (COLMAP, drone, robot), et il existe en nœud ComfyUI, donc branchable sur votre studio d'images existant. La v2 (« Analyzing and Improving Feed-Forward 3DGS from Any Views », ZJU) soigne surtout la robustesse quand les vues sont peu nombreuses ou mal réparties.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Un <code>scene.ply</code> de 312 Mo en 7,7 secondes d'inférence à partir de 32 photos calibrées, ou en 35 secondes sans aucune pose grâce au prépassage Depth-Anything-3. Et une réponse honnête sur la VRAM : 13,5 Gio au pic pour 32 vues.</p>
+
+<h2>1. Deux chemins, une seule vérité mesurée</h2>
+<p>Il y a le chemin <strong>ligne de commande</strong> (le paquet <code>infinisplat</code>, parfait pour des scripts et des agents) et le chemin <strong>nœud ComfyUI</strong> (<code>ComfyUI-InfiniSplat</code>, parfait pour câbler le splat dans un graphe). Nous avons testé les deux. Verdict d'abord : le paquet marche très bien ; le nœud exige ComfyUI ≥ 0.39.2 — le nôtre est en 0.37.0 et sert la production, donc nous ne l'avons pas mis à jour pour l'occasion. On vous donne la procédure complète du nœud, et les chiffres viennent du paquet.</p>
+
+<h2>2. Installer le paquet (le chemin qui marche à coup sûr)</h2>
+<pre><code>git clone --depth 1 https://github.com/zju3dv/InfiniSplat.git &amp;&amp; cd InfiniSplat/InfiniSplat_v2
+uv venv --python 3.12 .venv
+uv pip install --python .venv/bin/python torch==2.14.0 --index-url https://download.pytorch.org/whl/cu130
+uv pip install --python .venv/bin/python .
+uv pip install --python .venv/bin/python --no-deps \
+  "depth-anything-3 @ git+https://github.com/ByteDance-Seed/Depth-Anything-3.git@41736238f5bced4debf3f2a12375d2466874866d"</code></pre>
+<p>Le <code>--no-deps</code> est voulu par l'upstream : InfiniSplat utilise les entrailles réseau de Depth-Anything-3 (DA3) épinglées à une révision précise, pas son application. Les poids, 6,6 Go, sont sur Hugging Face (<code>Edisoneh/InfiniSplat-v2</code>) ; placez <code>config.json</code> et <code>model.safetensors</code> dans <code>weights/da3/</code>. Le dépôt propose aussi une archive de 114 photos d'exemple (<code>examples-png.zip</code>, 90 Mo) avec leurs caméras — idéale pour un premier run reproductible.</p>
+
+<h2>3. Le run mesuré</h2>
+<p>Scène DTU scan 24, 32 vues avec caméras fournies, carte de 16 Go :</p>
+<pre><code>CUDA_VISIBLE_DEVICES=0 .venv/bin/infinisplat --model weights/da3 \
+  --images-dir examples/data/dtu_provided/images \
+  --cameras examples/data/dtu_provided/cameras.npz \
+  --output result_dtu --no-html</code></pre>
+<pre><code>load_s=21.4        vram_after_load_mib=6302
+inference_s=7.7    vram_peak_mib=13831   n_views=32
+export_s=2.2       ply_mb=311.6</code></pre>
+<p>Et sans aucune pose — le mode <code>da3-pose</code>, où DA3 devine d'abord les caméras puis conditionne la reconstruction : 9,9 s d'inférence pour 32 vues (13,0 Gio au pic), 35 s en tout via la CLI, avec un <code>camera_prior.npz</code> sauvegardé pour être réutilisé. Le mode <code>pose-free</code> existe aussi si vous ne voulez même pas cette estimation.</p>
+<p class="note"><strong>La VRAM, sans maquillage.</strong> 13,5 Gio au pic pour 32 vues : une carte de 8 Go n'y arrivera pas en l'état — réduisez le nombre de vues (<code>--max-views</code>, l'API en accepte de 2 à 50) ou passez par le nœud ComfyUI, qui échantillonne par morceaux pour justement baisser le pic. Nous avons aussi vu un run mourir en OOM à 47 Mio libres parce qu'un autre processus est revenu sur la carte en cours de route : sur une carte partagée, relancez, le run coûte quelques dizaines de secondes.</p>
+
+<h2>4. Le nœud ComfyUI</h2>
+<p>Le nœud <code>jKaarlehto/ComfyUI-InfiniSplat</code> (registre : <code>infinisplat</code>, éditeur <code>jkaa</code>) fait du image-to-splat dans un graphe : <code>Load Image → InfiniSplat (Image to PLY) → Preview Splat</code>. Trois bonnes idées de conception : l'inférence tourne dans un environnement Python isolé créé par <code>uv run --no-project install.py</code> (rien ne pollue le venv de ComfyUI), le nœud décharge les modèles ComfyUI avant de lancer son worker, et le checkpoint vit dans <code>models/infinisplat/</code>. Paramètres utiles : <code>focal_length_mm</code> (30 par défaut — les tenseurs ComfyUI perdent l'EXIF), <code>gaussian_count</code> (1,5 M), <code>query_chunk_size</code> pour dompter le pic mémoire.</p>
+<pre><code>cd ~/comfyui/custom_nodes
+git clone https://github.com/jKaarlehto/ComfyUI-InfiniSplat.git
+cd ComfyUI-InfiniSplat &amp;&amp; uv run --no-project install.py
+# puis redémarrer ComfyUI — voyez la note ci-dessous avant de toucher à une instance en production</code></pre>
+<p class="note">Exigence ferme : ComfyUI ≥ 0.39.2, car l'aperçu natif de splats (<code>PreviewGaussianSplat</code>) n'existait pas avant. Le nôtre tourne en 0.37.0 avec un watchdog et des files de rendu : pas de mise à jour à l'aveugle. Mettez à jour quand la production est calme, ou testez le nœud sur une seconde instance (une par carte, voir <a href="/fr/comfyui-studio.html">le tuto ComfyUI</a>). Chez l'auteur, une RTX 5090 Laptop (24 Go) : calibration caméra optionnelle en 2,7 s pour 1,03 Gio. Notez aussi la licence : l'usage personnel, recherche et éducatif d'InfiniSplat est libre, l'usage en organisation demande un enregistrement.</p>
+
+<h2>5. AnySplat ou InfiniSplat ?</h2>
+<p>À qualité proche sur nos exemples, choisissez par le workflow : AnySplat est plus frugal au pic (7,0 Gio mesurés pour 12 vues) et très simple à scripter ; InfiniSplat accepte vos caméras quand elles existent (drone, COLMAP, robot) et a une intégration ComfyUI propre. Pour un agent qui enchaîne capture → splat → rendu, les deux se pilotent en Python en dix lignes.</p>
+
+<h2>Pièges</h2>
+<p class="note">L'API Python plafonne par défaut à 12 vues (<code>max_views=12</code>) quand la CLI en accepte 50 : un <code>Pipeline()(images)</code> avec 32 photos lève « Upload 2–12 overlapping images ». Passez <code>max_views=50</code>.</p>
+<p class="note">Les poids Hugging Face arrivent à plat (<code>model.safetensors</code> à la racine du dépôt) : le CLI veut <code>weights/da3/config.json</code> + <code>weights/da3/model.safetensors</code>. Un dossier à créer, deux fichiers à déplacer.</p>
+<p class="note">Sur une machine chargée en RAM (la nôtre tenait ComfyUI et ses 33 Go de caches), le chargement des 6,6 Go de poids a déclenché deux fois le OOM-killer (<code>earlyoom</code>). Espacez les gros jobs, ou montez le swap.</p>
+
+<h2>Pour aller plus loin</h2>
+<p>Le module « capture 3D » de la <a href="/fr/formation.html">formation</a> entre dans le dur : calibrer ses caméras avec COLMAP pour le mode <code>provided</code>, choisir entre <code>da3-pose</code> et <code>pose-free</code>, et convertir un splat en mesh texturé pour un moteur de jeu.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/zju3dv/InfiniSplat" rel="noopener">InfiniSplat (v1 + v2), dépôt officiel</a></li><li><a href="https://arxiv.org/abs/2610.20341" rel="noopener">InfiniSplat v2 : Analyzing and Improving Feed-Forward 3DGS from Any Views</a></li><li><a href="https://huggingface.co/Edisoneh/InfiniSplat-v2" rel="noopener">Poids v2 et données d'exemple</a></li><li><a href="https://github.com/jKaarlehto/ComfyUI-InfiniSplat" rel="noopener">ComfyUI-InfiniSplat, le nœud</a></li></ul>

@@ -1,0 +1,40 @@
+<!-- {"title": "UniForge3D and unified 3D: state of play, and what already runs at home", "summary": "UniForge3D joins reconstruction and generation in one shared space: the photos keep their geometry, the model invents the hidden sides. Code and weights are published — we installed them. An honest account of setting up fresh research code, and the alternatives that run on your card today.", "order": 91, "series": "create", "level": "intermediate", "time": "30 min", "requires": ["anysplat-local", "infinisplat-comfyui"]} -->
+<p class="lead">So far, our two 3D tutorials reconstruct: AnySplat and InfiniSplat rebuild what your photos saw, and nothing more — a side that was never photographed stays a hole. UniForge3D (Peking University, HKUST, October 2026) adds the other half: a <em>generation</em> branch that completes the invisible, while a <em>reconstruction</em> branch preserves the visible, both exchanging features in a shared "anchor-guided space". This is where the field is heading: no more border between scanning and imagining.</p>
+
+<p class="proof"><strong>What you get out of it.</strong> A verified state of play: what is published, what blocks, and — since the house doctrine is to publish nothing we have not executed — the full log of our installation attempt, then what you can do <em>today</em> with AnySplat, InfiniSplat and TRELLIS.</p>
+
+<h2>1. Reconstruction versus generation, in one picture</h2>
+{{diagram:forge3d}}
+<p>Keep this distinction in mind, it structures the whole field: reconstruction is faithful but hollow where nothing was seen; generation is complete but invents. UniForge3D claims to marry both without the invented eating the observed, thanks to one trick: the generated structure says, for every voxel, which photo documents it best.</p>
+
+<h2>2. What is actually published (checked on 24 October 2026)</h2>
+<p>The <code>xibushu/UniForge3D</code> repository came out under MIT with an inference script, 18 example cases and the weights on Hugging Face — 26 GB, downloaded here in 232 s. Built on TRELLIS.2 (Microsoft) and VGGT (Meta). So yes, it is published, and no, it is not vaporware. But "published" does not mean "installable on a Friday night". Here is what our lab went through, in order:</p>
+<table>
+<tr><th>Obstacle</th><th>The reason</th><th>Our tested workaround</th></tr>
+<tr><td>setup.sh demands conda</td><td>no conda on the machine</td><td><code>uv venv --python 3.10</code> — identical, faster</td></tr>
+<tr><td>torch 2.6.0+cu124 pinned</td><td>no kernels for Blackwell cards (sm_120)</td><td>torch 2.14+cu130 instead</td></tr>
+<tr><td>CUDA extensions refuse to compile</td><td>system toolkit CUDA 13.4 ≠ cu124, then GCC 16 vs torch 2.6 headers</td><td>with torch 2.14, only the hardcoded <code>-std=c++17</code> blocked → <code>c++20</code></td></tr>
+<tr><td>flash-attn mandatory</td><td>the "routed" attention (the core of the paper) calls <code>flash_attn_varlen_func</code> unconditionally</td><td>build from source — no wheel exists for torch 2.14</td></tr>
+<tr><td>DINOv3 is a "gated" repo</td><td>Meta requires accepting its licence on Hugging Face</td><td>HF account + <code>hf auth login</code>, or the community mirror the config file points to</td></tr>
+</table>
+<p>A method lesson, valid for any fresh research code: read the <code>setup.sh</code> before running it, replace what is dated without touching the model's maths, and expect every compiled dependency to fail once, each for a different reason.</p>
+
+<h2>3. Licences, because "on Hugging Face" ≠ "free"</h2>
+<p>The code is MIT. The VGGT-derived weights remain <strong>CC BY-NC 4.0</strong> (no commercial use), DINOv3 is gated by Meta, and the default background remover, BRIA RMBG-2.0, requires separate authorisation for commercial use. For a homelab and learning: no problem. For a product: re-read every layer.</p>
+
+<h2>4. What runs on your card today</h2>
+<p>Want 3D tonight, without an hour of compiling? All of this was measured in our two previous tutorials, on the lab's 16 GB card:</p>
+<table>
+<tr><th>Need</th><th>Tool</th><th>Measured here</th></tr>
+<tr><td>Photos → navigable 3D scene</td><td>AnySplat</td><td>2.1 s, 7.0 GiB peak, 12 views → 101 MB .ply</td></tr>
+<tr><td>Calibrated (or not) photos → clean splat</td><td>InfiniSplat v2</td><td>7.7 s, 13.5 GiB peak, 32 views → 312 MB .ply</td></tr>
+<tr><td>Image → splat inside a ComfyUI graph</td><td>ComfyUI-InfiniSplat node</td><td>requires ComfyUI ≥ 0.39.2</td></tr>
+<tr><td>Image → complete textured mesh</td><td>TRELLIS (already in our <a href="/en/comfyui-studio.html">ComfyUI</a> chart)</td><td>shape + texture decoders</td></tr>
+</table>
+<p>And UniForge3D? Watch the repository: when a flash-attn wheel exists for your torch (or you have forty minutes of compiling ahead of you), the walkthrough above is the one we validated up to inference. We will update this tutorial with VRAM and time figures as soon as the full run has been measured — and not before.</p>
+
+<h2>Going further</h2>
+<p>The <a href="/en/formation.html">course</a> dedicates a module to generative 3D: reading "reconstruction + generation" papers without getting lost, choosing between splat and mesh according to the destination (web viewer, game engine, printing), and running a technical watch that does not stop at headlines.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://xishuxishu.github.io/uniforge3d-project/" rel="noopener">UniForge3D, project page</a></li><li><a href="https://github.com/xibushu/UniForge3D" rel="noopener">UniForge3D, official repository</a></li><li><a href="https://arxiv.org/abs/2610.15357" rel="noopener">UniForge3D: Joint 3D Reconstruction and Generation in a Shared Anchor-Guided Space</a></li><li><a href="https://huggingface.co/xibushu/UniForge3D" rel="noopener">Weights (26 GB)</a></li><li><a href="https://github.com/microsoft/TRELLIS.2" rel="noopener">TRELLIS.2, the generative brick</a></li></ul>

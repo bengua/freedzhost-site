@@ -1,0 +1,50 @@
+<!-- {"title": "InfiniSplat in ComfyUI: from RGB to a 3D splat", "summary": "InfiniSplat v2 reconstructs a Gaussian scene from a handful of photos, with or without camera poses, and a ComfyUI node brings it into your studio. Measured: 7.7 s for 32 calibrated views, but 13.5 GiB of VRAM at peak — and our production ComfyUI is too old for the node. Both paths, tested.", "order": 90, "series": "create", "level": "intermediate", "time": "45 min + downloads", "requires": ["comfyui-studio", "anysplat-local"]} -->
+<p class="lead">InfiniSplat v2 makes the same promise as AnySplat — photos in, Gaussian splat out — with two differences that matter: it accepts your camera positions when you have them (COLMAP, drone, robot), and it exists as a ComfyUI node, so it plugs into your existing image studio. v2 ("Analyzing and Improving Feed-Forward 3DGS from Any Views", ZJU) mostly hardens robustness when views are few or poorly spread.</p>
+
+<p class="proof"><strong>What you get.</strong> A 312 MB <code>scene.ply</code> in 7.7 seconds of inference from 32 calibrated photos, or in 35 seconds with no poses at all thanks to the Depth-Anything-3 prepass. And an honest answer on VRAM: 13.5 GiB at peak for 32 views.</p>
+
+<h2>1. Two paths, one measured truth</h2>
+<p>There is the <strong>command-line</strong> path (the <code>infinisplat</code> package, perfect for scripts and agents) and the <strong>ComfyUI node</strong> path (<code>ComfyUI-InfiniSplat</code>, perfect for wiring the splat into a graph). We tested both. Verdict first: the package works very well; the node requires ComfyUI ≥ 0.39.2 — ours runs 0.37.0 and serves production, so we did not upgrade it for the occasion. You get the full node procedure, and the numbers come from the package.</p>
+
+<h2>2. Install the package (the path that always works)</h2>
+<pre><code>git clone --depth 1 https://github.com/zju3dv/InfiniSplat.git &amp;&amp; cd InfiniSplat/InfiniSplat_v2
+uv venv --python 3.12 .venv
+uv pip install --python .venv/bin/python torch==2.14.0 --index-url https://download.pytorch.org/whl/cu130
+uv pip install --python .venv/bin/python .
+uv pip install --python .venv/bin/python --no-deps \
+  "depth-anything-3 @ git+https://github.com/ByteDance-Seed/Depth-Anything-3.git@41736238f5bced4debf3f2a12375d2466874866d"</code></pre>
+<p>The <code>--no-deps</code> is intended upstream: InfiniSplat uses Depth-Anything-3's (DA3) network internals pinned to an exact revision, not its application. The weights, 6.6 GB, live on Hugging Face (<code>Edisoneh/InfiniSplat-v2</code>); place <code>config.json</code> and <code>model.safetensors</code> into <code>weights/da3/</code>. The repository also offers a 114-photo sample archive (<code>examples-png.zip</code>, 90 MB) with matching cameras — ideal for a reproducible first run.</p>
+
+<h2>3. The measured run</h2>
+<p>DTU scan 24, 32 views with supplied cameras, on a 16 GB card:</p>
+<pre><code>CUDA_VISIBLE_DEVICES=0 .venv/bin/infinisplat --model weights/da3 \
+  --images-dir examples/data/dtu_provided/images \
+  --cameras examples/data/dtu_provided/cameras.npz \
+  --output result_dtu --no-html</code></pre>
+<pre><code>load_s=21.4        vram_after_load_mib=6302
+inference_s=7.7    vram_peak_mib=13831   n_views=32
+export_s=2.2       ply_mb=311.6</code></pre>
+<p>And with no poses at all — the <code>da3-pose</code> mode, where DA3 first guesses the cameras and then conditions the reconstruction: 9.9 s of inference for 32 views (13.0 GiB at peak), 35 s in all through the CLI, with a <code>camera_prior.npz</code> saved for reuse. A <code>pose-free</code> mode also exists if you want to skip even that estimate.</p>
+<p class="note"><strong>VRAM, unvarnished.</strong> 13.5 GiB at peak for 32 views: an 8 GB card will not do it as is — cut the view count (<code>--max-views</code>, the API accepts 2 to 50) or go through the ComfyUI node, which samples in chunks precisely to lower the peak. We also watched a run die OOM with 47 MiB free because another process came back to the card mid-flight: on a shared card, just retry, the run costs tens of seconds.</p>
+
+<h2>4. The ComfyUI node</h2>
+<p>The <code>jKaarlehto/ComfyUI-InfiniSplat</code> node (registry: <code>infinisplat</code>, publisher <code>jkaa</code>) does image-to-splat inside a graph: <code>Load Image → InfiniSplat (Image to PLY) → Preview Splat</code>. Three good design ideas: inference runs in an isolated Python environment created by <code>uv run --no-project install.py</code> (nothing pollutes ComfyUI's venv), the node unloads cached ComfyUI models before launching its worker, and the checkpoint lives in <code>models/infinisplat/</code>. Useful parameters: <code>focal_length_mm</code> (30 by default — ComfyUI tensors lose EXIF), <code>gaussian_count</code> (1.5 M), <code>query_chunk_size</code> to tame the memory peak.</p>
+<pre><code>cd ~/comfyui/custom_nodes
+git clone https://github.com/jKaarlehto/ComfyUI-InfiniSplat.git
+cd ComfyUI-InfiniSplat &amp;&amp; uv run --no-project install.py
+# then restart ComfyUI — read the note below before touching a production instance</code></pre>
+<p class="note">Hard requirement: ComfyUI ≥ 0.39.2, because the native splat preview (<code>PreviewGaussianSplat</code>) did not exist before. Ours runs 0.37.0 with a watchdog and render queues: no blind upgrade. Upgrade when production is quiet, or test the node on a second instance (one per card, see <a href="/en/comfyui-studio.html">the ComfyUI tutorial</a>). On the author's RTX 5090 Laptop (24 GB): optional camera calibration in 2.7 s for 1.03 GiB. Mind the license too: InfiniSplat is free for personal, research and educational use; organisational use requires registration.</p>
+
+<h2>5. AnySplat or InfiniSplat?</h2>
+<p>At similar quality on our examples, choose by workflow: AnySplat is thriftier at peak (7.0 GiB measured for 12 views) and very simple to script; InfiniSplat accepts your cameras when they exist (drone, COLMAP, robot) and has a clean ComfyUI integration. For an agent chaining capture → splat → render, both can be driven from Python in ten lines.</p>
+
+<h2>Pitfalls</h2>
+<p class="note">The Python API caps at 12 views by default (<code>max_views=12</code>) where the CLI accepts 50: a <code>Pipeline()(images)</code> call with 32 photos raises "Upload 2–12 overlapping images". Pass <code>max_views=50</code>.</p>
+<p class="note">The Hugging Face weights arrive flat (<code>model.safetensors</code> at the repository root): the CLI wants <code>weights/da3/config.json</code> + <code>weights/da3/model.safetensors</code>. One folder to create, two files to move.</p>
+<p class="note">On a RAM-loaded machine (ours holds ComfyUI and its 33 GB of caches), loading the 6.6 GB of weights triggered the OOM killer (<code>earlyoom</code>) twice. Space out heavy jobs, or raise the swap.</p>
+
+<h2>Going further</h2>
+<p>The "3D capture" module of the <a href="/en/formation.html">course</a> goes into the thick of it: calibrating cameras with COLMAP for <code>provided</code> mode, choosing between <code>da3-pose</code> and <code>pose-free</code>, and converting a splat into a textured mesh for a game engine.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/zju3dv/InfiniSplat" rel="noopener">InfiniSplat (v1 + v2), official repository</a></li><li><a href="https://arxiv.org/abs/2610.20341" rel="noopener">InfiniSplat v2: Analyzing and Improving Feed-Forward 3DGS from Any Views</a></li><li><a href="https://huggingface.co/Edisoneh/InfiniSplat-v2" rel="noopener">v2 weights and sample data</a></li><li><a href="https://github.com/jKaarlehto/ComfyUI-InfiniSplat" rel="noopener">ComfyUI-InfiniSplat, the node</a></li></ul>

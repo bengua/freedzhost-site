@@ -1,0 +1,50 @@
+<!-- {"title": "From your photos to 3D: AnySplat, locally", "summary": "A dozen photos of an object or a room, no known camera positions, and a feed-forward model returns a 3D Gaussian splat: measured at 2.1 s of inference and 7.0 GiB of VRAM on an RTX 5080. The install that really works on a recent card, including the two traps the README does not mention.", "order": 89, "series": "create", "level": "intermediate", "time": "45 min + downloads", "requires": ["comfyui-studio", "gpu-grid"]} -->
+<p class="lead">AnySplat takes ordinary photos — no calibration markers, no camera positions — and in a single pass through a network produces a 3D scene made of "Gaussians": millions of small oriented coloured blobs that, when projected, give the scene back from any angle. No per-image optimisation like classic Gaussian splatting, no COLMAP. Photos in, model, answer out.</p>
+
+<p class="proof"><strong>What you get.</strong> A <code>.ply</code> file that splat viewers and ComfyUI can open, plus an orbit video, from a dozen phone photos. Measured here: 2.1 seconds of inference for 12 views, 7.0 GiB of VRAM at peak, 1.56 million Gaussians.</p>
+
+<h2>1. What to understand before installing</h2>
+<p>Classic splatting (3DGS) starts from photos <em>with</em> their camera positions, computed by COLMAP — slow, finicky — then optimises the Gaussians for tens of minutes. AnySplat learned to do both at once: a geometry encoder (derived from VGGT) predicts poses and depth, decoder heads directly spit out the Gaussian parameters. That is why it is fast: the work was paid at training time, not at inference.</p>
+{{diagram:splat}}
+<p>Practical consequence: quality depends on the model, not on your patience. If the photos are blurry or poorly distributed, no setting will rescue them. Shoot your object from every side, stable light, no hard reflections.</p>
+
+<h2>2. The install that actually works (recent card, recent toolkit)</h2>
+<p>The README asks for PyTorch 2.2 and CUDA 12.1. On a Blackwell card (RTX 50xx) those wheels simply have no code for your GPU. Here is what we actually ran, with <code>uv</code> and Python 3.12:</p>
+<pre><code>git clone --depth 1 https://github.com/InternRobotics/AnySplat.git ~/anysplat &amp;&amp; cd ~/anysplat
+uv venv --python 3.12 .venv
+uv pip install --python .venv/bin/python torch==2.14.0 torchvision==0.29.0 \
+  --index-url https://download.pytorch.org/whl/cu130
+# requirements.txt minus the unusable lines: the xformers/torch_scatter pins,
+# the gsplat pt22cu121-cp310 wheel, pytorch3d (training losses only)
+uv pip install --python .venv/bin/python -r reqs-adapted.txt     # 14 s here
+uv pip install --python .venv/bin/python xformers gsplat scikit-video
+uv pip install --python .venv/bin/python --no-build-isolation torch-scatter  # 8 min 44, nvcc build</code></pre>
+<p class="note">Two measured traps. <code>torch-scatter</code> does not declare torch as a build dependency: without <code>--no-build-isolation</code>, the install fails immediately with "No module named 'torch'". And it compiles from source — eight to nine minutes is normal. gsplat compiles its CUDA kernels at the first render: the first run pays about 80 seconds of JIT compilation, the next ones do not.</p>
+
+<h2>3. The measured run</h2>
+<p>The model weights (2.9 GB) come from Hugging Face:</p>
+<pre><code>.venv/bin/python -c "from huggingface_hub import snapshot_download; snapshot_download('lhjiang/anysplat')"</code></pre>
+<p>Then inference on the repository's 12 sample photos (an office scene, <code>examples/vrnerf/riverview</code>), card 0 only:</p>
+<pre><code>CUDA_VISIBLE_DEVICES=0 .venv/bin/python run_measured.py   # our script, see box</code></pre>
+<p>Raw log, RTX 5080:</p>
+<pre><code>model_load_s=71.2   vram_after_load_mib=2811
+inference_s=2.1     vram_peak_mib=6985   n_gaussians=1561839
+video_render_s=79.9 ply_mb=101.3</code></pre>
+<p>The network first produces 2.4 million "per-pixel" Gaussians, reduced to 1.56 million by differentiable voxelisation. You walk away with <code>gaussians.ply</code> (101 MB), <code>rgb.mp4</code> and <code>depth.mp4</code>: an orbit interpolated between the predicted poses. Open the .ply in a splat viewer or in ComfyUI (native preview since 0.39) to check the geometry holds up.</p>
+
+<h2>4. The question that matters: which card?</h2>
+<p>The very freedzhost question. Our measured peak: <strong>7.0 GiB</strong> of VRAM for 12 views at 448×448. It fits an 8 GB card <em>if nothing else is using it</em> — here, card 0 had only ~7.5 GiB free during the test, and it passed with half a gigabyte of margin. More views means more memory, roughly linearly on the encoder side. A 12 GB card is comfortable; below 8 GB, cut the number of photos.</p>
+<p class="note">Lived here: during our measurements, another process came back to occupy the card mid-run and a neighbouring job (InfiniSplat) died OOM with 47 MiB free. On a shared card, just retry — the run costs 2 seconds once the model is loaded.</p>
+
+<h2>5. The Gradio demo, and your own photos</h2>
+<p>The repository ships <code>demo_gradio.py</code> if you prefer an interface: upload photos or a video, interactive render. For your own images, point the script at a folder of JPEGs — photos are re-centred and resized to 448×448, no calibration to provide. Orbit the object, 12 to 30 views, avoid backlighting. We verified on the project's sample data; phone photos work the better the more they overlap.</p>
+
+<h2>Pitfalls</h2>
+<p class="note">Do not follow the README to the letter on an RTX 50: torch 2.2/cu121 does not know sm_120. Take a recent torch (ours: 2.14+cu130) and leave the era's pins aside — xformers 0.0.35 and gsplat 1.5.3 work without changing a line of code.</p>
+<p class="note">The repository has two names (OpenRobotLab and InternRobotics) and two fanciful lines in requirements.txt (<code>video</code>, <code>vrnerf</code> — directory names). pip would refuse them; our adapted file skips them.</p>
+
+<h2>Going further</h2>
+<p>In the <a href="/en/formation.html">course</a>, the "3D capture" module digs into what this tutorial skims: how to pick the view count for a scene, read a Gaussian .ply in a DCC, and chain the splat towards a usable mesh in a video pipeline.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/InternRobotics/AnySplat" rel="noopener">AnySplat, official repository</a></li><li><a href="https://arxiv.org/pdf/2505.23716" rel="noopener">AnySplat: Feed-forward 3D Gaussian Splatting from Unconstrained Views (SIGGRAPH Asia 2025)</a></li><li><a href="https://huggingface.co/lhjiang/anysplat" rel="noopener">Model weights (2.9 GB)</a></li></ul>

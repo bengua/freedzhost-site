@@ -1,0 +1,50 @@
+<!-- {"title": "De tes photos à la 3D : AnySplat en local", "summary": "Une douzaine de photos d'un objet ou d'une pièce, sans positions d'appareil connues, et un modèle feed-forward en sort un nuage de gaussiennes 3D : mesuré à 2,1 s d'inférence et 7,0 Gio de VRAM sur une RTX 5080. L'installation réelle sur une carte récente, avec les deux pièges que le README ne mentionne pas.", "order": 89, "series": "create", "level": "intermediate", "time": "45 min + téléchargements", "requires": ["comfyui-studio", "gpu-grid"]} -->
+<p class="lead">AnySplat prend des photos ordinaires — sans points de calibration, sans positions d'appareil — et produit d'un seul passage dans un réseau une scène 3D faite de « gaussiennes » : des millions de petites taches colorées orientées qui, projetées, redonnent la scène sous n'importe quel angle. Pas d'optimisation par image comme le gaussian splatting classique, pas de COLMAP. Des photos, un modèle, une réponse.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Un fichier <code>.ply</code> que les visionneuses de splats et ComfyUI savent ouvrir, plus une vidéo de survol, à partir d'une douzaine de photos de téléphone. Mesuré ici : 2,1 secondes d'inférence pour 12 vues, 7,0 Gio de VRAM au pic, 1,56 million de gaussiennes.</p>
+
+<h2>1. Ce qu'il faut comprendre avant d'installer</h2>
+<p>Le splatting classique (3DGS) part de photos <em>avec</em> leurs positions d'appareil, calculées par COLMAP — lent, capricieux — puis optimise les gaussiennes pendant des dizaines de minutes. AnySplat a appris à faire les deux d'un coup : un encodeur géométrique (dérivé de VGGT) prédit les poses et la profondeur, des têtes de décodage crachent directement les paramètres des gaussiennes. C'est pour ça que c'est rapide : le travail a été payé à l'entraînement, pas à l'inférence.</p>
+{{diagram:splat}}
+<p>Conséquence pratique : la qualité dépend du modèle, pas de votre patience. Si les photos sont floues ou mal réparties, aucun réglage ne rattrapera. Prenez votre objet sous tous les angles, lumière stable, sans reflets francs.</p>
+
+<h2>2. L'installation qui marche vraiment (carte récente, toolkit récent)</h2>
+<p>Le README demande PyTorch 2.2 et CUDA 12.1. Sur une carte Blackwell (RTX 50xx) ces wheels n'ont tout simplement pas de code pour votre carte. Voici ce que nous avons exécuté, avec <code>uv</code> et Python 3.12 :</p>
+<pre><code>git clone --depth 1 https://github.com/InternRobotics/AnySplat.git ~/anysplat &amp;&amp; cd ~/anysplat
+uv venv --python 3.12 .venv
+uv pip install --python .venv/bin/python torch==2.14.0 torchvision==0.29.0 \
+  --index-url https://download.pytorch.org/whl/cu130
+# requirements.txt moins les lignes inutilisables : les pins xformers/torch_scatter,
+# le wheel gsplat pt22cu121-cp310, pytorch3d (pertes d'entraînement seulement)
+uv pip install --python .venv/bin/python -r reqs-adapted.txt     # 14 s chez nous
+uv pip install --python .venv/bin/python xformers gsplat scikit-video
+uv pip install --python .venv/bin/python --no-build-isolation torch-scatter  # 8 min 44, compilation nvcc</code></pre>
+<p class="note">Deux pièges mesurés. <code>torch-scatter</code> ne déclare pas torch comme dépendance de build : sans <code>--no-build-isolation</code>, l'install échoue immédiatement avec « No module named 'torch' ». Et il se compile depuis les sources — huit à neuf minutes, c'est normal. gsplat, lui, compile ses kernels CUDA au premier rendu : la première exécution paie environ 80 secondes de compilation JIT, les suivantes non.</p>
+
+<h2>3. Le run mesuré</h2>
+<p>Le poids du modèle (2,9 Go) vient de Hugging Face :</p>
+<pre><code>.venv/bin/python -c "from huggingface_hub import snapshot_download; snapshot_download('lhjiang/anysplat')"</code></pre>
+<p>Puis l'inférence sur les 12 photos d'exemple du dépôt (une scène de bureau, <code>examples/vrnerf/riverview</code>), carte 0 seule :</p>
+<pre><code>CUDA_VISIBLE_DEVICES=0 .venv/bin/python run_measured.py   # notre script, voir encadré</code></pre>
+<p>Résultat brut du journal, carte RTX 5080 :</p>
+<pre><code>model_load_s=71.2   vram_after_load_mib=2811
+inference_s=2.1     vram_peak_mib=6985   n_gaussians=1561839
+video_render_s=79.9 ply_mb=101.3</code></pre>
+<p>Le réseau produit d'abord 2,4 millions de gaussiennes « par pixel », réduites à 1,56 million par voxelisation différentiable. Vous repartez avec <code>gaussians.ply</code> (101 Mo), <code>rgb.mp4</code> et <code>depth.mp4</code> : un survol interpolé entre les poses prédites. Ouvrez le .ply dans une visionneuse de splats ou dans ComfyUI (aperçu natif depuis la 0.39) pour vérifier que la géométrie tient debout.</p>
+
+<h2>4. La question qui compte : quelle carte ?</h2>
+<p>C'est la question freedzhost par excellence. Notre pic mesuré : <strong>7,0 Gio</strong> de VRAM pour 12 vues en 448×448. Ça tient dans une carte de 8 Go <em>si rien d'autre ne l'occupe</em> — ici, la carte 0 n'avait que ~7,5 Gio de libre pendant le test, et ça passait avec un demi-gigaoctet de marge. Plus de vues = plus de mémoire, à peu près linéairement côté encodeur. Une carte de 12 Go vous met à l'aise ; en dessous de 8 Go, réduisez le nombre de photos.</p>
+<p class="note">Vécu : pendant nos mesures, un autre processus est revenu occuper la carte en cours de route et un run voisin (InfiniSplat) est mort en OOM avec 47 Mio libres. Sur une carte partagée, relancez simplement — le run coûte 2 secondes une fois le modèle chargé.</p>
+
+<h2>5. La démo Gradio, et vos propres photos</h2>
+<p>Le dépôt embarque <code>demo_gradio.py</code> si vous préférez une interface : upload de photos ou d'une vidéo, rendu interactif. Pour vos propres images, pointez le script vers un dossier de JPEG — les photos sont recentrées et mises à 448×448, aucune calibration à donner. Tournez autour de l'objet, 12 à 30 vues, évitez le contre-jour. On a vérifié sur les données d'exemple du projet ; vos photos de téléphone marchent d'autant mieux qu'elles se recouvrent.</p>
+
+<h2>Pièges</h2>
+<p class="note">Ne suivez pas le README à la lettre sur une RTX 50 : torch 2.2/cu121 ne connaît pas sm_120. Prenez un torch récent (nous : 2.14+cu130) et laissez les pins d'époque de côté — xformers 0.0.35 et gsplat 1.5.3 fonctionnent sans modifier une ligne du code.</p>
+<p class="note">Le dépôt a deux noms (OpenRobotLab et InternRobotics) et deux lignes fantaisistes dans requirements.txt (<code>video</code>, <code>vrnerf</code>, des noms de dossiers). pip les refuserait ; notre fichier adapté les écarte.</p>
+
+<h2>Pour aller plus loin</h2>
+<p>Dans la <a href="/fr/formation.html">formation</a>, le module « capture 3D » creuse ce que ce tuto survole : comment choisir le nombre de vues en fonction de la scène, lire un .ply de gaussiennes dans un DCC, et enchaîner le splat vers un mesh exploitable dans un pipeline vidéo.</p>
+
+<h2>Sources</h2>
+<ul class="sources"><li><a href="https://github.com/InternRobotics/AnySplat" rel="noopener">AnySplat, dépôt officiel</a></li><li><a href="https://arxiv.org/pdf/2505.23716" rel="noopener">AnySplat: Feed-forward 3D Gaussian Splatting from Unconstrained Views (SIGGRAPH Asia 2025)</a></li><li><a href="https://huggingface.co/lhjiang/anysplat" rel="noopener">Poids du modèle (2,9 Go)</a></li></ul>
