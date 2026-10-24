@@ -745,6 +745,253 @@ def hero(lang):
             f'<script defer src="/hero.js"></script>\n')
 
 
+# The home arc: five scroll-driven scenes between the hero and the editorial
+# content (bill, den, swarm, proof, your turn). The DOM below is the finished,
+# static composition — readable without script and under reduced motion;
+# arc.js turns it into the live, interactive version.
+ARC_SAAS = (  # (rented service, its home-grown twin, the tutorial that builds it)
+    ("Google Photos", "Immich", "homelab-immich"),
+    ("Google Drive", "Nextcloud", "homelab-office"),
+    ("1Password", "Vaultwarden", "homelab-vaultwarden"),
+    ("Zapier", "n8n", "homelab-n8n"),
+    ("GitHub", "Forgejo", "homelab-forgejo"),
+    ("Google Search", "SearXNG", "homelab-searxng"),
+    ("Pocket", "Karakeep", "homelab-karakeep"),
+    ("Todoist", "Vikunja", "homelab-vikunja"),
+    ("Adobe Scan", "Paperless-ngx", "homelab-paperless"),
+    ("Sentry", "GlitchTip", "homelab-glitchtip"),
+    ("Pushover", "ntfy", "homelab-ntfy"),
+    ("ChatGPT Plus", "llama.cpp", "first-model"),
+)
+# The den, in build order: (key, tutorial, desktop x, y, mobile x, y, links to earlier nodes).
+ARC_NODES = (
+    ("box", "homelab-proxy", .06, .08, .14, .0, ()),
+    ("proxy", "homelab-proxy", .28, .20, .50, .0, ("box",)),
+    ("proxmox", "homelab-proxmox", .46, .46, .50, .25, ("proxy",)),
+    ("vault", "homelab-vaultwarden", .64, .06, .86, .0, ("proxmox",)),
+    ("immich", "homelab-immich", .92, .18, .86, .25, ("proxmox",)),
+    ("forgejo", "homelab-forgejo", .74, .38, .14, .25, ("proxmox",)),
+    ("n8n", "homelab-n8n", .96, .56, .86, .5, ("proxmox",)),
+    ("backups", "homelab-backups", .24, .74, .14, .5, ("proxmox",)),
+    ("tailscale", "tailscale-backbone", .06, .50, .50, .5, ("proxmox", "box")),
+    ("gpu", "headless-gaming-node", .94, .96, .86, 1.0, ()),
+    ("turnstile", "turnstile", .76, .86, .86, .75, ("gpu",)),
+    ("gateway", "model-gateway", .54, .72, .50, .75, ("turnstile", "n8n", "tailscale", "forgejo")),
+    ("rag", "journal-rag", .34, .98, .14, .75, ("gateway",)),
+)
+ARC_CREW = ("inari", "zen", "merica", "rebel", "grok", "mistral", "cerebras", "artiste", "militaire")
+ARC_LANES = (("4B", 139.8, "8/8", "lane_4b"), ("9B", 61.7, "7/8", "lane_9b"), ("27B", 28.6, "8/8", "lane_27b"))
+ARC = {
+    "en": {
+        "label": "The story, in five scenes",
+        "k1": "01 · The bill", "h1": "Twelve subscriptions rent your own life back to you.",
+        "p1": "Photos, passwords, notes, code: each one lives on someone else's server and bills you every month. "
+              "Scroll, or tap a card, and set it free.",
+        "freed": "Freed", "monthly": "monthly", "holds": ("your photos", "your files", "your passwords", "your automations", "your code",
+                                    "your searches", "your reading", "your to-dos", "your papers", "your crashes",
+                                    "your alerts", "your questions"),
+        "k2": "02 · The den", "h2": "One machine under the desk. The rest is wiring.",
+        "p2": "Scroll to build it. Tap a piece to see what it does.",
+        "hint": "Tap a piece of the den.", "read": "Read the tutorial",
+        "nodes": {
+            "box": ("The internet box", "Forwards only ports 80 and 443, and only to one place: the proxy."),
+            "proxy": ("Reverse proxy", "One HTTPS entrance: it reads the name asked for and hands the request to the right service."),
+            "proxmox": ("Proxmox", "One machine, many isolated servers, snapshots and backups. The base under every service."),
+            "vault": ("Vaultwarden", "Your passwords on your own server, which never sees them in clear."),
+            "immich": ("Immich", "Phone photos backed up at home, with faces, maps and search."),
+            "forgejo": ("Forgejo", "The code forge: nothing reaches main without a green check, agents included."),
+            "n8n": ("n8n", "Workflows without a meter: rules first, a small local judge, a hosted model last."),
+            "backups": ("Backups", "Two copies, two machines; the second one is pulled with a read-only key, never pushed."),
+            "tailscale": ("Tailscale", "The private network: administration, models and agents travel here, never on the open internet."),
+            "gpu": ("The GPU tower", "A gaming PC turned AI server, two 16 GB cards, and it still plays."),
+            "turnstile": ("turnstile", "One model per card, and a service that reports what really runs, not what a file claims."),
+            "gateway": ("Model gateway", "One address for every model, local or cloud, with names that never lie."),
+            "rag": ("The journal", "Every problem solved is written down and indexed, so agents ask before they guess."),
+        },
+        "k3": "03 · The swarm", "h3": "Agents with a face, around one fire.",
+        "p3": "Each persona is a room of models: local, cloud, free tier. Drag the circle, tap one to say hello.",
+        "hello": "Say hello to",
+        "k4": "04 · The proof", "h4": "Measured here. Not quoted.",
+        "p4": "Three models wrote code on our machine. Here is the same text, replayed at their measured speed. "
+              "Drag across the lanes to scrub time.",
+        "tps": "tokens/s", "tokens": "tokens", "time": "Time", "tests": "tests",
+        "lane_4b": "real work: 1 pull request, 342 lines, 2 bugs",
+        "lane_9b": "real work: 2 clean pull requests",
+        "lane_27b": "real work: 3 timeouts, zero lines",
+        "verdict": "The tests favoured the 4B; the real work chose the 9B.",
+        "facts": (("55.6", "tokens/s", "a 177-billion-parameter mixture of experts, on two 16 GB cards and RAM"),
+                  ("50×", "faster", "one agent turn with the prompt cache back on: 112 s down to 2 s"),
+                  ("0 €", "budget", "for the 34 cloud models added next to the local slots")),
+        "method": "Measured on our own machines, usually in a single run, with speeds reported by the server itself: "
+                  "orders of magnitude on this hardware, not guarantees on yours. The text is replayed at one token "
+                  "for four characters. Sources:",
+        "src": (("model-bench", "the model bench"), ("big-moe-two-cards", "a big MoE on two cards"),
+                ("free-models-routes", "free model routes")),
+        "k5": "05 · Your turn", "h5": "Build your own den.",
+        "p5": "Every twin you freed has its tutorial: free, no ads, no trackers. Start small, measure, keep what works.",
+        "freed_n": "You freed {n} of 12 subscriptions.",
+        "go": "Start with the first path", "join": "Join the den",
+    },
+    "fr": {
+        "label": "L'histoire, en cinq scènes",
+        "k1": "01 · La facture", "h1": "Douze abonnements te louent ta propre vie.",
+        "p1": "Photos, mots de passe, notes, code : chacun vit sur le serveur d'un autre et te facture chaque mois. "
+              "Fais défiler, ou touche une carte, et libère-la.",
+        "freed": "Libérés", "monthly": "mensuel", "holds": ("tes photos", "tes fichiers", "tes mots de passe", "tes automatisations", "ton code",
+                                      "tes recherches", "tes lectures", "tes tâches", "tes papiers", "tes plantages",
+                                      "tes alertes", "tes questions"),
+        "k2": "02 · Le terrier", "h2": "Une machine sous le bureau. Le reste, c'est du câblage.",
+        "p2": "Fais défiler pour le monter. Touche une pièce pour voir ce qu'elle fait.",
+        "hint": "Touche une pièce du terrier.", "read": "Lire le tuto",
+        "nodes": {
+            "box": ("La box", "Ne laisse passer que les ports 80 et 443, et vers un seul endroit : le proxy."),
+            "proxy": ("Proxy inverse", "Une seule entrée HTTPS : il lit le nom demandé et passe la requête au bon service."),
+            "proxmox": ("Proxmox", "Une machine, plein de serveurs isolés, des instantanés et des sauvegardes. La base de tout."),
+            "vault": ("Vaultwarden", "Tes mots de passe sur ton propre serveur, qui ne les voit jamais en clair."),
+            "immich": ("Immich", "Les photos du téléphone sauvegardées à la maison, avec visages, cartes et recherche."),
+            "forgejo": ("Forgejo", "La forge de code : rien n'arrive sur main sans coche verte, agents compris."),
+            "n8n": ("n8n", "Des workflows sans compteur : règles d'abord, un petit juge local, un modèle hébergé en dernier."),
+            "backups": ("Sauvegardes", "Deux copies, deux machines ; la seconde est tirée avec une clé en lecture seule, jamais poussée."),
+            "tailscale": ("Tailscale", "Le réseau privé : administration, modèles et agents passent ici, jamais sur l'Internet ouvert."),
+            "gpu": ("La tour GPU", "Un PC de jeu devenu serveur d'IA, deux cartes de 16 Go, et il joue toujours."),
+            "turnstile": ("turnstile", "Un modèle par carte, et un service qui dit ce qui tourne vraiment, pas ce qu'un fichier prétend."),
+            "gateway": ("Passerelle de modèles", "Une adresse pour tous les modèles, locaux ou cloud, avec des noms qui ne mentent pas."),
+            "rag": ("Le journal", "Chaque problème résolu est écrit et indexé : les agents le consultent avant de deviner."),
+        },
+        "k3": "03 · L'essaim", "h3": "Des agents avec un visage, autour d'un même feu.",
+        "p3": "Chaque persona est une salle de modèles : locale, cloud, gratuite. Fais tourner le cercle, touches-en un pour le saluer.",
+        "hello": "Saluer",
+        "k4": "04 · La preuve", "h4": "Mesuré ici. Pas recopié.",
+        "p4": "Trois modèles ont écrit du code sur notre machine. Voici le même texte, rejoué à leur vitesse mesurée. "
+              "Glisse sur les pistes pour remonter le temps.",
+        "tps": "jetons/s", "tokens": "jetons", "time": "Temps", "tests": "tests",
+        "lane_4b": "vrai travail : 1 demande de fusion, 342 lignes, 2 bugs",
+        "lane_9b": "vrai travail : 2 demandes de fusion propres",
+        "lane_27b": "vrai travail : 3 délais dépassés, zéro ligne",
+        "verdict": "Les tests favorisaient le 4B ; le vrai travail a choisi le 9B.",
+        "facts": (("55,6", "jetons/s", "un mélange d'experts de 177 milliards de paramètres, sur deux cartes de 16 Go et la RAM"),
+                  ("50×", "plus vite", "un tour d'agent avec le cache de prompt rétabli : de 112 s à 2 s"),
+                  ("0 €", "de budget", "pour les 34 modèles cloud ajoutés à côté des slots locaux")),
+        "method": "Mesurés sur nos propres machines, en général en un seul passage, vitesses relevées par le serveur "
+                  "lui-même : des ordres de grandeur sur ce matériel, pas des garanties sur le vôtre. Le texte est "
+                  "rejoué à un jeton pour quatre caractères. Sources :",
+        "src": (("model-bench", "le banc de modèles"), ("big-moe-two-cards", "un gros MoE sur deux cartes"),
+                ("free-models-routes", "les routes de modèles gratuits")),
+        "k5": "05 · À toi", "h5": "Monte ton propre terrier.",
+        "p5": "Chaque jumeau libéré a son tuto : gratuit, sans pub, sans traceur. Commence petit, mesure, garde ce qui marche.",
+        "freed_n": "Tu as libéré {n} abonnements sur 12.",
+        "go": "Commence par le premier parcours", "join": "Rejoins le terrier",
+    },
+}
+ARC_CODE = (
+    'def backup(paths, dest):\n'
+    '    """Pull, never push: this host cannot erase the copy."""\n'
+    '    for path in paths:\n'
+    '        run(["rsync", "-a", "--link-dest", last(dest), path, dest])\n'
+    '    if not verify(dest):\n'
+    '        notify("backup failed", priority="high")\n'
+    '        return False\n'
+    '    prune(dest, keep_daily=7, keep_weekly=4)\n'
+    '    return True\n\n'
+)
+
+
+def arc_head(t, n, extra=""):
+    return (f'<header class="arc-copy"><p class="arc-kicker">{html.escape(t["k" + n])}</p>'
+            f'<h2 class="arc-title" id="arc-h{n}">{html.escape(t["h" + n])}</h2>'
+            f'<p class="arc-lead">{html.escape(t["p" + n])}</p>{extra}</header>')
+
+
+def arc(lang):
+    """The five-scene arc of the home page (see the comment above ARC_SAAS)."""
+    t = ARC[lang]
+    e = html.escape
+    cards = "".join(
+        f'<li class="arc-card" style="--i:{i}"><button type="button" class="arc-saas" aria-pressed="false">'
+        f'<span class="arc-saas-name">{e(name)}</span><span class="arc-saas-holds">{e(t["holds"][i])}</span></button>'
+        f'<a class="arc-twin" href="{url(lang, slug)}">{e(twin)}</a></li>'
+        for i, (name, twin, slug) in enumerate(ARC_SAAS))
+    s1 = ('<section class="arc-scene arc-bill" data-scene="bill" aria-labelledby="arc-h1"><div class="arc-stage">'
+          '<canvas class="arc-canvas" aria-hidden="true"></canvas>'
+          + arc_head(t, "1", f'<p class="arc-count" aria-live="polite">{e(t["freed"])} '
+                             f'<b class="arc-freed">{len(ARC_SAAS)}</b> / {len(ARC_SAAS)}</p>')
+          + f'<ul class="arc-cards" data-monthly="{e(t["monthly"])}">{cards}</ul></div></section>')
+    nodes = "".join(
+        f'<li class="arc-node" style="--x:{x};--y:{y};--mx:{mx};--my:{my}" data-key="{key}" data-links="{" ".join(links)}">'
+        f'<button type="button" class="arc-node-btn" data-href="{url(lang, slug)}" aria-expanded="false" aria-controls="arc-fiche">'
+        f'<span class="arc-dot" aria-hidden="true"></span><b>{e(t["nodes"][key][0])}</b>'
+        f'<span class="arc-say">{e(t["nodes"][key][1])}</span></button></li>'
+        for key, slug, x, y, mx, my, links in ARC_NODES)
+    s2 = ('<section class="arc-scene arc-den" data-scene="den" aria-labelledby="arc-h2"><div class="arc-stage">'
+          '<canvas class="arc-canvas" aria-hidden="true"></canvas>'
+          + arc_head(t, "2")
+          + f'<ul class="arc-graph">{nodes}</ul>'
+          f'<div class="arc-fiche" id="arc-fiche" role="status" data-read="{e(t["read"])}"><p class="arc-fiche-hint">{e(t["hint"])}</p></div>'
+          f'</div></section>')
+    tags = dict(LANGS[lang]["hero_team"])
+    crew = "".join(
+        f'<li class="arc-mate" style="--i:{i}" data-name="{name}"><button type="button" class="arc-mate-btn" '
+        f'aria-label="{e(t["hello"])} {e(name.capitalize())} — {e(tags[name])}">'
+        f'<span class="arc-still" aria-hidden="true"></span></button>'
+        f'<span class="arc-tag" aria-hidden="true"><b>{e(name.capitalize())}</b> {e(tags[name])}</span></li>'
+        for i, name in enumerate(ARC_CREW))
+    s3 = ('<section class="arc-scene arc-swarm" data-scene="swarm" aria-labelledby="arc-h3"><div class="arc-stage">'
+          '<canvas class="arc-canvas" aria-hidden="true"></canvas>'
+          + arc_head(t, "3")
+          + f'<ul class="arc-ring">{crew}</ul>'
+          f'<video class="arc-wave" muted playsinline preload="none" aria-hidden="true"></video>'
+          f'</div></section>')
+    snap = 3.0  # the static composition shows the lanes three seconds in
+    lanes = "".join(
+        f'<li class="arc-lane{" is-chosen" if size == "9B" else ""}" data-rate="{rate}">'
+        f'<p class="arc-lane-head"><span class="arc-model">{size} · Q{"6" if size == "27B" else "8"}</span>'
+        f'<span class="arc-rate"><b class="arc-num" data-to="{rate}" data-dec="1">{fmt_num(rate, lang)}</b> {e(t["tps"])}</span></p>'
+        f'<pre class="arc-type" aria-hidden="true">{e(arc_typed(rate * snap))}</pre>'
+        f'<p class="arc-lane-foot"><span class="arc-made"><b class="arc-tok">{round(rate * snap)}</b> {e(t["tokens"])}</span>'
+        f'<span>{tests} {e(t["tests"])} · {e(t[note])}</span></p></li>'
+        for size, rate, tests, note in ARC_LANES)
+    facts = "".join(
+        f'<li><b class="arc-big">{e(big)}</b><span class="arc-unit">{e(unit)}</span><span>{e(says)}</span></li>'
+        for big, unit, says in t["facts"])
+    sources = ", ".join(f'<a href="{url(lang, slug)}">{e(name)}</a>' for slug, name in t["src"])
+    s4 = ('<section class="arc-scene arc-proof" data-scene="proof" aria-labelledby="arc-h4"><div class="arc-stage">'
+          '<canvas class="arc-canvas" aria-hidden="true"></canvas>'
+          + arc_head(t, "4")
+          + f'<div class="arc-bench"><ol class="arc-lanes">{lanes}</ol>'
+          f'<label class="arc-scrub"><span>{e(t["time"])} <output class="arc-t">{fmt_num(snap, lang)} s</output></span>'
+          f'<input type="range" min="0" max="10" step="0.1" value="{snap}"></label>'
+          f'<p class="arc-verdict">{e(t["verdict"])}</p></div>'
+          f'<ul class="arc-facts">{facts}</ul>'
+          f'<p class="arc-method">{e(t["method"])} {sources}.</p>'
+          f'<script type="application/json" class="arc-code">{json.dumps(ARC_CODE)}</script>'
+          f'</div></section>')
+    s5 = (f'<section class="arc-scene arc-end" data-scene="end" aria-labelledby="arc-h5"><div class="arc-stage">'
+          f'<canvas class="arc-canvas" aria-hidden="true"></canvas>'
+          f'<div class="arc-copy"><span class="arc-host" aria-hidden="true"><span class="arc-still" style="--i:0"></span></span>'
+          f'<p class="arc-kicker">{e(t["k5"])}</p>'
+          f'<h2 class="arc-title" id="arc-h5">{e(t["h5"])}</h2>'
+          f'<p class="arc-recap" data-say="{e(t["freed_n"])}" hidden></p>'
+          f'<p class="arc-lead">{e(t["p5"])}</p>'
+          f'<p class="arc-ctas"><a class="cta" href="{url(lang, "parcours-model-7b")}">{e(t["go"])}</a>'
+          f'<a class="arc-ghost" href="{url(lang, "formation")}#membres">{e(t["join"])}</a></p></div>'
+          f'</div></section>')
+    return (f'<div class="arc" aria-label="{e(t["label"])}" role="region" '
+            f'style="--sprite:url(/media/arc-swarm.webp)">{s1}{s2}{s3}{s4}{s5}</div>\n'
+            f'<script defer src="/arc.js"></script>\n')
+
+
+def fmt_num(value, lang):
+    text = f"{value:.1f}"
+    return text.replace(".", ",") if lang == "fr" else text
+
+
+def arc_typed(tokens):
+    """What a lane has written after `tokens` tokens, at four characters per token (the tail that fits)."""
+    n = int(tokens * 4)
+    text = (ARC_CODE * (n // len(ARC_CODE) + 1))[:n]
+    return "\n".join(text.split("\n")[-5:])
+
+
 def layout(lang, slug, title, body, description, side="", jsonld=None):
     t = LANGS[lang]
     other = OTHER[lang]
@@ -903,7 +1150,7 @@ def build(out):
             body = body.replace("{{articles}}", cards)
             body = body.replace("{{profil}}", profil_html(lang, pages))
             if slug == "index":
-                body = hero(lang) + body
+                body = hero(lang) + arc(lang) + body
             if meta.get("layout") == "parcours":
                 body = (f'<article class="path-page">\n<h1>{html.escape(meta["title"])}</h1>\n{body}'
                         f'{parcours_html(lang, meta, pages)}</article>')

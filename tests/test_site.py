@@ -266,3 +266,42 @@ def test_profile_page_renders_in_both_languages(out):
         for hook in ("data-score", "data-xp", "data-badge=", "data-tips-step=", "data-export", "data-import", "<noscript>"):
             assert hook in text, (page, hook)
         assert text.count("data-level=") == 8, page
+
+
+def test_home_arc_has_five_scenes_in_both_languages(out):
+    for home in (out / "index.html", out / "fr" / "index.html"):
+        text = home.read_text(encoding="utf-8")
+        assert text.index('class="hero"') < text.index('class="arc"') < text.index('class="revue"')
+        for scene in ("bill", "den", "swarm", "proof", "end"):
+            assert f'data-scene="{scene}"' in text
+        assert text.count('class="arc-card"') == len(site_build.ARC_SAAS)
+        assert text.count('class="arc-node"') == len(site_build.ARC_NODES)
+        assert '<script defer src="/arc.js"></script>' in text
+        assert "parcours-model-7b.html" in text and "formation.html#membres" in text
+    assert "arc-scene" not in (out / "about.html").read_text(encoding="utf-8")
+
+
+def test_arc_figures_are_the_published_ones(out):
+    # The proof scene may only quote figures already published in the articles it cites.
+    bench = (out / "model-bench.html").read_text(encoding="utf-8")
+    moe = (out / "big-moe-two-cards.html").read_text(encoding="utf-8")
+    for _, rate, _, _ in site_build.ARC_LANES:
+        assert f"{rate}" in bench
+    assert "55.6" in moe and "112 seconds" in moe
+
+
+def test_arc_links_point_to_real_pages(out):
+    slugs = {p.stem for p in out.glob("*.html")}
+    for _, _, slug in site_build.ARC_SAAS:
+        assert slug in slugs
+    for _, slug, *_ in site_build.ARC_NODES:
+        assert slug in slugs
+    keys = {node[0] for node in site_build.ARC_NODES}
+    for node in site_build.ARC_NODES:
+        assert set(node[-1]) <= keys
+
+
+def test_arc_stays_within_its_weight_budget():
+    static = site_build.ROOT / "static"
+    weight = (static / "arc.js").stat().st_size + (static / "media" / "arc-swarm.webp").stat().st_size
+    assert weight < 60_000, f"arc.js + sprite weigh {weight} bytes"

@@ -39,7 +39,7 @@
   }, { rootMargin: "0px 0px -8% 0px", threshold: 0.01 });
   for (var i = 0; i < targets.length; i++) {
     var el = targets[i];
-    if (seen.has(el)) continue;
+    if (seen.has(el) || el.closest(".arc")) continue; // the home arc stages its own entrances
     seen.add(el);
     el.classList.add("will-reveal");
     io.observe(el);

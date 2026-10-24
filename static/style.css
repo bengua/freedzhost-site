@@ -553,3 +553,223 @@ body.about .lead::first-letter { font-family: var(--font-display); font-size: 3.
   .hero-embers { display: none; }
   .den { background: radial-gradient(500px circle at 78% 12%, rgba(224, 122, 47, .06), transparent 70%); }
 }
+
+/* ---- Home arc: five scenes between the hero and the editorial (arc.js) ----
+   The default rules are the static composition (no script, reduced motion);
+   .arc.is-live turns each scene into a tall track with a sticky stage. */
+body.home { overflow-x: clip; }
+.arc { --rail: 0px; --w: calc(var(--vw, 100vw) - var(--rail));
+  position: relative; width: var(--w); margin-left: calc(50% - var(--w) / 2);
+  counter-reset: scene; color: var(--text-1); }
+@media (min-width: 1024px) { .arc { --rail: 240px; } }
+.arc-scene { position: relative; counter-increment: scene; border-top: 1px solid var(--line); }
+.arc-stage { position: relative; padding: var(--pad-section) clamp(20px, 5vw, 72px); overflow: hidden; }
+.arc-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.arc-copy { position: relative; z-index: 3; max-width: 32rem; }
+.arc-copy::before { /* the scene number, outlined, manga-chapter size */
+  content: counter(scene, decimal-leading-zero); position: absolute; z-index: -1; left: -.06em; top: -.42em;
+  font: 600 clamp(7rem, 16vw, 15rem)/1 var(--font-display); letter-spacing: -.04em;
+  color: transparent; -webkit-text-stroke: 1px rgba(224, 122, 47, .22); pointer-events: none; }
+.arc-kicker { margin: 0 0 14px; font: 600 var(--s12)/1.4 var(--font-mono); letter-spacing: .22em;
+  text-transform: uppercase; color: var(--accent); }
+body.home .arc h2.arc-title { margin: 0 0 18px; padding: 0; border: 0; font-size: clamp(2.1rem, 4.4vw, 4rem);
+  line-height: 1.02; letter-spacing: -.025em; text-wrap: balance; }
+body.home .arc h2.arc-title::before { display: none; }
+.arc-lead { margin: 0; max-width: 34ch; font-size: var(--s20); line-height: 1.5; color: var(--text-2); }
+.arc-count { margin: 22px 0 0; font: 600 var(--s14)/1 var(--font-mono); letter-spacing: .12em;
+  text-transform: uppercase; color: var(--text-2); }
+.arc-count b { display: inline-block; min-width: 2ch; font: 600 var(--s40)/1 var(--font-display);
+  letter-spacing: -.02em; color: var(--accent); vertical-align: -.12em; text-align: right; }
+
+/* 1 · The bill — static: a grid of rented services, each struck and paired with its twin. */
+.arc-cards { position: relative; z-index: 2; list-style: none; margin: 40px 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.arc-card { position: relative; }
+.arc-saas { display: grid; gap: 2px; width: 100%; min-height: 64px; padding: 12px 16px; text-align: left;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; color: var(--text); font: inherit; cursor: pointer; }
+.arc-saas-name { font-weight: 600; text-decoration: line-through var(--accent) 2px; }
+.arc-saas-holds { font-size: var(--s14); color: var(--text-2); }
+.arc-twin { display: inline-block; margin-top: 6px; font: italic 600 var(--s16)/1.2 var(--font-display); color: var(--accent); text-decoration: none; }
+.arc-twin:hover { text-decoration: underline; text-underline-offset: 4px; }
+.arc-twin::before { content: "→ "; font-style: normal; }
+
+/* 2 · The den — nodes sit on a map; the canvas draws the wiring. */
+.arc-graph { position: relative; z-index: 2; list-style: none; margin: 40px 0 0; padding: 0; height: 520px; }
+.arc-node { position: absolute; left: calc(var(--x) * 100%); top: calc(var(--y) * 100%);
+  transform: translate(-50%, -14px); }
+.arc-node-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 44px; min-height: 44px;
+  padding: 4px 6px; background: none; border: 0; color: var(--text-1); font: inherit; cursor: pointer; }
+.arc-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--bg);
+  border: 2px solid var(--accent); box-shadow: 0 0 0 4px rgba(224, 122, 47, .12);
+  transition: transform var(--t-micro) var(--ease), background var(--t-micro) var(--ease); }
+.arc-node-btn b { padding: 3px 7px; border-radius: 4px; background: rgba(18, 16, 14, .82);
+  font: 600 var(--s12)/1.2 var(--font-mono); letter-spacing: .06em; text-transform: uppercase;
+  white-space: nowrap; color: var(--text-2); transition: color var(--t-micro) var(--ease); }
+.arc-node.is-near b { color: var(--text-1); }
+.arc-node.is-near .arc-dot { background: rgba(224, 122, 47, .45); }
+.arc-node-btn:hover .arc-dot, .arc-node.is-open .arc-dot { transform: scale(1.35); background: var(--accent); }
+.arc-node-btn:hover b, .arc-node.is-open b { color: var(--text); }
+.arc-say { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.arc-fiche { position: relative; z-index: 4; max-width: 24rem; min-height: 64px; margin-top: 24px; padding: 18px 20px;
+  background: rgba(28, 25, 21, .86); border: 1px solid var(--line); border-left: 2px solid var(--accent);
+  border-radius: 0 var(--r-card) var(--r-card) 0; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.arc-fiche h3 { margin: 0 0 6px; font: 600 var(--s20)/1.2 var(--font-display); }
+.arc-fiche p { margin: 0 0 10px; color: var(--text-2); font-size: var(--s14); }
+.arc-fiche .arc-fiche-hint { margin: 0; font: 600 var(--s12)/1.6 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+.arc-fiche a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+
+/* 3 · The swarm — stills from one sprite sheet; the one video plays the greeting. */
+.arc-ring { position: relative; z-index: 2; list-style: none; margin: 40px 0 0; padding: 0;
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 4px; }
+.arc-mate { position: relative; display: flex; flex-direction: column; align-items: center; width: 112px; }
+.arc-mate-btn { display: block; padding: 0; background: none; border: 0; border-radius: 12px; cursor: pointer; }
+.arc-still { display: block; width: 112px; height: 128px;
+  background: var(--sprite) calc(var(--i) * -112px) 0 / 1008px 128px no-repeat; }
+.arc-tag { display: block; max-width: 112px; font: italic 600 var(--s12)/1.3 var(--font-display); text-align: center; color: var(--text-2); }
+.arc-tag b { display: block; font-style: normal; color: var(--text); }
+.arc-mate.is-active .arc-tag { color: var(--accent); }
+.arc-wave { display: none; }
+
+/* 4 · The proof — three lanes at their measured speed, a scrubber, three facts. */
+.arc-bench { position: relative; z-index: 3; margin-top: 36px; max-width: 40rem; }
+.arc-lanes { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; cursor: ew-resize; }
+.arc-lane { padding: 12px 16px; background: rgba(14, 12, 10, .82); border: 1px solid var(--line); border-radius: var(--r-card); }
+.arc-lane.is-chosen { border-color: rgba(224, 122, 47, .6); box-shadow: inset 3px 0 0 var(--accent); }
+.arc-lane-head, .arc-lane-foot { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 0; }
+.arc-model { font: 600 var(--s14)/1 var(--font-mono); color: var(--text); }
+.arc-rate { font-size: var(--s14); color: var(--text-2); white-space: nowrap; }
+.arc-rate b { font: 600 var(--s28)/1 var(--font-display); color: var(--accent); font-variant-numeric: tabular-nums; }
+.arc-type { margin: 8px 0; padding: 0; height: calc(5 * 1.45em); overflow: hidden; border: 0; background: none;
+  font: 11px/1.45 var(--font-mono); color: color-mix(in srgb, var(--text) 72%, transparent); white-space: pre; }
+.arc-lane-foot { font-size: var(--s12); color: var(--text-2); }
+.arc-lane-foot b { font-variant-numeric: tabular-nums; color: var(--text); }
+.arc-scrub { display: grid; gap: 4px; margin-top: 14px; font: 600 var(--s12)/1.4 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-2); }
+.arc-scrub output { color: var(--text); font-variant-numeric: tabular-nums; }
+.arc-scrub input { width: 100%; min-height: 44px; margin: 0; accent-color: var(--accent); cursor: ew-resize; }
+.arc-verdict { margin: 10px 0 0; font: italic 600 var(--s20)/1.35 var(--font-display); color: var(--text); }
+.arc-facts { position: relative; z-index: 3; list-style: none; margin: 36px 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+.arc-facts li { display: grid; gap: 2px; padding-top: 14px; border-top: 1px solid rgba(224, 122, 47, .4); font-size: var(--s14); color: var(--text-2); }
+.arc-big { font: 600 clamp(2.6rem, 5vw, 4.2rem)/1 var(--font-display); letter-spacing: -.03em; color: var(--text); font-variant-numeric: tabular-nums; }
+.arc-unit { font: 600 var(--s12)/1.4 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.arc-method { position: relative; z-index: 3; max-width: 60rem; margin: 28px 0 0; font-size: var(--s12); line-height: 1.5; color: var(--text-3); }
+.arc-method a { color: var(--text-2); }
+
+/* 5 · Your turn — sober, centred, one copper button. */
+.arc-end .arc-stage { display: grid; place-items: center; text-align: center; min-height: 80svh; }
+.arc-end .arc-copy { max-width: 40rem; }
+.arc-end .arc-copy::before { left: 50%; translate: -50% 0; }
+.arc-end .arc-lead { margin-inline: auto; }
+.arc-recap { margin: 0 0 12px; font: 600 var(--s14)/1.4 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.arc-ctas { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 14px 22px; margin: 34px 0 0; }
+.arc-ctas .cta { min-height: 56px; padding: 0 34px; font-size: var(--s20); }
+.arc-ghost { display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px; font-weight: 600;
+  color: var(--text); text-decoration: none; border-bottom: 1px solid rgba(224, 122, 47, .6); }
+.arc-ghost:hover { color: var(--accent); }
+
+/* ---- The live arc: tall scroll tracks, sticky stages, canvas-drawn layers ---- */
+.arc.is-live .arc-scene { height: 260vh; height: 260svh; border-top: 0; }
+.arc.is-live .arc-den { height: 300svh; }
+.arc.is-live .arc-swarm { height: 240svh; }
+.arc.is-live .arc-proof { height: 280svh; }
+.arc.is-live .arc-end { height: auto; }
+.arc.is-live .arc-stage { position: sticky; top: 0; height: 100vh; height: 100svh; padding-block: 0;
+  padding-top: clamp(84px, 12vh, 130px); }
+.arc.is-live .arc-end .arc-stage { position: relative; height: auto; min-height: 100svh; padding-block: 96px; }
+.arc.is-live .arc-scene + .arc-scene .arc-stage::before { /* soft seam between scenes */
+  content: ""; position: absolute; inset: 0 0 auto; height: 80px; z-index: 1; pointer-events: none;
+  background: linear-gradient(var(--bg), transparent); }
+
+/* bill: the cards float on the canvas; the buttons become their invisible hit areas */
+.arc.is-live .arc-cards { position: absolute; inset: 0; margin: 0; display: block; }
+.arc.is-live .arc-card { position: absolute; left: 0; top: 0; will-change: transform; }
+.arc.is-live .arc-saas { width: 100%; height: 100%; min-height: 0; background: none; border-color: transparent; border-radius: 10px; }
+.arc.is-live .arc-saas, .arc.is-live .arc-saas * { color: transparent; }
+.arc.is-live .arc-saas-name { text-decoration: none; }
+.arc.is-live .arc-twin { position: absolute; inset: 0; display: grid; place-items: center; margin: 0;
+  font-size: clamp(var(--s20), 2.2vw, var(--s28)); opacity: 0; transform: translateY(8px) scale(.94); pointer-events: none;
+  transition: opacity .5s var(--ease), transform .6s var(--ease); text-shadow: 0 0 24px rgba(224, 122, 47, .5); }
+.arc.is-live .arc-twin::before { content: none; }
+.arc.is-live .arc-card.is-freed .arc-twin { opacity: 1; transform: none; pointer-events: auto; }
+.arc.is-live .arc-card.is-freed .arc-saas { pointer-events: none; }
+
+/* den: the map fills the right of the stage (below the copy on phones) */
+.arc.is-live .arc-graph { position: absolute; margin: 0; height: auto; inset: 17% 7% 12% 49%; }
+.arc.is-live .arc-node { opacity: var(--on, 0); transform: translate(-50%, -14px) scale(calc(.6 + .4 * var(--on, 0))); }
+.arc.is-live .arc-node:focus-within { opacity: 1; transform: translate(-50%, -14px); }
+.arc.is-live .arc-fiche { position: absolute; left: clamp(20px, 5vw, 72px); bottom: 9vh; width: min(24rem, 34vw); margin: 0; }
+
+/* swarm: the ring is placed by arc.js */
+.arc.is-live .arc-ring { position: absolute; inset: 0; margin: 0; display: block; }
+.arc.is-live .arc-mate { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform, opacity; }
+.arc.is-live .arc-tag { position: absolute; left: 50%; bottom: 100%; translate: -50% 0; width: max-content; max-width: 16ch;
+  padding: 6px 12px; background: rgba(18, 16, 14, .78); border-left: 2px solid var(--accent);
+  font-size: var(--s14); color: var(--text-1); opacity: 0; transform: translateY(8px);
+  transition: opacity .35s var(--ease), transform .35s var(--ease); pointer-events: none; }
+.arc.is-live .arc-mate.is-front .arc-tag, .arc.is-live .arc-mate.is-active .arc-tag { opacity: 1; transform: none; }
+.arc.is-live .arc-mate.is-front:not(.is-active) .arc-tag { opacity: .7; }
+.arc.is-live .arc-mate.is-waving .arc-still { visibility: hidden; }
+.arc.is-live .arc-wave { display: block; position: absolute; left: 0; top: 0; width: 120px; height: 128px; margin: 0;
+  background: none; border-radius: 0; object-fit: fill; opacity: 0; pointer-events: none; }
+.arc.is-live .arc-wave.on { opacity: 1; }
+
+/* proof: lanes left, facts right; on phones the facts take over in a second beat */
+.arc.is-live .arc-proof .arc-stage { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto; column-gap: clamp(24px, 4vw, 64px); align-content: start; }
+.arc.is-live .arc-proof .arc-copy { grid-column: 1 / -1; max-width: 46rem; }
+.arc.is-live .arc-proof .arc-lead { max-width: 52ch; font-size: var(--s16); }
+.arc.is-live .arc-proof .arc-bench { margin-top: 22px; }
+.arc.is-live .arc-proof .arc-facts { grid-template-columns: 1fr; margin-top: 22px; gap: 14px; align-content: start; }
+.arc.is-live .arc-proof .arc-method { grid-column: 1 / -1; margin-top: 14px; }
+.arc.is-live .arc-proof .arc-copy::before { font-size: clamp(6rem, 11vw, 10rem); }
+.arc.is-live .arc-proof h2.arc-title { font-size: clamp(2rem, 3.4vw, 3.2rem); margin-bottom: 12px; }
+.arc.is-live .arc-type { height: calc(3 * 1.45em); margin: 6px 0; }
+.arc.is-live .arc-lane { padding: 10px 14px; }
+.arc.is-live .arc-rate b { font-size: var(--s20); }
+.arc.is-live .arc-proof .arc-big { font-size: clamp(2.4rem, 4vw, 3.6rem); }
+.arc-lanes, .arc-lane { min-width: 0; }
+.arc-lane { overflow: hidden; }
+
+/* Inari's greeting at the call to action: the still until the shared video plays. */
+.arc-host { position: relative; display: block; width: 168px; height: 192px; margin: 0 auto 6px; }
+.arc-host .arc-still { width: 168px; height: 192px; background-size: 1512px 192px; background-position: 0 0; }
+.arc-host video { position: absolute; left: 0; top: 0; width: 192px; height: 192px; margin: 0; background: none;
+  border-radius: 0; opacity: 0; filter: drop-shadow(0 18px 28px rgba(0, 0, 0, .5)); }
+.arc-host video.on { opacity: 1; }
+.arc-host.is-waving .arc-still { visibility: hidden; }
+.arc-end .arc-stage::after { content: ""; position: absolute; left: 50%; top: 58%; width: min(900px, 120vw); aspect-ratio: 2;
+  translate: -50% -50%; z-index: 0; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(224, 122, 47, .08), transparent); }
+.arc-end .arc-copy::before { top: 150px; }
+
+@media (max-width: 760px) {
+  .arc-graph { height: 620px; }
+  .arc-node { left: calc(var(--mx) * 100%); top: calc(var(--my) * 100%); }
+  .arc-lead { font-size: var(--s16); }
+  .arc.is-live .arc-stage { padding-top: 96px; }
+  .arc.is-live .arc-graph { inset: 36% 13% 27% 13%; }
+  .arc-node-btn b { font-size: 10px; letter-spacing: .03em; padding: 2px 5px; }
+  .arc.is-live .arc-fiche { left: 16px; right: 16px; bottom: 16px; width: auto; padding: 12px 16px; }
+  .arc.is-live .arc-fiche p { margin-bottom: 4px; }
+  .arc-still { width: 84px; height: 96px; background-size: 756px 96px; background-position: calc(var(--i) * -84px) 0; }
+  .arc-mate { width: 92px; }
+  .arc.is-live .arc-still { width: 112px; height: 128px; background-size: 1008px 128px; background-position: calc(var(--i) * -112px) 0; }
+  .arc.is-live .arc-proof .arc-stage { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr;
+    grid-template-areas: "copy" "beat" "."; }
+  .arc.is-live .arc-proof .arc-copy { grid-area: copy; }
+  .arc.is-live .arc-proof .arc-lead { font-size: var(--s14); }
+  .arc.is-live .arc-proof .arc-bench, .arc.is-live .arc-proof .arc-facts { grid-area: beat; margin-top: 16px;
+    transition: opacity .5s var(--ease), transform .5s var(--ease); }
+  .arc.is-live .arc-proof .arc-type { height: calc(3 * 1.45em); }
+  .arc.is-live .arc-proof .arc-lane { padding: 10px 12px; }
+  .arc.is-live .arc-proof .arc-verdict { font-size: var(--s16); }
+  .arc.is-live .arc-proof .arc-facts { margin: 0; opacity: 0; transform: translateY(24px); pointer-events: none; }
+  .arc.is-live .arc-proof.is-phase2 .arc-bench { opacity: 0; transform: translateY(-24px); pointer-events: none; }
+  .arc.is-live .arc-proof.is-phase2 .arc-facts { opacity: 1; transform: none; pointer-events: auto; }
+  .arc.is-live .arc-proof .arc-method { position: absolute; left: 16px; right: 16px; bottom: 14px; margin: 0; font-size: 11px;
+    opacity: 0; transition: opacity .5s var(--ease); }
+  .arc.is-live .arc-proof.is-phase2 .arc-method { opacity: 1; }
+  .arc.is-live .arc-proof .arc-lane-foot span:last-child { display: none; }
+  .arc.is-live .arc-proof .arc-lane.is-chosen .arc-lane-foot span:last-child { display: inline; text-align: right; }
+  .arc.is-live .arc-proof .arc-copy::before, .arc.is-live .arc-copy::before { font-size: 7rem; }
+}
