@@ -1,0 +1,31 @@
+<!-- {"title": "Inari : Claude Code, Codex et Pi, self-hosted sous votre propre nom", "summary": "L'appli bureau de Cloudroom est en Apache-2.0 et son cœur ne demande aucun compte — self-hostez-le, et un petit outil MIT repeint l'identité pour qu'elle soit la vôtre : logo, couleurs, nom du produit. Le moteur amont n'est jamais forké, juste patché en place au moment du build.", "order": 123, "series": "agents", "level": "intermediate", "time": "1-2 h", "requires": ["tailscale-backbone"]} -->
+<p class="lead">Cloudroom fait tourner Claude Code, Codex et Pi sur votre propre machine ou dans le cloud, sur vos propres abonnements — et son cœur est en Apache-2.0, self-hostable, sans compte nécessaire. Inari, c'est ce qu'on pose par-dessus : les couleurs de l'appli, sa signature kitsune, son propre nom de produit, et un portail avec mot de passe sur le tailnet. Cloudroom lui-même n'est jamais forké ; chaque version amont est construite telle qu'elle est publiée, puis un petit outil patche l'identité en place.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> L'appli Cloudroom complète, accessible depuis un navigateur ou un client dédié, reliée au cœur self-hosté sur une machine à vous — aucun compte cloudroom.dev, aucune couche SaaS hébergée. Chaque modèle servi par votre propre passerelle LiteLLM apparaît automatiquement. Licence MIT sur l'outil d'identité, Apache-2.0 sur le moteur qu'il patche.</p>
+
+<h2>1. Le cœur, self-hosté</h2>
+<pre><code># sur la machine qui reste allumée
+curl -fsSL https://raw.githubusercontent.com/davidondrej/cloudroom-core/main/docs/setup.md
+# un seul script, testé sur Ubuntu 24.04 — aucune base de données nécessaire</code></pre>
+<p>Atteignez-le depuis vos autres machines avec Tailscale (voir <a href="/fr/tailscale-backbone.html">le tuto backbone</a>) : le cœur doit juste être joignable, jamais exposé.</p>
+
+<h2>2. Votre propre identité, patchée en place</h2>
+<pre><code>git clone https://git.freedzhost.cloud/bengua/inari.git
+cd inari &amp;&amp; uv sync
+uv run inari brand   cloudroom-gui/gui   # logo, icônes, nom du produit
+uv run inari rebrand cloudroom-gui/gui   # chaque mention visible, vos propres liens
+uv run inari theme   ~/.local/share/votre-appli</code></pre>
+<p>Chaque modification est ancrée sur le texte amont exact. Lancez-le deux fois : rien ne change la seconde fois. Si l'amont a déplacé l'ancre visée, le run s'arrête et la nomme, au lieu de livrer un rebranding à moitié fait.</p>
+
+<h2>3. Le faire tourner dans la durée</h2>
+<p>Deux petits démons comblent ce qu'un montage self-hosté ouvre et qu'un compte hébergé ne laisserait pas voir :</p>
+<ul>
+<li>une déconnexion fait tomber la liaison au cœur enregistrée ; un script surveillé par une minuterie la refait depuis le fichier de jeton du cœur lui-même, jamais tapé, jamais journalisé ;</li>
+<li>une seconde minuterie recopie la liste des modèles de votre passerelle LiteLLM dans l'appli toutes les 15 minutes, pour qu'un nouveau modèle apparaisse sans rien éditer à la main.</li>
+</ul>
+
+<h2>Pièges</h2>
+<p class="note">L'appli sonde les harnais (Claude Code, Codex, Pi) via le shell de connexion : mettez leurs répertoires d'installation dans le <code>PATH</code> de <code>~/.profile</code>, sinon ils restent signalés "indisponibles" même installés.</p>
+<p class="note">L'Apache-2.0 exige que le NOTICE d'origine voyage avec tout ce que vous distribuez (source, doc, ou un écran de crédits) — pas un souci de marque, puisqu'Inari n'utilise jamais le nom ni le logo de Cloudroom, mais une vraie obligation si vous diffusez un paquet construit, pas seulement la source.</p>
+
+<p>Source : <a href="https://git.freedzhost.cloud/bengua/inari">git.freedzhost.cloud/bengua/inari</a> (MIT). Le moteur qu'il patche : <a href="https://github.com/davidondrej/cloudroom-gui">cloudroom-gui</a> et <a href="https://github.com/davidondrej/cloudroom-core">cloudroom-core</a> (Apache-2.0).</p>
