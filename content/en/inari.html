@@ -1,0 +1,31 @@
+<!-- {"title": "Inari: Claude Code, Codex and Pi, self-hosted under your own name", "summary": "Cloudroom's desktop app is Apache-2.0 and its core needs no account — self-host it, and a small MIT tool repaints the identity so it is yours: logo, colours, product name. The upstream engine is never forked, only patched in place at build time.", "order": 123, "series": "agents", "level": "intermediate", "time": "1-2 h", "requires": ["tailscale-backbone"]} -->
+<p class="lead">Cloudroom runs Claude Code, Codex and Pi on your own machine or in the cloud, on your own subscriptions — and its core is Apache-2.0, self-hostable, with no account needed. Inari is what we put on top: the app's own colours, its kitsune signature, its own product name, and a password gate on the tailnet. Cloudroom itself is never forked; every upstream release is built as published, then a small tool patches the identity in place.</p>
+
+<p class="proof"><strong>What you get.</strong> The full Cloudroom app, reachable from a browser or a dedicated client, bound to the self-hosted core on a machine of your own — no cloudroom.dev account, no hosted SaaS layer. Every model your own LiteLLM gateway serves shows up automatically. MIT licence on the identity tool, Apache-2.0 on the engine it patches.</p>
+
+<h2>1. The core, self-hosted</h2>
+<pre><code># on the machine that stays up
+curl -fsSL https://raw.githubusercontent.com/davidondrej/cloudroom-core/main/docs/setup.md
+# one script, tested on Ubuntu 24.04 — no database needed</code></pre>
+<p>Reach it from your other machines with Tailscale (see <a href="/tailscale-backbone.html">the backbone tutorial</a>): the core only needs to be reachable, never exposed.</p>
+
+<h2>2. Your own identity, patched in place</h2>
+<pre><code>git clone https://git.freedzhost.cloud/bengua/inari.git
+cd inari &amp;&amp; uv sync
+uv run inari brand   cloudroom-gui/gui   # logo, icons, product name
+uv run inari rebrand cloudroom-gui/gui   # every visible mention, your own links
+uv run inari theme   ~/.local/share/your-app</code></pre>
+<p>Each edit is anchored on the exact upstream string. Run it twice: nothing changes the second time. Upstream moved the anchor it targets: the run stops and names it, instead of shipping half-renamed.</p>
+
+<h2>3. Keep it running</h2>
+<p>Two small daemons close the gaps a self-hosted setup opens that a hosted account would not:</p>
+<ul>
+<li>a sign-out drops the saved core connection; a timer-watched script re-binds it from the core's own token file, never typed, never logged;</li>
+<li>a second timer mirrors your LiteLLM gateway's model list into the app every 15 minutes, so a new model shows up without hand-editing anything.</li>
+</ul>
+
+<h2>Traps</h2>
+<p class="note">The app probes harnesses (Claude Code, Codex, Pi) through the login shell: put their install directories on <code>PATH</code> in <code>~/.profile</code>, or they report "not available" even when installed.</p>
+<p class="note">Apache-2.0 requires the original NOTICE to travel with anything you distribute (source, docs, or a credits screen) — not a trademark problem, since Inari never uses Cloudroom's own name or logo, but a real obligation if you ship a built package, not just the source.</p>
+
+<p>Source: <a href="https://git.freedzhost.cloud/bengua/inari">git.freedzhost.cloud/bengua/inari</a> (MIT). The engine it patches: <a href="https://github.com/davidondrej/cloudroom-gui">cloudroom-gui</a> and <a href="https://github.com/davidondrej/cloudroom-core">cloudroom-core</a> (Apache-2.0).</p>
