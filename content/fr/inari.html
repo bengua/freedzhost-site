@@ -26,6 +26,7 @@ uv run inari theme   ~/.local/share/votre-appli</code></pre>
 
 <h2>Pièges</h2>
 <p class="note">L'appli sonde les harnais (Claude Code, Codex, Pi) via le shell de connexion : mettez leurs répertoires d'installation dans le <code>PATH</code> de <code>~/.profile</code>, sinon ils restent signalés "indisponibles" même installés.</p>
+<p class="note">Si le serveur sature un cœur et se fait tuer par le tueur de mémoire toutes les quelques heures, regardez le balayage périodique du catalogue : avec une adresse de catalogue vide, il se réarmait à un délai de 0 (corrigé dans le jeu de patchs de marque). Le diagnostic complet est dans <a href="/profile-a-hot-service.html">Un service sature un cœur et se fait tuer</a>.</p>
 <p class="note">L'Apache-2.0 exige que le NOTICE d'origine voyage avec tout ce que vous distribuez (source, doc, ou un écran de crédits) — pas un souci de marque, puisqu'Inari n'utilise jamais le nom ni le logo de Cloudroom, mais une vraie obligation si vous diffusez un paquet construit, pas seulement la source.</p>
 
 <p>Source : <a href="https://git.freedzhost.cloud/bengua/inari">git.freedzhost.cloud/bengua/inari</a> (MIT). Le moteur qu'il patche : <a href="https://github.com/davidondrej/cloudroom-gui">cloudroom-gui</a> et <a href="https://github.com/davidondrej/cloudroom-core">cloudroom-core</a> (Apache-2.0).</p>

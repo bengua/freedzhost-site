@@ -1,0 +1,38 @@
+<!-- {"title": "Un service sature un cœur et se fait tuer : trouver pourquoi en dix minutes", "summary": "Une appli auto-hébergée saturait un cœur CPU et était arrêtée plusieurs fois par jour par le tueur de mémoire du noyau. Dix secondes de profilage du processus Node en marche ont désigné la boucle exacte, et la même séance a révélé un second voleur de mémoire sans rapport : le ballooning de l'hyperviseur.", "order": 99, "series": "homelab", "level": "intermediate", "time": "30 min", "requires": ["homelab-proxmox"]} -->
+<p class="lead">Un service qui redémarre sans raison visible fait en général quelque chose de coûteux en boucle. Inutile de deviner : un processus Node en marche se profile à chaud, sans reconstruire ni redémarrer, et la réponse tient sur un écran.</p>
+
+<p class="proof"><strong>Ce que vous obtenez.</strong> Une méthode reproductible pour distinguer « la machine est trop petite » de « le programme tourne à vide », un script de profilage d'une vingtaine de lignes, et le second piège croisé en chemin : l'hyperviseur qui reprend discrètement la mémoire que vous veniez d'ajouter.</p>
+
+<h2>1. Lire les symptômes avant de toucher à quoi que ce soit</h2>
+<pre><code>systemctl --user status le-service       # compteur de redémarrages, « oom-kill »
+journalctl -k | grep -i "out of memory"  # qui le noyau a choisi de tuer
+free -m; cat /proc/swaps                 # le swap est-il déjà plein ?
+ps -eo pid,pcpu,rss,args --sort=-rss | head</code></pre>
+<p>Notre cas : le service a été tué six fois par le noyau en une matinée, le swap était plein, et le processus serveur occupait un cœur entier avec 1,4 Go résidents. Un voisin gourmand en mémoire n'explique pas un cœur à 100 % : quelque chose <em>calculait</em>.</p>
+
+<h2>2. Profiler le processus en marche</h2>
+<p>Node ouvre son inspecteur à la réception de <code>SIGUSR1</code>. Un court script s'y attache, enregistre dix secondes de CPU et affiche où le temps est passé. Ni interface de débogage, ni redémarrage :</p>
+<pre><code>kill -USR1 &lt;pid&gt;
+node profile.mjs 10
+</code></pre>
+<p>Le script fait une vingtaine de lignes : lister <code>http://127.0.0.1:9229/json/list</code>, ouvrir la WebSocket indiquée, envoyer <code>Profiler.enable</code> puis <code>Profiler.start</code>, attendre, envoyer <code>Profiler.stop</code>, puis additionner les <code>timeDeltas</code> par fonction. Deux chiffres par fonction : le temps <strong>propre</strong> (où est vraiment le CPU) et le temps <strong>inclusif</strong> (quel appelant en est responsable).</p>
+<p class="note">Le temps propre seul désigne le pilote de base de données ou le ramasse-miettes, où aboutit tout programme. La colonne inclusive est la bonne : elle montrait 34 % du temps total sous une seule fonction, <code>performRefresh</code>.</p>
+
+<h2>3. Remonter l'appelant jusqu'à la planification</h2>
+<p>Cette fonction relisait et revalidait un catalogue de greffons, puis le réécrivait dans SQLite. Elle aurait dû tourner toutes les deux heures. Le code qui arme le minuteur montrait que le délai se calculait à partir de la <em>dernière tentative</em> stockée en base :</p>
+<pre><code>délai = dernièreTentative === null ? 0 : max(0, INTERVALLE - (maintenant - dernièreTentative))</code></pre>
+<p>Dans notre configuration, le catalogue n'avait aucune adresse distante : le rafraîchissement sortait tôt et n'enregistrait jamais de tentative. Deux heures après le premier démarrage, <code>maintenant - dernièreTentative</code> dépassait l'intervalle pour toujours, le délai tombait à 0 et le minuteur se réarmait aussitôt, indéfiniment. Un cœur, des écritures constantes, une mémoire qui enfle, puis le tueur de mémoire du noyau.</p>
+<p>Le correctif tient en une ligne : sans catalogue distant, attendre un intervalle. Pour arrêter l'hémorragie avant de reconstruire, mettre l'horodatage stocké à maintenant (cela tient un intervalle), puis corriger le code.</p>
+
+<h2>4. Le second voleur : le ballooning</h2>
+<p>Nous avions donné 2 Go de plus à la machine virtuelle, et une heure plus tard elle en montrait de nouveau moins. Cause : le pilote « balloon » de l'hyperviseur laisse l'hôte reprendre de la mémoire aux invités quand lui-même est sous pression, jusqu'au minimum configuré.</p>
+<pre><code>qm config &lt;vmid&gt; | grep -E "memory|balloon"
+qm set &lt;vmid&gt; --balloon 0     # mémoire fixe ; effectif au prochain démarrage</code></pre>
+<p>Pour une VM qui doit garder un service debout, la mémoire fixe est le réglage honnête : un ballon qui rétrécit un invité déjà en train de swapper ne fait que déplacer la panne là où elle est plus dure à voir.</p>
+
+<h2>Pièges</h2>
+<p class="note"><code>swapon --show</code> et plusieurs commandes de stockage n'affichent rien, et non une erreur, sans privilèges ; lisez plutôt <code>/proc/swaps</code>.</p>
+<p class="note">Un correctif qui ne vit que dans un build déployé est perdu au build suivant. Mettez-le dans le jeu de patchs qui produit le build, avec un test qui échoue sans lui, puis livrez ce build.</p>
+<p class="note">Le profilage coûte quelques pour cent d'un cœur le temps de la mesure. Faites-le sur un service déjà en difficulté, pas en routine.</p>
+
+<p>À lire aussi : <a href="/inari.html">Inari, auto-hébergé</a> (l'appli de cette histoire), <a href="/homelab-proxmox.html">Proxmox</a> et le <a href="/glossary.html">glossaire</a>.</p>

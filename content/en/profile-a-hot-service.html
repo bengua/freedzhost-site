@@ -1,0 +1,38 @@
+<!-- {"title": "A service burns a core and gets killed: find out why in ten minutes", "summary": "A self-hosted app pinned a CPU core and was ended by the out-of-memory killer several times a day. A ten-second profile of the live Node process named the exact loop, and the same session exposed a second, unrelated memory thief: hypervisor ballooning.", "order": 99, "series": "homelab", "level": "intermediate", "time": "30 min", "requires": ["homelab-proxmox"]} -->
+<p class="lead">A service that restarts itself for no visible reason is usually doing something expensive in a loop. You do not need to guess: a running Node process can be profiled live, without a rebuild and without a restart, and the answer fits on one screen.</p>
+
+<p class="proof"><strong>What you get.</strong> A repeatable method to tell "the machine is too small" from "the program is spinning", a 20-line profiling script, and the second trap we hit on the way: the hypervisor quietly taking back the memory you had just added.</p>
+
+<h2>1. Read the symptoms before touching anything</h2>
+<pre><code>systemctl --user status the-service      # restart count, "oom-kill" in the result
+journalctl -k | grep -i "out of memory"  # who the kernel chose to kill
+free -m; cat /proc/swaps                 # is the swap already full?
+ps -eo pid,pcpu,rss,args --sort=-rss | head</code></pre>
+<p>Our case: the service was killed by the kernel six times in one morning, swap was full, and the server process sat at one full core with 1.4 GB resident. A memory-hungry neighbour would not explain a core at 100 %: something was <em>computing</em>.</p>
+
+<h2>2. Profile the live process</h2>
+<p>Node opens its inspector when it receives <code>SIGUSR1</code>. A short script can attach to it, record ten seconds of CPU, and print where the time went. No debugger UI, no restart:</p>
+<pre><code>kill -USR1 &lt;pid&gt;
+node profile.mjs 10
+</code></pre>
+<p>The script is about twenty lines: list <code>http://127.0.0.1:9229/json/list</code>, open the WebSocket it returns, send <code>Profiler.enable</code> and <code>Profiler.start</code>, wait, send <code>Profiler.stop</code>, then add up <code>timeDeltas</code> per function. Report two numbers per function: <strong>self</strong> time (where the CPU really is) and <strong>inclusive</strong> time (which caller is responsible).</p>
+<p class="note">Self time alone points at the database driver or the garbage collector, which is where every program ends up. The inclusive column is the useful one: it showed 34 % of all time under a single function, <code>performRefresh</code>.</p>
+
+<h2>3. Follow the caller up to the schedule</h2>
+<p>That function re-read and re-validated a plugin catalogue and wrote it back to SQLite. It should have run every two hours. Reading the code that arms the timer showed the delay was computed from the <em>last attempt</em> stored in the database:</p>
+<pre><code>delay = lastAttempt === null ? 0 : max(0, INTERVAL - (now - lastAttempt))</code></pre>
+<p>In our configuration the catalogue had no remote address, so the refresh returned early and never recorded an attempt. Two hours after the first start, <code>now - lastAttempt</code> exceeded the interval for good, the delay became 0, and the timer re-armed itself immediately, forever. One core, constant writes, steady memory growth, then the kernel's OOM killer.</p>
+<p>The fix is one line: with no remote catalogue, wait one interval. To stop the bleeding before a build, set the stored timestamp to now (it holds for one interval), then patch the code.</p>
+
+<h2>4. The second thief: ballooning</h2>
+<p>We had given the virtual machine 2 GB more memory, and an hour later it again showed less than it had. Cause: the hypervisor's balloon driver lets the host reclaim guest memory when the host itself is under pressure, down to the configured minimum.</p>
+<pre><code>qm config &lt;vmid&gt; | grep -E "memory|balloon"
+qm set &lt;vmid&gt; --balloon 0     # fixed memory; takes effect at the next start</code></pre>
+<p>For a VM that must keep a service up, fixed memory is the honest setting: a balloon that shrinks a guest which is already swapping only moves the failure somewhere harder to see.</p>
+
+<h2>Traps</h2>
+<p class="note"><code>swapon --show</code> and several storage commands print nothing, not an error, when run without privileges; read <code>/proc/swaps</code> instead.</p>
+<p class="note">A fix that lives only in a deployed build is lost at the next build. Put it in the patch set that produces the build, with a test that fails without it, then ship that build.</p>
+<p class="note">Profiling costs a few percent of one core for the duration. Do it on a service that is already struggling, not as a routine.</p>
+
+<p>Related: <a href="/inari.html">Inari, self-hosted</a> (the app in this story), <a href="/homelab-proxmox.html">Proxmox</a>, and the <a href="/glossary.html">glossary</a>.</p>
