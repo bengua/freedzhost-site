@@ -1,0 +1,55 @@
+<!-- {"title": "An agent's state as a portable file: moving a running agent between machines", "summary": "Keep an agent's whole state in a folder of plain files, switch its model mid-conversation, and move it from one machine to another without ever running it twice. The design, the one ambiguous moment in the protocol, and how to test it with injected failures.", "order": 100, "series": "agents", "level": "advanced", "time": "2 h", "requires": ["tailscale-backbone"]} -->
+<p class="lead">Most agent tools keep a conversation in a database row. That makes three things painful: moving it to another machine, changing its model halfway, and trusting it after a crash. All three get easier when the state is a folder of plain files that anyone can open.</p>
+
+<p class="proof"><strong>What you get.</strong> A capsule format you can inspect with <code>tar</code>, a handover that re-renders the same history for any provider, a move protocol that cannot run an agent twice, and a way to test the failure cases instead of hoping.</p>
+
+<h2>1. The capsule: state you can read</h2>
+<p>A capsule is a directory (or the tar of one):</p>
+<pre><code>manifest.json                    identity, holder, a digest for every other file
+memory/working_memory.md         the agent's own notes
+memory/timeline_events.jsonl     the journal: one immutable event per line
+memory/vector_index/index.json   local semantic index
+artifacts/snapshot.json          the workspace as path to content hash
+artifacts/blobs/&lt;sha256&gt;        file bodies, stored once by content
+environment/spec.json            how to rebuild the sandbox</code></pre>
+<ul>
+<li>Every file is digested in the manifest, so truncation or tampering is caught offline.</li>
+<li>The journal is chained per machine: each event carries the hash of the previous one from the same machine, and a logical clock orders events across machines. Merging two copies that diverged offline is a set union, so there is no conflict to resolve.</li>
+<li>The environment spec holds secret <em>names</em>, never values, and refuses an environment variable called <code>TOKEN</code> or <code>KEY</code>. Values come from the host's keychain for one run.</li>
+</ul>
+
+<h2>2. Switching model mid-conversation</h2>
+<p>The journal records what happened (a user message, a tool call, a result), not how one vendor spells it. Rendering for a given provider is a pure function of the journal, so you can switch and switch back with no loss. Three rules make it work:</p>
+<ul>
+<li>Private reasoning is dropped when the provider changes: it cannot be replayed to a different model.</li>
+<li>A tool call with no result (the machine died mid-call) gets an explicit error result. Every provider rejects a dangling call.</li>
+<li>For a smaller context window, keep the newest events that fit, never split a call from its result, and prepend a short digest of what was dropped.</li>
+</ul>
+
+<h2>3. Moving a running agent</h2>
+<p>The invariant: <em>at most one machine runs the agent, ever.</em> The protocol is a two-phase commit with a fencing epoch.</p>
+<pre><code>freeze on the source  ->  offer(epoch+1) to the target
+send only the blobs the target lacks  ->  target verifies every digest
+target prepares (renders the journal, builds the sandbox)
+--- point of no return ---
+activate(epoch+1) on the target  ->  source marks itself retired</code></pre>
+<p>Any failure before the point of no return rolls back: the target discards its staging area and the source resumes at its old epoch, as if nothing had happened. A refused offer, a corrupted chunk and a dead link are all handled the same way.</p>
+
+<h2>4. The one ambiguous moment</h2>
+<p>If the reply to <code>activate</code> is lost, the source cannot tell whether the target took over. Guessing either way risks two copies. Instead, ask the target which epoch it holds:</p>
+<ul>
+<li>It holds the new epoch: the move happened, retire the source.</li>
+<li>It holds something else: it never happened, resume the source.</li>
+<li>It cannot be reached: stay frozen and wait. Waiting costs availability, never correctness.</li>
+</ul>
+<p>A machine that was partitioned and wakes up with an old epoch can offer a move, but the target refuses any epoch that is not newer than the one it holds. An epoch is compared, never waited on, which is why it is safer than a lock with a timeout.</p>
+
+<h2>5. Test the failures, do not read the code</h2>
+<p>Wrap the target in a test double that fails one named call, either before it runs (the request was lost) or after (the reply was lost). Then drive the real code through every phase and check the invariant: one holder, an empty staging area, a capsule that still verifies. Add a corrupted chunk, a stale epoch and a crash that loses the holder record. Writing these tests found a real bug in our first version: the source and the target keyed the agent by different identifiers, so the target never recognised the epoch.</p>
+
+<h2>Traps</h2>
+<p class="note">Write every file atomically (temporary file, then rename). A crash must leave a file complete or absent, never half written.</p>
+<p class="note">A signature over a capsule attests an exported state. A capsule that keeps running changes its holder and journal, so sign again at export, not at rest.</p>
+<p class="note">Authenticating a link is not encrypting it. Run the transport over a private network such as <a href="/tailscale-backbone.html">your tailnet</a>, or a TLS tunnel.</p>
+
+<p>Source, MIT: <a href="https://git.freedzhost.cloud/bengua/inari-core">git.freedzhost.cloud/bengua/inari-core</a>. Related: <a href="/inari.html">Inari, self-hosted</a> and the <a href="/glossary.html">glossary</a>.</p>
