@@ -1,0 +1,55 @@
+<!-- {"title": "L'état d'un agent comme fichier portable : déplacer un agent en marche entre machines", "summary": "Garder tout l'état d'un agent dans un dossier de fichiers simples, changer son modèle en pleine conversation, et le déplacer d'une machine à l'autre sans jamais l'exécuter deux fois. La conception, l'unique moment ambigu du protocole, et comment le tester avec des pannes injectées.", "order": 100, "series": "agents", "level": "advanced", "time": "2 h", "requires": ["tailscale-backbone"]} -->
+<p class="lead">La plupart des outils d'agents rangent une conversation dans une ligne de base de données. Trois choses deviennent pénibles : la déplacer vers une autre machine, changer de modèle à mi-chemin, lui faire confiance après un plantage. Les trois deviennent plus simples quand l'état est un dossier de fichiers simples que n'importe qui peut ouvrir.</p>
+
+<p class="proof"><strong>Ce que vous obtenez.</strong> Un format de capsule que l'on inspecte avec <code>tar</code>, une passation qui rejoue la même histoire pour n'importe quel fournisseur, un protocole de déplacement qui ne peut pas exécuter un agent deux fois, et une façon de tester les cas de panne au lieu de l'espérer.</p>
+
+<h2>1. La capsule : un état lisible</h2>
+<p>Une capsule est un dossier (ou son tar) :</p>
+<pre><code>manifest.json                    identité, détenteur, une empreinte pour chaque autre fichier
+memory/working_memory.md         les notes de l'agent
+memory/timeline_events.jsonl     le journal : un événement immuable par ligne
+memory/vector_index/index.json   index sémantique local
+artifacts/snapshot.json          l'espace de travail : chemin vers empreinte de contenu
+artifacts/blobs/&lt;sha256&gt;        corps des fichiers, stockés une fois par contenu
+environment/spec.json            comment reconstruire le bac à sable</code></pre>
+<ul>
+<li>Chaque fichier a son empreinte dans le manifeste : une troncature ou une altération se détecte hors ligne.</li>
+<li>Le journal est chaîné par machine : chaque événement porte l'empreinte du précédent de la même machine, et une horloge logique ordonne les événements entre machines. Fusionner deux copies divergentes hors ligne est une union d'ensembles : aucun conflit à résoudre.</li>
+<li>La spécification d'environnement contient des <em>noms</em> de secrets, jamais de valeurs, et refuse une variable nommée <code>TOKEN</code> ou <code>KEY</code>. Les valeurs viennent du trousseau de la machine, le temps d'une exécution.</li>
+</ul>
+
+<h2>2. Changer de modèle en pleine conversation</h2>
+<p>Le journal enregistre ce qui s'est passé (un message, un appel d'outil, un résultat), pas la façon dont un fournisseur l'écrit. Le rendu pour un fournisseur est une fonction pure du journal : on change et on revient sans perte. Trois règles :</p>
+<ul>
+<li>Le raisonnement privé est écarté quand le fournisseur change : on ne peut pas le rejouer à un autre modèle.</li>
+<li>Un appel d'outil sans résultat (la machine est morte en plein appel) reçoit un résultat d'erreur explicite. Tous les fournisseurs rejettent un appel resté en suspens.</li>
+<li>Pour une fenêtre de contexte plus petite, garder les événements récents qui tiennent, ne jamais séparer un appel de son résultat, et placer en tête un court condensé de ce qui a été retiré.</li>
+</ul>
+
+<h2>3. Déplacer un agent en marche</h2>
+<p>L'invariant : <em>au plus une machine exécute l'agent, toujours.</em> Le protocole est un commit en deux phases avec une époque de verrouillage (« fencing »).</p>
+<pre><code>geler sur la source  ->  proposer(époque+1) à la cible
+n'envoyer que les blobs que la cible n'a pas  ->  la cible vérifie chaque empreinte
+la cible prépare (rend le journal, construit le bac à sable)
+--- point de non-retour ---
+activer(époque+1) sur la cible  ->  la source se déclare retirée</code></pre>
+<p>Toute panne avant le point de non-retour annule : la cible jette son espace de préparation et la source reprend à son ancienne époque, comme si rien ne s'était passé. Une proposition refusée, un morceau corrompu et un lien coupé se traitent de la même façon.</p>
+
+<h2>4. L'unique moment ambigu</h2>
+<p>Si la réponse à <code>activer</code> est perdue, la source ne sait pas si la cible a pris le relais. Deviner dans un sens ou l'autre risque deux copies. Il faut demander à la cible quelle époque elle détient :</p>
+<ul>
+<li>Elle détient la nouvelle époque : le déplacement a eu lieu, retirer la source.</li>
+<li>Elle détient autre chose : il n'a pas eu lieu, reprendre la source.</li>
+<li>Elle est injoignable : rester gelé et attendre. Attendre coûte de la disponibilité, jamais de la justesse.</li>
+</ul>
+<p>Une machine isolée qui se réveille avec une vieille époque peut proposer un déplacement, mais la cible refuse toute époque qui n'est pas plus récente que celle qu'elle détient. Une époque se compare, elle ne s'attend pas : c'est pourquoi elle est plus sûre qu'un verrou à délai.</p>
+
+<h2>5. Tester les pannes, pas relire le code</h2>
+<p>Enveloppez la cible dans un double de test qui fait échouer un appel nommé, soit avant son exécution (la requête est perdue), soit après (la réponse est perdue). Pilotez ensuite le vrai code à travers chaque phase et vérifiez l'invariant : un seul détenteur, une zone de préparation vide, une capsule qui se vérifie encore. Ajoutez un morceau corrompu, une époque périmée et un plantage qui perd le registre du détenteur. Écrire ces tests a révélé un vrai bug dans notre première version : la source et la cible désignaient l'agent par des identifiants différents, donc la cible ne reconnaissait jamais l'époque.</p>
+
+<h2>Pièges</h2>
+<p class="note">Écrivez chaque fichier de façon atomique (fichier temporaire, puis renommage). Un plantage doit laisser un fichier complet ou absent, jamais à moitié écrit.</p>
+<p class="note">Une signature sur une capsule atteste un état exporté. Une capsule qui continue de tourner change de détenteur et de journal : signez à l'export, pas au repos.</p>
+<p class="note">Authentifier un lien n'est pas le chiffrer. Faites passer le transport par un réseau privé comme <a href="/tailscale-backbone.html">votre tailnet</a>, ou un tunnel TLS.</p>
+
+<p>Source, MIT : <a href="https://git.freedzhost.cloud/bengua/inari-core">git.freedzhost.cloud/bengua/inari-core</a>. À lire aussi : <a href="/inari.html">Inari, auto-hébergé</a> et le <a href="/glossary.html">glossaire</a>.</p>
