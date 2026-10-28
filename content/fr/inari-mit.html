@@ -1,0 +1,58 @@
+<!-- {"title": "Inari passe en MIT, sur un cœur à nous", "summary": "Inari a commencé comme une couche de peinture sur Cloudroom, une excellente appli pour Claude Code, Codex et Pi. C'est maintenant son propre cœur, son interface et son client Android, sous licence MIT. Ce qu'on a emprunté, pourquoi c'est très bien, et pourquoi le nôtre répond mieux à nos besoins.", "order": 124, "series": "agents", "level": "intermediate", "time": "20 min", "requires": ["inari"]} -->
+<p class="lead">Inari a commencé comme une couche de peinture sur l'excellente appli de quelqu'un d'autre. Aujourd'hui c'est un cœur, une interface web et un client Android à nous, écrits pour la façon dont on travaille vraiment, et tout le dépôt est en MIT. Voici ce qu'on a emprunté, pourquoi c'est bien, et pourquoi on a arrêté d'emprunter.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Le code du nouvel Inari, une image honnête de ce qui le distingue de Cloudroom (à quoi sert chacun), et les raisons de notre choix, pour savoir lequel vous convient.</p>
+
+<h2>Ce qu'on utilisait : Cloudroom</h2>
+<p><a href="https://github.com/davidondrej/cloudroom-gui">Cloudroom</a>, de David Ondrej, est une appli de bureau pour Claude Code, Codex et Pi. Vos agents tournent sur votre Mac ou dans le cloud, sur vos propres abonnements. Son interface est en Apache-2.0, son cœur peut être auto-hébergé, et l'usage local ne demande aucun compte. Pendant quelques semaines on l'a fait tourner ainsi, repeint à nos couleurs, avec notre signature kitsune et notre nom. On n'a jamais forké son moteur : un petit outil patchait chaque version amont sur place. C'était le premier Inari.</p>
+
+<h2>Pourquoi il est génial</h2>
+<ul>
+<li><strong>La téléportation.</strong> Déplacer un fil en cours d'exécution de votre Mac vers le cloud, et retour, avec la même discussion, le même modèle et le même effort.</li>
+<li><strong>Un ordinateur cloud par fil</strong>, avec sa propre branche Git, et un curseur pour ce qu'un agent cloud peut faire sur votre Mac : rien, lecture seule, demander d'abord, ou tout.</li>
+<li><strong>Plusieurs comptes Claude et Codex</strong>, qu'on change en un clic, et le « computer use » : des agents qui voient et pilotent des applications du bureau.</li>
+<li><strong>Le rythme et le soin.</strong> Plus de cinquante versions en moins de quatre semaines, signées et notarisées, avec une appli mobile.</li>
+</ul>
+<p>Il est fait pour des gens aux besoins structurants : plusieurs abonnements frontier, du travail qui doit tourner dans le cloud, une équipe. C'est un vrai problème, et il est bien résolu. Ce n'est pas tout à fait le nôtre.</p>
+
+<h2>Ce dont on avait besoin</h2>
+<ul>
+<li><strong>Nos machines, pas le cloud d'un éditeur.</strong> Un portable, une machine à GPU, un petit serveur, autant qu'on veut, qui coopèrent.</li>
+<li><strong>Un coût maîtrisé.</strong> Des modèles locaux gratuits, les offres gratuites quand elles existent, un abonnement frontier seulement quand la tâche le mérite. Un seul endroit qui mutualise tous nos accès.</li>
+<li><strong>Une famille.</strong> Un enfant qui utilise l'IA sur le cœur familial pendant qu'un parent suit chaque fil, et un ami qui continue un fil sur sa propre machine.</li>
+<li><strong>Rien à ouvrir comme compte</strong>, rien qui appelle chez nous, et un état d'agent qui est un fichier qu'on peut lire.</li>
+<li><strong>Petit.</strong> Un binaire statique d'environ 6 Mo par machine, une dizaine de mégaoctets de mémoire au repos.</li>
+</ul>
+
+<h2>Ce que fait Inari maintenant</h2>
+<figure class="shot"><img src="/media/inari-desktop-light.webp" width="1600" height="1000" loading="lazy" alt="L'interface d'Inari : les fils regroupés par machine à gauche, au centre la conversation avec un agent Claude montrant ses appels d'outils et sa réponse, un anneau de contexte et des pastilles de mode au-dessus."><figcaption>Les fils regroupés par machine. Chaque fil garde son modèle, son mode et le remplissage de sa fenêtre de contexte.</figcaption></figure>
+<ul>
+<li><strong>Déplacer un fil en le glissant</strong> sur une autre machine : la conversation, les fichiers et l'état voyagent ensemble, en deux phases et avec retour arrière.</li>
+<li><strong>Tous les agents par un seul protocole.</strong> Claude Code, Gemini CLI et OpenFox parlent tous l'Agent Client Protocol : un fil peut changer de modèle, de mode ou d'agent sans perdre son historique. La page montre les modes propres à chaque agent (plan, accepter les modifications, build…) et ses commandes slash.</li>
+<li><strong>Les autorisations dans la conversation.</strong> Quand un agent demande à lancer quelque chose, une carte apparaît dans son fil : refuser, autoriser une fois, ou toujours autoriser ici. Le mode auto laisse un fil agir sans demander, et chaque action reste journalisée. Stop interrompt un agent immédiatement.</li>
+<li><strong>Les passes de cœur.</strong> Une passe de collaboration partage des fils avec un ami ; une passe de supervision laisse un parent suivre les fils d'un enfant et répondre aux demandes des agents, et l'enfant voit toujours qu'il en est ainsi.</li>
+</ul>
+<figure class="shot"><img src="/media/inari-approval.webp" width="1600" height="1000" loading="lazy" alt="Un fil en attente d'une décision : une carte en bas de la conversation indique que l'agent demande à lancer git push origin main, avec Refuser, Autoriser une fois et Toujours autoriser ici."><figcaption>L'autorisation est une carte dans le fil auquel elle appartient.</figcaption></figure>
+<div class="shots">
+<figure class="shot"><img src="/media/inari-phone-thread.webp" width="640" height="1376" loading="lazy" alt="La même interface sur un téléphone : la mascotte au-dessus d'une conversation, la zone de saisie en bas."><figcaption>Sur un téléphone</figcaption></figure>
+<figure class="shot"><img src="/media/inari-phone-approval.webp" width="640" height="1376" loading="lazy" alt="Un téléphone affichant un fil avec une carte d'autorisation."><figcaption>Les autorisations vous suivent</figcaption></figure>
+<figure class="shot"><img src="/media/inari-phone-list.webp" width="640" height="1376" loading="lazy" alt="La liste des machines et des fils sur un téléphone."><figcaption>Toutes les machines, une seule liste</figcaption></figure>
+</div>
+<p>Le client Android est une appli fine : il ouvre l'interface d'un cœur derrière l'empreinte du téléphone, garde l'identifiant de votre portail dans le Keystore Android, et reçoit ce que d'autres applis partagent (une photo, un document, un lien) directement dans la zone de message. L'adresse de votre cœur et le lieu de publication des mises à jour sont des réglages de build, jamais dans le code source.</p>
+
+<h2>Là où Cloudroom reste devant</h2>
+<p>On ne cherche pas à l'égaler sur l'ordinateur cloud par fil, sur le computer use, ni sur une appli de bureau signée pour macOS. Si c'est ce qu'il vous faut, utilisez Cloudroom : il est excellent, et les idées qu'on a gardées (téléporter un agent en cours, changer de modèle en cours de fil) sont les siennes.</p>
+
+<h2>Le dépôt, et la licence</h2>
+<p>Le nouveau dépôt est <a href="https://github.com/bengua/inari">github.com/bengua/inari</a>, en MIT, et il est aussi développé sur notre forge. Il contient le cœur en Rust, l'interface web, le client Android et la documentation. Le premier Inari, et le fork de l'interface de Cloudroom sur lequel il tournait, sont archivés sous <code>inari-v1</code> et <code>inari-gui</code>, gardés pour mémoire. Aucun code de Cloudroom n'est dans le nouveau, et on le dit pour être clair sur ce qui est à nous.</p>
+
+<h2>L'essayer</h2>
+<pre><code>git clone https://github.com/bengua/inari.git
+cd inari
+cargo build --release          # un binaire : target/release/inari-core-rs
+# écrire un node.json (docs/node.md liste toutes les options), puis :
+target/release/inari-core-rs node node.json</code></pre>
+<p>Ouvrez l'adresse de la passerelle que vous avez configurée. Ajoutez les agents installés sur cette machine aux <code>harnesses</code> du fichier, et rattachez une deuxième machine à la première avec <code>inari-core-rs join</code>. Pour le téléphone, <code>android/build.sh</code> compile l'appli dans un conteneur ; indiquez-lui votre cœur avec un fichier <code>build.env</code> (voir <code>android/README.md</code>).</p>
+<p class="note">Inari n'a pas de connexion par conception. Liez sa passerelle à la boucle locale et atteignez-la depuis vos autres machines par un réseau privé (Tailscale, WireGuard, un tunnel SSH), derrière un reverse proxy qui demande un identifiant si vous le voulez. Le transport des cœurs authentifie mais ne chiffre pas : gardez-le sur ce réseau privé.</p>
+
+<p>Sources : <a href="https://github.com/bengua/inari">Inari</a> (MIT), <a href="https://github.com/davidondrej/cloudroom-gui">Cloudroom GUI</a> (Apache-2.0), <a href="https://agentclientprotocol.com">Agent Client Protocol</a>. Merci à David Ondrej pour Cloudroom, sur lequel ce projet a tourné et dont il a appris.</p>

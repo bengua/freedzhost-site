@@ -553,3 +553,8 @@ body.about .lead::first-letter { font-family: var(--font-display); font-size: 3.
   .hero-embers { display: none; }
   .den { background: radial-gradient(500px circle at 78% 12%, rgba(224, 122, 47, .06), transparent 70%); }
 }
+.shot { margin: 28px 0; }
+.shot img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: var(--r-card); }
+.shot figcaption { color: var(--text-2); font-size: var(--s14); margin-top: 10px; }
+.shots { display: flex; flex-wrap: wrap; gap: 16px; margin: 28px 0; }
+.shots .shot { margin: 0; flex: 1 1 200px; max-width: 300px; }

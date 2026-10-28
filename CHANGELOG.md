@@ -10,6 +10,9 @@ than "modified fh-suivre".
 ## [Unreleased]
 
 ### Added
+- An article announcing Inari's move to its own core and the MIT licence, in English and French:
+  what Cloudroom is and why it is good, what Inari does differently, with screenshots of the
+  interface on a desktop and a phone. The first Inari page gets a notice that points to it.
 - The home page ends with the den letter: one e-mail per new tutorial, through
   the site's own contact API (nothing at a third party), with the RSS feed as
   the no-inbox alternative.
