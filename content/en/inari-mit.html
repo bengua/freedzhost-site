@@ -1,0 +1,58 @@
+<!-- {"title": "Inari is now MIT, and it runs on a core of our own", "summary": "Inari began as a coat of paint on Cloudroom, an excellent app for Claude Code, Codex and Pi. It is now its own core, interface and Android client, MIT-licensed. What we borrowed, why it is great, and why ours answers our needs better.", "order": 124, "series": "agents", "level": "intermediate", "time": "20 min", "requires": ["inari"]} -->
+<p class="lead">Inari began as a coat of paint on someone else's excellent app. Today it is a core, a web interface and an Android client of our own, written for the way we actually work, and the whole repository is MIT. Here is what we borrowed, why it is good, and why we stopped borrowing.</p>
+
+<p class="proof"><strong>What you get.</strong> The source of the new Inari, an honest picture of how it differs from Cloudroom (what each is for), and the reasons we moved, so you can tell which one fits you.</p>
+
+<h2>What we used: Cloudroom</h2>
+<p><a href="https://github.com/davidondrej/cloudroom-gui">Cloudroom</a>, by David Ondrej, is a desktop app for Claude Code, Codex and Pi. Your agents run on your Mac or in the cloud, on your own subscriptions. Its interface is Apache-2.0, its core can be self-hosted, and local use needs no account. For a few weeks we ran it that way and repainted it with our own colours, our kitsune signature and our name. We never forked its engine: a small tool patched each upstream release in place. That was the first Inari.</p>
+
+<h2>Why it is great</h2>
+<ul>
+<li><strong>Teleport.</strong> Move a running thread from your Mac to the cloud and back, with the same chat, model and effort.</li>
+<li><strong>A cloud computer per thread</strong>, with its own Git branch, and a dial for how much a cloud agent may do on your Mac: off, read-only, ask first, or full.</li>
+<li><strong>Several Claude and Codex accounts</strong>, switched in one click, and computer use: agents that see and drive desktop apps.</li>
+<li><strong>Pace and polish.</strong> More than fifty releases in under four weeks, signed and notarized, with a phone app.</li>
+</ul>
+<p>It is built for people with structural needs: several frontier subscriptions, work that must run in the cloud, a team. That is a real problem, and it is solved well. It is not quite ours.</p>
+
+<h2>What we needed instead</h2>
+<ul>
+<li><strong>Our own machines, not a vendor's cloud.</strong> A laptop, a GPU box, a small server, any number of them, cooperating.</li>
+<li><strong>Cost under control.</strong> Local models for free, free tiers where they exist, a frontier subscription only when the task deserves it. One place that pools every access we have.</li>
+<li><strong>A family.</strong> A child using AI on the family core while a parent follows every thread, and a friend continuing a thread on their own machine.</li>
+<li><strong>Nothing to sign in to</strong>, nothing phoning home, and an agent's state that is a file you can read.</li>
+<li><strong>Small.</strong> One static binary of about 6 MB per machine, roughly ten megabytes of memory at rest.</li>
+</ul>
+
+<h2>What Inari does now</h2>
+<figure class="shot"><img src="/media/inari-desktop-light.webp" width="1600" height="1000" loading="lazy" alt="The Inari interface: threads grouped by machine on the left, a conversation with a Claude agent in the middle showing its tool calls and answer, a context ring and mode chips above it."><figcaption>Threads grouped by machine. Each thread keeps its model, its mode and the fill of its context window.</figcaption></figure>
+<ul>
+<li><strong>Move a thread by dragging it</strong> onto another machine: the conversation, the files and the state travel together, two-phase and with rollback.</li>
+<li><strong>Every agent through one protocol.</strong> Claude Code, Gemini CLI and OpenFox all speak the Agent Client Protocol, so a thread can change model, mode or agent without losing its history. The page shows each agent's own modes (plan, accept edits, build…) and slash commands.</li>
+<li><strong>Approvals in the conversation.</strong> When an agent asks to run something, a card appears in its thread: deny, allow once, or always allow here. Auto mode lets a thread act without asking, and every action is still journaled. Stop interrupts an agent at once.</li>
+<li><strong>Core passes.</strong> A collaboration pass shares threads with a friend; a supervision pass lets a parent follow a child's threads and answer the agents' requests, and the child always sees that it is so.</li>
+</ul>
+<figure class="shot"><img src="/media/inari-approval.webp" width="1600" height="1000" loading="lazy" alt="A thread waiting for a decision: a card at the bottom of the conversation says the agent asks to run git push origin main, with Deny, Allow once and Always allow here."><figcaption>The approval is a card in the thread it belongs to.</figcaption></figure>
+<div class="shots">
+<figure class="shot"><img src="/media/inari-phone-thread.webp" width="640" height="1376" loading="lazy" alt="The same interface on a phone: the mascot above a conversation, with the composer below."><figcaption>On a phone</figcaption></figure>
+<figure class="shot"><img src="/media/inari-phone-approval.webp" width="640" height="1376" loading="lazy" alt="A phone showing a thread with an approval card."><figcaption>Approvals follow you</figcaption></figure>
+<figure class="shot"><img src="/media/inari-phone-list.webp" width="640" height="1376" loading="lazy" alt="The list of machines and threads on a phone."><figcaption>Every machine, one list</figcaption></figure>
+</div>
+<p>The Android client is a thin app: it opens a core's interface behind the phone's fingerprint, keeps the login to your gate in the Android Keystore, and takes what other apps share (a photo, a document, a link) straight into the message box. Where your core is and where updates are published are build settings, never in the source.</p>
+
+<h2>Where Cloudroom is still ahead</h2>
+<p>We do not try to match it on a cloud computer per thread, on computer use, or on a signed desktop app for macOS. If those are what you need, use Cloudroom; it is excellent, and the ideas we kept (teleporting a running agent, switching model mid-thread) are its.</p>
+
+<h2>The repository, and the licence</h2>
+<p>The new repository is <a href="https://github.com/bengua/inari">github.com/bengua/inari</a>, MIT, and it is developed on our own forge too. It holds the Rust core, the web interface, the Android client and the documentation. The first Inari, and the fork of Cloudroom's interface it ran on, are archived under <code>inari-v1</code> and <code>inari-gui</code>, kept for history. No code of Cloudroom's is in the new one, and we say so to be clear about what is ours.</p>
+
+<h2>Try it</h2>
+<pre><code>git clone https://github.com/bengua/inari.git
+cd inari
+cargo build --release          # one binary: target/release/inari-core-rs
+# write a node.json (docs/node.md lists every option), then:
+target/release/inari-core-rs node node.json</code></pre>
+<p>Open the address of the gateway you configured. Add the agents installed on that machine to the <code>harnesses</code> of the file, and join a second machine to the first with <code>inari-core-rs join</code>. For the phone, <code>android/build.sh</code> builds the app in a container; point it at your core with a <code>build.env</code> file (see <code>android/README.md</code>).</p>
+<p class="note">Inari has no sign-in by design. Bind its gateway to loopback and reach it from your other machines over a private network (Tailscale, WireGuard, an SSH tunnel), behind a reverse proxy that asks for a login if you want one. The cores' transport authenticates but does not encrypt: keep it on that private network.</p>
+
+<p>Sources: <a href="https://github.com/bengua/inari">Inari</a> (MIT), <a href="https://github.com/davidondrej/cloudroom-gui">Cloudroom GUI</a> (Apache-2.0), <a href="https://agentclientprotocol.com">Agent Client Protocol</a>. Thank you to David Ondrej for Cloudroom, which this project ran on and learned from.</p>
