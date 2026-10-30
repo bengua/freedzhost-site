@@ -95,16 +95,17 @@ main, footer { max-width: 760px; margin-inline: auto; }
   backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2); }
 .brand { font: 700 22px/1 var(--font-mono); color: var(--text); text-decoration: none; }
 .brand span { color: var(--accent); }
-nav a { margin-left: 18px; color: var(--text-2); text-decoration: none; }
-nav a:hover { color: var(--text); }
-nav a.menu-btn { margin-left: 0; color: var(--text); }
-nav a.help { color: var(--accent); }
-nav a.support { color: var(--ok); }
+header.top nav { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+header.top nav a { padding: 8px 10px; border-radius: var(--r-card); color: var(--text-2); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; transition: color var(--t-micro) var(--ease), background var(--t-micro) var(--ease); }
+header.top nav a:hover { color: var(--text); background: var(--raise); }
+header.top nav a.menu-btn { color: var(--text); }
+header.top nav a.help { color: var(--accent); }
+header.top nav a.support { color: var(--ok); }
 .top-link { display: none; }
 @media (min-width: 1024px) {
   /* The fixed drawer already carries the brand: the bar keeps the quick links. */
   .top > .brand { display: none; }
-  .top-link { display: inline; }
+  .top-link { display: inline-flex; }
 }
 
 /* ---- Typography ---- */
@@ -130,6 +131,9 @@ main a:not(.give):not(.cta):not([class]):hover, article p a:hover, article li a:
   transition: transform var(--t-micro) var(--ease), box-shadow var(--t-micro) var(--ease); }
 .cta:hover { transform: translateY(-2px); box-shadow: 0 10px 28px -10px rgba(224, 122, 47, .5); }
 .cta[disabled] { opacity: .6; cursor: wait; transform: none; box-shadow: none; }
+/* The secondary CTA beside the hero's primary: a quiet outline, no copper. */
+.cta.cta-alt { background: transparent; color: var(--text); border: 1px solid var(--line); }
+.cta.cta-alt:hover { box-shadow: 0 10px 28px -14px rgba(224, 122, 47, .35); }
 
 /* ---- Components shared by the inner pages ---- */
 video { width: 100%; border-radius: var(--r-card); background: #000; display: block; margin: 24px 0 8px; }
@@ -224,9 +228,9 @@ th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: le
 .give-banner .give { margin: 0; }
 
 /* ---- The side drawer: fixed on wide screens, an overlay opened by #menu on narrow ones (no script) ---- */
-.drawer { position: fixed; inset: 0 auto 0 0; width: 240px; z-index: 40; overflow-y: auto;
-  background: rgba(28, 25, 21, .88); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  border-right: 1px solid var(--line); padding: calc(16px + env(safe-area-inset-top, 0px)) 14px 20px;
+.drawer { position: fixed; inset: 0 auto 0 0; width: 300px; max-width: 86vw; z-index: 40; overflow-y: auto;
+  background: rgba(28, 25, 21, .94); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-right: 1px solid var(--line); padding: calc(16px + env(safe-area-inset-top, 0px)) 18px 24px;
   font-size: var(--s14); transform: translateX(-100%); transition: transform var(--t-micro) var(--ease); display: flex; flex-direction: column; }
 .drawer:target { transform: none; box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .55); }
 .drawer .close { display: block; text-align: right; color: var(--text-2); text-decoration: none; margin-bottom: 6px; }
@@ -245,9 +249,10 @@ th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: le
 .drawer .bottom a { display: block; padding: 5px 8px; border-radius: var(--r-card); color: var(--text-2); text-decoration: none; line-height: 1.35; }
 .drawer .bottom a:hover { color: var(--text); background: var(--bg); }
 @media (min-width: 1024px) {
+  /* The top nav owns the quick links; the drawer stays an on-demand overlay
+     (opened by #menu), so the reading column keeps the full width on desktop. */
   .drawer { transform: none; }
   .drawer .close, nav a.menu-btn { display: none; }
-  body { padding-left: calc(240px + 16px); }
 }
 
 /* Pager between the articles of a series */
@@ -389,35 +394,37 @@ article > .guide { float: right; margin: -6px 0 8px 16px; shape-outside: circle(
 footer { color: var(--text-2); font-size: var(--s14); padding-block: 40px; border-top: 1px solid var(--line); margin-top: 60px; }
 footer .mascot { display: block; width: 128px; margin: 0 auto 18px; background: none; border-radius: 0; transform-origin: 50% 100%; }
 
-/* ---- Home hero: the kitsunebi show (hero.js only enhances; the DOM is the final state) ---- */
-.hero { position: absolute; inset: 0 0 auto; height: 100vh; height: 100svh; overflow: hidden;
-  background: radial-gradient(130% 90% at 68% 8%, #1d1712 0%, var(--bg) 62%); }
-body.home main { max-width: 1040px; padding-top: calc(100vh + 32px); padding-top: calc(100svh + 32px); }
+/* ---- Home hero: a compact in-flow editorial band (hero.js only enhances; the DOM is the final state) ---- */
+.hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--line);
+  padding-block: clamp(56px, 12vh, 120px) clamp(48px, 10vh, 96px);
+  background: radial-gradient(130% 130% at 72% 0%, #1d1712 0%, var(--bg) 66%); }
+body.home main { max-width: 1040px; }
 body.home .top { position: sticky; z-index: 34; padding-inline: max(16px, calc((100% - 1040px) / 2 + 16px)); }
 .hero-embers { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; pointer-events: none; }
-.hero-stage { position: relative; z-index: 3; height: 100%; max-width: 1160px; margin-inline: auto;
+.hero-stage { position: relative; z-index: 3; max-width: 1040px; margin-inline: auto;
   display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); align-items: center; gap: 16px;
-  padding-inline: clamp(20px, 5vw, 64px); }
-.hero-kicker { margin: 0 0 18px; font: 600 var(--s12)/1.4 var(--font-mono);
+  padding-inline: max(16px, calc((100% - 1040px) / 2 + 16px)); }
+.hero-kicker { margin: 0 0 14px; font: 600 var(--s12)/1.4 var(--font-mono);
   letter-spacing: .22em; text-transform: uppercase; color: var(--accent); }
-.hero-title { margin: 0 0 22px; font-family: var(--font-display); font-weight: 600; color: var(--text);
-  font-size: clamp(3.2rem, 6vw, 5.6rem); line-height: .98; letter-spacing: -.02em; white-space: nowrap; }
+.hero-title { margin: 0 0 18px; font-family: var(--font-display); font-weight: 600; color: var(--text);
+  font-size: clamp(2.6rem, 5vw, 4.2rem); line-height: 1.02; letter-spacing: -.02em; }
 .hero-title .hl { display: inline-block; }
-.hero-tag { margin: 0; max-width: 30ch; font-size: var(--s20); color: var(--text-2); }
-.hero-actions { margin: 32px 0 0; }
-.hero-down { position: absolute; z-index: 3; left: 50%; bottom: 14px; translate: -50% 0;
+.hero-tag { margin: 0; max-width: 40ch; font-size: var(--s20); color: var(--text-2); }
+.hero-intro { margin: 0 0 8px; max-width: 62ch; font-size: var(--s16); line-height: 1.5; color: var(--text-2); }
+.hero-actions { margin: 28px 0 0; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.hero-down { position: absolute; z-index: 3; left: 50%; bottom: 10px; translate: -50% 0;
   width: 44px; height: 44px; display: grid; place-items: center; color: var(--text-2); }
 .hero-down:hover { color: var(--accent); }
 
-/* The key art fills the hero; a scrim keeps the title legible, the parallax drifts it slowly. */
+/* The key art sits behind the copy as a soft wash; a scrim keeps the type legible. */
 .hero-art { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; object-position: 66% 50%; }
+  object-fit: cover; object-position: 78% 40%; opacity: .5; }
 .hero::after { content: ""; position: absolute; z-index: 1; inset: 0; pointer-events: none;
-  background: linear-gradient(100deg, rgba(18, 16, 14, .88) 18%, rgba(18, 16, 14, .38) 52%,
+  background: linear-gradient(100deg, rgba(18, 16, 14, .9) 8%, rgba(18, 16, 14, .45) 55%,
     rgba(18, 16, 14, .12) 100%); }
-/* Hero exit: the scene fades into the page background instead of cutting. */
+/* The band closes on a hairline into the page background instead of a hard cut. */
 .hero::before { content: ""; position: absolute; z-index: 4; left: 0; right: 0; bottom: 0;
-  height: 22%; pointer-events: none;
+  height: 18%; pointer-events: none;
   background: linear-gradient(180deg, transparent, var(--bg)); }
 
 /* Parallax: --sc (0 at rest, 1 one viewport down) is set by hero.js. */
@@ -427,17 +434,18 @@ body.home .top { position: sticky; z-index: 34; padding-inline: max(16px, calc((
 .hero-down { opacity: max(0, calc(1 - var(--sc, 0) * 4)); }
 
 @media (min-width: 1024px) {
-  /* The fixed drawer owns the left 240 px: the hero composes in the rest. */
-  .hero-stage { margin-left: 240px; margin-right: 0; max-width: none; }
+  /* No sidebar reserves the left column: the hero composes in the full width. */
+  .hero-stage { padding-inline: clamp(32px, 6vw, 88px); }
 }
 
 @media (max-width: 760px) {
+  .hero { padding-block: clamp(44px, 10vh, 72px) clamp(40px, 8vh, 64px); }
   .hero-stage { grid-template-columns: 1fr; align-content: center; }
   .hero::after { background: linear-gradient(180deg, rgba(18, 16, 14, .86) 12%,
       rgba(18, 16, 14, .55) 48%, rgba(18, 16, 14, .5) 100%); }
   .hero-art { object-position: 76% 50%; }
   .hero-copy { position: relative; z-index: 2; }
-  .hero-title { font-size: clamp(3rem, 15vw, 4.6rem); }
+  .hero-title { font-size: clamp(2.3rem, 11vw, 3.2rem); }
 }
 
 /* The entrance: only when hero.js runs (is-live) and motion is welcome. */
@@ -476,19 +484,19 @@ body.home .top { position: sticky; z-index: 34; padding-inline: max(16px, calc((
 }
 
 /* The teammate anchoring the hero: one per load, its name tag beside it (hero.js). */
-.hero-anchor-tag { position: absolute; z-index: 4; right: 8%; bottom: 46%;
+.hero-anchor-tag { position: absolute; z-index: 4; right: 5%; bottom: 8%;
   max-width: 20ch; padding: 6px 12px; border-left: 2px solid var(--accent);
   font-family: var(--font-display); font-style: italic; font-size: var(--s16); color: var(--text-1);
   background: rgba(18, 16, 14, .6); opacity: 0; transform: translateY(8px);
   transition: opacity var(--t-page) var(--ease) .25s, transform var(--t-page) var(--ease) .25s; pointer-events: none; }
 .hero-anchor-tag.on { opacity: 1; transform: none; }
-.hero-mascot { position: absolute; z-index: 3; right: 6%; bottom: 0; width: min(46vh, 420px);
+.hero-mascot { position: absolute; z-index: 3; right: 4%; bottom: 0; width: min(42vh, 360px);
   pointer-events: none; filter: drop-shadow(0 22px 34px rgba(0, 0, 0, .5)); }
 /* The global video rule (black backdrop) must not paint behind the transparent mascot webm. */
 .hero-mascot { background: none; border-radius: 0; margin: 0; }
 @media (max-width: 760px) {
-  .hero-mascot { width: min(34vh, 240px); right: 2%; opacity: .92; }
-  .hero-anchor-tag { top: auto; bottom: 34%; right: 6%; font-size: var(--s14); }
+  .hero-mascot { width: min(30vh, 220px); right: 2%; bottom: -6px; opacity: .92; }
+  .hero-anchor-tag { top: auto; bottom: 6%; right: 4%; font-size: var(--s14); }
 }
 
 /* ---- Home sections: briefing, paths, latest tutorial, letter ---- */
