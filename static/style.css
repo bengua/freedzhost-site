@@ -495,11 +495,20 @@ body.home .top { position: sticky; z-index: 34; padding-inline: max(16px, calc((
 .hero-anchor-tag.on { opacity: 1; transform: none; }
 .hero-mascot { position: absolute; z-index: 3; right: 4%; bottom: 0; width: min(42vh, 360px);
   pointer-events: none; filter: drop-shadow(0 22px 34px rgba(0, 0, 0, .5)); }
-/* The global video rule (black backdrop) must not paint behind the transparent mascot webm. */
-.hero-mascot { background: none; border-radius: 0; margin: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  /* Still-image entrance: rise once, then a gentle bob (transform only). */
+  @keyframes hero-mascot-in { from { transform: translateY(18px); } to { transform: none; } }
+  @keyframes hero-mascot-bob { 50% { transform: translateY(6px); } }
+  .hero.is-live .hero-mascot { opacity: 0;
+    animation: hero-mascot-in .7s var(--ease) .3s forwards,
+               hero-mascot-bob 3.2s var(--breath) 1.1s infinite; }
+}
 @media (max-width: 760px) {
-  .hero-mascot { width: min(30vh, 220px); right: 2%; bottom: -6px; opacity: .92; }
-  .hero-anchor-tag { top: auto; bottom: 6%; right: 4%; font-size: var(--s14); }
+  /* Reserve a modest bottom band with padding so the still mascot and its tag
+     never cover the hero copy or the CTA buttons; no viewport-height lock. */
+  .hero { padding-bottom: 148px; }
+  .hero-mascot { width: min(22vh, 132px); right: 4%; bottom: 12px; }
+  .hero-anchor-tag { top: auto; bottom: 8%; right: 5%; font-size: var(--s14); }
 }
 
 /* ---- Home sections: briefing, paths, latest tutorial, letter ---- */
