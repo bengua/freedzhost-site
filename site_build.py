@@ -47,16 +47,9 @@ LANGS = {
            "foot_fox": "Found this useful? Tell us what to measure next.",
            "hero_kicker": "Tutorials · Homelab · Local AI",
            "hero_tag": "Your own swarm of AI agents, at home.",
-           "hero_team": [["inari", "Inari, your guide"], ["zen", "the local way"],
-                         ["merica", "claudz, the Anthropic room"], ["rebel", "the unfiltered rebel"],
-                         ["artiste", "the studio"], ["militaire", "the sentinel"],
-                         ["mistral", "the European breath"],
-                         ["cerebras", "wafer lightning"], ["cloudflare", "the network edge"],
-                         ["cohere", "the scribe"], ["gemini", "the Google gaze"],
-                         ["google", "undercover"], ["grok", "the cyberpunk"],
-                         ["nvidia", "the CUDA force"],
-                         ["openai", "the elegant one"], ["openrouter", "the gatekeeper"],
-                         ["umans", "the augmented human"]],
+           "hero_team": [["inari", "Inari, your guide"],
+                         ["cloudflare", "the network edge"],
+                         ["grok", "the cyberpunk"]],
            "hero_down": "Skip to the content",
            "hero_cta": "Explore the tutorials",
            "hero_cta_paths": "Start a learning path",
@@ -98,16 +91,9 @@ LANGS = {
            "foot_fox": "Utile ? Dites-nous ce qu'il faut mesurer ensuite.",
            "hero_kicker": "Tutos · Homelab · IA locale",
            "hero_tag": "Votre essaim d'agents IA, à la maison.",
-           "hero_team": [["inari", "Inari, ton guide"], ["zen", "la voie locale"],
-                         ["merica", "claudz, la room Anthropic"], ["rebel", "le rebelle sans filtre"],
-                         ["artiste", "le studio"], ["militaire", "la sentinelle"],
-                         ["mistral", "le souffle européen"],
-                         ["cerebras", "la foudre wafer"], ["cloudflare", "le bord du réseau"],
-                         ["cohere", "le scribe"], ["gemini", "le regard de Google"],
-                         ["google", "l'incognito"], ["grok", "le cyberpunk"],
-                         ["nvidia", "la force CUDA"],
-                         ["openai", "l'élégant"], ["openrouter", "le passeur"],
-                         ["umans", "l'humain augmenté"]],
+           "hero_team": [["inari", "Inari, ton guide"],
+                         ["cloudflare", "le bord du réseau"],
+                         ["grok", "le cyberpunk"]],
            "hero_down": "Aller au contenu",
            "hero_cta": "Découvrir les tutos",
            "hero_cta_paths": "Commencer un parcours",
@@ -730,7 +716,7 @@ def hero(lang):
     return (f'<section class="hero">'
             f'<img class="hero-art" src="/media/hero-bg.webp" alt="" width="1600" height="914" '
             f'fetchpriority="high" decoding="async">'
-            f'<video class="hero-mascot" muted playsinline preload="auto" aria-hidden="true"></video>'
+            f'<img class="hero-mascot" src="/media/personas/inari.webp" alt="" width="512" height="512" loading="eager" decoding="async" aria-hidden="true">'
             f'<canvas class="hero-embers" aria-hidden="true"></canvas>'
             f'<div class="hero-stage"><div class="hero-copy">'
             f'<p class="hero-kicker">{html.escape(t["hero_kicker"])}</p>'
