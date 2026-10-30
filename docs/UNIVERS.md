@@ -10,6 +10,24 @@
 
 Cette direction prévaut sur toute tentation gadget (référence de retenue : sunmetalon.com).
 
+### Amendement (30/10) : refonte éditoriale moderne du site
+
+Le site passe à une composition éditoriale compacte, sans renverser la
+constitution :
+
+- **Hero compacte dans le flux** : plus de plein écran — bande éditoriale
+  pleine largeur, art clé en fond voilé sous le texte, clôture en filet
+  (hairline) vers le fond de la page. Le DOM reste l'état final ; hero.js ne
+  fait que renforcer.
+- **Navigation supérieure sur desktop** : barre top avec marque et liens
+  rapides ; le tiroir, plus permanent, n'est ouvert que sur demande
+  (`#menu`, zéro script) — la colonne de lecture garde toute sa largeur.
+  Cibles 44 px et focus visibles conservés.
+- **Cartes éditoriales lisibles** et articles lisibles : même grille,
+  mêmes filets, hiérarchie textuelle avant la décoration.
+- **Principes charbon / cuivre / Fraunces intacts** : fond charbon chaud, un
+  seul accent cuivre, Fraunces en display, `prefers-reduced-motion` respecté.
+
 ### Amendement 2 (22/10 nuit) : l’expérience immersive narrative
 
 Au-delà de l’énergie manga : le site devient une expérience de motion design
@@ -157,7 +175,7 @@ opacité ≤ 0.08. Le fond de la mascotte est toujours le fond de la surface
 
 | Surface | État | Écart à résorber |
 |---|---|---|
-| Site | refonte en cours (piliers + art) | appliquer cette constitution (spec art) |
+| Site | refonte éditoriale moderne actée (30/10) | voir l'amendement du 30/10 en tête de ce document |
 | Webapp foxroom | gui à refondre | mêmes tokens CSS, tiroir, tuiles-personas |
 | APK Inari | 0.33.0 alpha | thème Material dérivé des tokens, Fraunces, mascotte plein-écran sans bandeau |
 
