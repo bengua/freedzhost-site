@@ -167,6 +167,21 @@ def test_drawer_has_the_new_navigation_tree(out):
         assert "coups-de-coeur.html" in text, home
 
 
+def test_drawer_stays_hidden_until_opened_on_desktop(out):
+    style = (out / "style.css").read_text(encoding="utf-8")
+    for hook in (
+        "@media (min-width: 1024px)",
+        ".drawer:target { transform: none; }",
+        ".drawer .close { display: none; }",
+    ):
+        assert hook in style
+    desktop = style.split("@media (min-width: 1024px)")[1]
+    drawer = desktop[desktop.index(".drawer"):]
+    close_idx = drawer.index(".drawer .close")
+    assert ".drawer:target" in drawer[:close_idx]  # opens on :target, not by default
+    assert "nav a.menu-btn { display: none" not in drawer  # the menu button stays on desktop
+
+
 def jsonld_blocks(path):
     import json
     text = path.read_text(encoding="utf-8")
