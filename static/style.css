@@ -250,7 +250,6 @@ th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: le
      (opened by #menu), so the reading column keeps the full width on desktop. */
   .drawer { transform: translateX(-100%); }
   .drawer:target { transform: none; }
-  .drawer .close { display: none; }
 }
 
 /* Pager between the articles of a series */
