@@ -185,6 +185,17 @@ def test_drawer_stays_hidden_until_opened_on_desktop(out):
     assert ".top > .brand { display: none" not in style  # the bar carries the brand again
 
 
+def test_top_link_stays_compact_on_mobile_and_restores_on_desktop(out):
+    style = (out / "style.css").read_text(encoding="utf-8")
+    # The base hide rule must out-specificity `header.top nav a` (which forces
+    # inline-flex on every nav anchor), or the mobile bar would not stay compact.
+    base_rule = "header.top nav a.top-link { display: none"
+    assert base_rule in style, "the base .top-link rule must win the specificity over `header.top nav a`"
+    # The matching selector restores the links inside the desktop media query.
+    desktop = style.split("@media (min-width: 1024px)")[1]
+    assert "header.top nav a.top-link { display: inline-flex" in desktop  # same selector, back on desktop
+
+
 def jsonld_blocks(path):
     import json
     text = path.read_text(encoding="utf-8")
