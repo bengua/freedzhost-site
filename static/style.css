@@ -248,8 +248,9 @@ th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: le
 @media (min-width: 1024px) {
   /* The top nav owns the quick links; the drawer stays an on-demand overlay
      (opened by #menu), so the reading column keeps the full width on desktop. */
-  .drawer { transform: none; }
-  .drawer .close, nav a.menu-btn { display: none; }
+  .drawer { transform: translateX(-100%); }
+  .drawer:target { transform: none; }
+  .drawer .close { display: none; }
 }
 
 /* Pager between the articles of a series */
