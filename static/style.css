@@ -402,9 +402,16 @@ body.home .top { position: sticky; z-index: 34; padding-inline: max(16px, calc((
   letter-spacing: .22em; text-transform: uppercase; color: var(--accent); }
 .hero-title { margin: 0 0 22px; font-family: var(--font-display); font-weight: 600; color: var(--text);
   font-size: clamp(3.2rem, 6vw, 5.6rem); line-height: .98; letter-spacing: -.02em; white-space: nowrap; }
-.hero-title .hl { display: inline-block; }
-.hero-tag { margin: 0; max-width: 30ch; font-size: var(--s20); color: var(--text-2); }
-.hero-actions { margin: 32px 0 0; }
+.hero-title .hl { display: inline-block; white-space: pre; }
+.hero-intro { margin: 0; max-width: 30ch; font-size: var(--s20); color: var(--text-2); }
+.hero-actions { margin: 32px 0 0; display: flex; flex-wrap: wrap; gap: 12px; }
+.hero-actions .cta { margin: 0; }
+/* The secondary action: an outlined counterpart, no smaller hit area. */
+.cta-alt { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 22px;
+  border: 1px solid var(--line); border-radius: var(--r-pill); background: transparent; color: var(--text-1);
+  font: 500 var(--s16)/1 var(--font-text); text-decoration: none; cursor: pointer;
+  transition: border-color var(--t-micro) var(--ease), color var(--t-micro) var(--ease), background var(--t-micro) var(--ease); }
+.cta-alt:hover { border-color: var(--accent); color: var(--text); background: var(--raise); }
 .hero-down { position: absolute; z-index: 3; left: 50%; bottom: 14px; translate: -50% 0;
   width: 44px; height: 44px; display: grid; place-items: center; color: var(--text-2); }
 .hero-down:hover { color: var(--accent); }

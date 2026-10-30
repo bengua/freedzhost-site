@@ -59,6 +59,7 @@ LANGS = {
                          ["umans", "the augmented human"]],
            "hero_down": "Skip to the content",
            "hero_cta": "Explore the tutorials",
+           "hero_cta_alt": "Read the den letter",
            "latest_h2": "The latest tutorial", "latest_go": "Read the tutorial",
            "news_h2": "The den letter",
            "news_pitch": "One e-mail when a new tutorial lands — the briefing's picks and the swarm's measurements. No spam, no tracker, leave in one click.",
@@ -108,6 +109,7 @@ LANGS = {
                          ["umans", "l'humain augmenté"]],
            "hero_down": "Aller au contenu",
            "hero_cta": "Découvrir les tutos",
+           "hero_cta_alt": "Lire la lettre du terrier",
            "latest_h2": "Le dernier tuto", "latest_go": "Lire le tuto",
            "news_h2": "La lettre du terrier",
            "news_pitch": "Un e-mail quand un nouveau tuto paraît — les choix de la revue et les mesures du swarm. Ni spam, ni traceur, désinscription en un clic.",
@@ -731,8 +733,11 @@ def hero(lang):
             f'<div class="hero-stage"><div class="hero-copy">'
             f'<p class="hero-kicker">{html.escape(t["hero_kicker"])}</p>'
             f'<h1 class="hero-title">FreedzHost</h1>'
-            f'<p class="hero-tag">{html.escape(t["hero_tag"])}</p>'
-            f'<p class="hero-actions"><a class="cta" href="{url(lang, "tutos")}">{html.escape(t["hero_cta"])}</a></p>'
+            f'<p class="hero-intro">{html.escape(t["hero_tag"])}</p>'
+            f'<p class="hero-actions">'
+            f'<a class="cta" href="{url(lang, "tutos")}">{html.escape(t["hero_cta"])}</a>'
+            f'<a class="cta cta-alt" href="{url(lang, "actualites")}">{html.escape(t["hero_cta_alt"])}</a>'
+            f'</p>'
             f'</div></div>'
             f'<span class="hero-parade-tag hero-anchor-tag" aria-hidden="true"></span>'
             f'<script type="application/json" class="hero-team">{json.dumps(t["hero_team"])}</script>'

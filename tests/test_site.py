@@ -1,6 +1,7 @@
 """Build the site for real and check what a visitor would hit."""
 
 import re
+from pathlib import Path
 
 import pytest
 
@@ -203,6 +204,27 @@ def test_human_durations_become_iso8601():
     assert site_build.iso_duration("1–2 h") == "PT2H"  # a range counts by its upper bound
     assert site_build.iso_duration("1 h + compilation") == "PT1H"
     assert site_build.iso_duration("an evening") is None  # fuzzy text carries no duration
+
+
+def test_home_hero_carries_its_intro_and_secondary_action(out):
+    root = Path(__file__).resolve().parent.parent
+    css = (root / "static" / "style.css").read_text(encoding="utf-8")
+    # The animated title keeps its spaces inside the .hl spans it splits.
+    assert ".hero-title .hl" in css and "white-space: pre" in css
+    # The intro keeps the former readable tagline presentation.
+    assert ".hero-intro" in css
+    # The actions wrap with a small gap and the secondary action is outlined.
+    assert ".hero-actions" in css and "flex-wrap: wrap" in css
+    assert ".cta-alt" in css and "border: 1px solid" in css
+    # Reduced-motion behaviour is preserved: the entrance still only animates
+    # the .hl spans under an explicit motion preference.
+    assert ".hero.is-live .hero-title .hl" in css
+    for home in (out / "index.html", out / "fr" / "index.html"):
+        text = home.read_text(encoding="utf-8")
+        assert 'class="hero-title"' in text, home
+        assert 'class="hero-intro"' in text, home
+        assert 'class="hero-actions"' in text, home
+        assert 'class="cta cta-alt"' in text, home
 
 
 def test_home_pages_carry_organization_and_website(out):
