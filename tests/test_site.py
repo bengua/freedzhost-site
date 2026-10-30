@@ -175,14 +175,20 @@ def test_drawer_stays_hidden_until_opened_on_desktop(out):
         ".drawer .close { display: none; }",
     ):
         assert hook in style
-    desktop = style.split("@media (min-width: 1024px)")[1]
-    drawer = desktop[desktop.index(".drawer"):]
+    drawer = style.split("/* ---- The side drawer")[1].split("/* Pager")[0]
     close_idx = drawer.index(".drawer .close")
     assert ".drawer:target" in drawer[:close_idx]  # opens on :target, not by default
     assert "nav a.menu-btn { display: none" not in drawer  # the menu button stays on desktop
-    top = style.split(".top-link { display: none; }")[1].split("/* ---- Typography")[0]
+
+
+def test_top_links_stay_compact_until_desktop(out):
+    style = (out / "style.css").read_text(encoding="utf-8")
+    base = style.split("header.top nav a.top-link { display: none; }")[1]
+    top = base.split("/* ---- Typography")[0]
     assert ".brand { display: none" not in top  # the brand stays visible on desktop
     assert ".top > .brand { display: none" not in style  # the bar carries the brand again
+    desktop = style.split("@media (min-width: 1024px) {")
+    assert "header.top nav a.top-link { display: inline-flex; }" in desktop[1]  # restored on desktop
 
 
 def jsonld_blocks(path):
