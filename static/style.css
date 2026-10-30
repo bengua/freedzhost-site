@@ -399,6 +399,7 @@ body.home main { max-width: 1040px; }
 body.home .top { position: sticky; z-index: 34; padding-inline: max(16px, calc((100% - 1040px) / 2 + 16px)); }
 .hero-embers { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; pointer-events: none; }
 .hero-stage { position: relative; z-index: 3; max-width: 1040px; margin-inline: auto;
+  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); align-items: center; gap: 16px;
   padding-inline: max(16px, calc((100% - 1040px) / 2 + 16px)); }
 .hero-kicker { margin: 0 0 14px; font: 600 var(--s12)/1.4 var(--font-mono);
   letter-spacing: .22em; text-transform: uppercase; color: var(--accent); }
@@ -442,6 +443,7 @@ body.home .top { position: sticky; z-index: 34; padding-inline: max(16px, calc((
 
 @media (max-width: 760px) {
   .hero { padding-block: clamp(44px, 10vh, 72px) clamp(40px, 8vh, 64px); }
+  .hero-stage { grid-template-columns: 1fr; align-content: center; }
   .hero::after { background: linear-gradient(180deg, rgba(18, 16, 14, .86) 12%,
       rgba(18, 16, 14, .55) 48%, rgba(18, 16, 14, .5) 100%); }
   .hero-art { object-position: 76% 50%; }
@@ -490,24 +492,24 @@ body.home .top { position: sticky; z-index: 34; padding-inline: max(16px, calc((
 
 /* The teammate anchoring the hero: one still per load, its name tag beside it (hero.js).
    Both sit in the band's lower-right corner, clear of the title, intro and CTAs. */
-.hero-anchor-tag { position: absolute; z-index: 4; right: max(16px, calc((100% - 1040px) / 2 + 16px));
-  bottom: calc(var(--hero-mascot-band, 0px) + 18px);
+.hero-anchor-tag { position: absolute; z-index: 4; left: 16px; right: auto;
+  bottom: 38px;
   max-width: 20ch; padding: 6px 12px; border-left: 2px solid var(--accent);
   font-family: var(--font-display); font-style: italic; font-size: var(--s16); color: var(--text-1);
   background: rgba(18, 16, 14, .6); opacity: 0; transform: translateY(8px);
   transition: opacity var(--t-page) var(--ease) .25s, transform var(--t-page) var(--ease) .25s; pointer-events: none; }
 .hero-anchor-tag.on { opacity: 1; transform: none; }
-.hero-mascot { position: absolute; z-index: 3; right: max(16px, calc((100% - 1040px) / 2 + 16px));
-  bottom: calc(var(--hero-mascot-band, 0px) + 10px); width: min(40vh, 340px);
+.hero-mascot { position: absolute; z-index: 3; right: 16px;
+  bottom: 24px; width: min(40vh, 340px);
   pointer-events: none; filter: drop-shadow(0 22px 34px rgba(0, 0, 0, .5)); }
 /* The mascot is a still now: no video backdrop to clear. */
 .hero-mascot { background: none; border-radius: 0; margin: 0; }
 @media (max-width: 760px) {
-  /* On mobile the hero keeps the copy clear: a modest bottom band (padding
-     only, no fixed height) reserves the room the mascot and its tag need. */
-  .hero { --hero-mascot-band: 96px; }
-  .hero-mascot { width: min(30vh, 200px); right: 2%; opacity: .92; }
-  .hero-anchor-tag { right: 2%; font-size: var(--s14); }
+  /* The compact in-flow hero reserves its mascot band with real padding:
+     no fixed height, no viewport units, so the copy above always stays clear. */
+  .hero { padding-bottom: 200px; }
+  .hero-mascot { width: 140px; right: 16px; bottom: 24px; }
+  .hero-anchor-tag { left: 16px; right: auto; bottom: 38px; font-size: var(--s14); }
 }
 
 /* ---- Home sections: briefing, paths, latest tutorial, letter ---- */
