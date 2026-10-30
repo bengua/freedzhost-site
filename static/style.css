@@ -131,6 +131,9 @@ main a:not(.give):not(.cta):not([class]):hover, article p a:hover, article li a:
   transition: transform var(--t-micro) var(--ease), box-shadow var(--t-micro) var(--ease); }
 .cta:hover { transform: translateY(-2px); box-shadow: 0 10px 28px -10px rgba(224, 122, 47, .5); }
 .cta[disabled] { opacity: .6; cursor: wait; transform: none; box-shadow: none; }
+/* The secondary CTA beside the hero's primary: a quiet outline, no copper. */
+.cta.cta-alt { background: transparent; color: var(--text); border: 1px solid var(--line); }
+.cta.cta-alt:hover { box-shadow: 0 10px 28px -14px rgba(224, 122, 47, .35); }
 
 /* ---- Components shared by the inner pages ---- */
 video { width: 100%; border-radius: var(--r-card); background: #000; display: block; margin: 24px 0 8px; }
@@ -407,7 +410,8 @@ body.home .top { position: sticky; z-index: 34; padding-inline: max(16px, calc((
   font-size: clamp(2.6rem, 5vw, 4.2rem); line-height: 1.02; letter-spacing: -.02em; }
 .hero-title .hl { display: inline-block; }
 .hero-tag { margin: 0; max-width: 40ch; font-size: var(--s20); color: var(--text-2); }
-.hero-actions { margin: 28px 0 0; }
+.hero-intro { margin: 0 0 8px; max-width: 62ch; font-size: var(--s16); line-height: 1.5; color: var(--text-2); }
+.hero-actions { margin: 28px 0 0; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 .hero-down { position: absolute; z-index: 3; left: 50%; bottom: 10px; translate: -50% 0;
   width: 44px; height: 44px; display: grid; place-items: center; color: var(--text-2); }
 .hero-down:hover { color: var(--accent); }
