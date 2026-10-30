@@ -102,9 +102,10 @@ header.top nav a.menu-btn { color: var(--text); }
 header.top nav a.help { color: var(--accent); }
 header.top nav a.support { color: var(--ok); }
 .top-link { display: none; }
+header.top nav a.top-link { display: none; }
 @media (min-width: 1024px) {
   /* The drawer is an on-demand overlay again, so the bar carries the brand. */
-  .top-link { display: inline-flex; }
+  header.top nav a.top-link { display: inline-flex; }
 }
 
 /* ---- Typography ---- */
