@@ -406,9 +406,16 @@ body.home .top { position: sticky; z-index: 34; padding-inline: max(16px, calc((
   letter-spacing: .22em; text-transform: uppercase; color: var(--accent); }
 .hero-title { margin: 0 0 18px; font-family: var(--font-display); font-weight: 600; color: var(--text);
   font-size: clamp(2.6rem, 5vw, 4.2rem); line-height: 1.02; letter-spacing: -.02em; }
-.hero-title .hl { display: inline-block; }
-.hero-tag { margin: 0; max-width: 40ch; font-size: var(--s20); color: var(--text-2); }
-.hero-actions { margin: 28px 0 0; }
+.hero-title .hl { display: inline-block; white-space: pre; }
+.hero-intro { margin: 0; max-width: 40ch; font-size: var(--s20); color: var(--text-2); }
+.hero-actions { margin: 28px 0 0; display: flex; flex-wrap: wrap; gap: 12px; }
+.hero-actions .cta { margin: 0; }
+/* The secondary action: an outlined counterpart, no smaller hit area. */
+.cta-alt { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 22px;
+  border: 1px solid var(--line); border-radius: var(--r-pill); background: transparent; color: var(--text-1);
+  font: 500 var(--s16)/1 var(--font-text); text-decoration: none; cursor: pointer;
+  transition: border-color var(--t-micro) var(--ease), color var(--t-micro) var(--ease), background var(--t-micro) var(--ease); }
+.cta-alt:hover { border-color: var(--accent); color: var(--text); background: var(--raise); }
 .hero-down { position: absolute; z-index: 3; left: 50%; bottom: 10px; translate: -50% 0;
   width: 44px; height: 44px; display: grid; place-items: center; color: var(--text-2); }
 .hero-down:hover { color: var(--accent); }
@@ -453,7 +460,7 @@ body.home .top { position: sticky; z-index: 34; padding-inline: max(16px, calc((
   @keyframes hero-bob { 50% { transform: translateY(6px); } }
   .hero.is-live .hero-kicker { opacity: 0; animation: hero-fade .6s var(--ease) 80ms forwards; }
   .hero.is-live .hero-title .hl { opacity: 0; animation: hero-letter .55s var(--ease) both; animation-delay: var(--d); }
-  .hero.is-live .hero-tag { opacity: 0; animation: hero-fade .8s var(--ease) .95s forwards; }
+  .hero.is-live .hero-intro { opacity: 0; animation: hero-fade .8s var(--ease) .95s forwards; }
   .hero.is-live .hero-actions { opacity: 0; animation: hero-fade .8s var(--ease) 1.2s forwards; }
   .hero.is-live .hero-down { opacity: 0; animation: hero-fade .6s ease 1.8s forwards; }
   .hero-down svg { animation: hero-bob 2.6s var(--breath) 2.6s infinite; }
