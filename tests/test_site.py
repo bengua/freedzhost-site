@@ -173,13 +173,11 @@ def test_drawer_stays_hidden_until_opened_on_desktop(out):
     for hook in (
         "@media (min-width: 1024px)",
         ".drawer:target { transform: none; }",
-        ".drawer .close { display: none; }",
     ):
         assert hook in style
     desktop = style.split("@media (min-width: 1024px)")[1]
     drawer = desktop[desktop.index(".drawer"):]
-    close_idx = drawer.index(".drawer .close")
-    assert ".drawer:target" in drawer[:close_idx]  # opens on :target, not by default
+    assert ".drawer .close { display: none; }" not in drawer  # the overlay keeps its explicit close link on desktop
     assert "nav a.menu-btn { display: none" not in drawer  # the menu button stays on desktop
     top = style.split(".top-link { display: none; }")[1].split("/* ---- Typography")[0]
     assert ".brand { display: none" not in top  # the brand stays visible on desktop
