@@ -264,6 +264,35 @@ def test_home_hero_carries_the_localized_h1_and_both_cta_destinations(out):
         assert f'href="{url(lang, "parcours-model-7b")}"' in text, home
 
 
+def test_hero_ships_the_default_mascot_image(out):
+    # The mascot is a still image now: the default src is in the DOM (so the
+    # hero is complete without script) and the built WebP it points to ships.
+    default_src = re.search(r'<img class="hero-mascot" src="([^"]+)"', (out / "index.html").read_text(encoding="utf-8"))
+    assert default_src, "the home hero must carry the mascot img"
+    assert (out / default_src.group(1).lstrip("/")).is_file(), default_src.group(1)
+
+
+def test_every_hero_mascot_entry_has_a_source_webp(out):
+    # Only frame-zero-clean personas may anchor the hero, and each localized
+    # entry must resolve to a WebP that is actually shipped in the build. The
+    # entry's name (not the path) is what the DOM carries; the still is derived
+    # from it, so we check both the shipped file and the localized entry itself.
+    for lang, home in (("en", out / "index.html"), ("fr", out / "fr" / "index.html")):
+        text = home.read_text(encoding="utf-8")
+        for name, label in site_build.LANGS[lang]["hero_team"]:
+            still = f"/media/personas/{name}.webp"
+            assert (out / still.lstrip("/")).is_file(), (name, still)
+        # The localized entries themselves are the source: names must be unique
+        # and each localized hero_team must render into the hero-team block.
+        rendered = re.search(r'<script type="application/json" class="hero-team">(.*?)</script>', text, re.DOTALL)
+        assert rendered, home
+        import json as _json
+        names = [entry[0] for entry in _json.loads(rendered.group(1))]
+        assert names == [name for name, _ in site_build.LANGS[lang]["hero_team"]], home
+    # The two localized lists name the same personas, so the build has no orphan.
+    assert [n for n, _ in site_build.LANGS["en"]["hero_team"]] == [n for n, _ in site_build.LANGS["fr"]["hero_team"]]
+
+
 def test_paths_stay_out_of_search_index(out):
     assert "parcours" not in (out / "search-index.json").read_text(encoding="utf-8")
 
