@@ -5,6 +5,7 @@ import re
 import pytest
 
 import site_build
+from site_build import url
 
 # Generic on purpose: this file must not itself name the infrastructure it protects.
 LEAK = re.compile(
@@ -241,6 +242,17 @@ def test_learning_paths_render_steps_and_are_linked(out):
         assert text.count('<input type="checkbox"') == 4 and f'href="{link}"' in text
     assert "/parcours-cloud-exit.html" in (out / "index.html").read_text(encoding="utf-8")
     assert "/fr/parcours-cloud-exit.html" in (out / "fr" / "index.html").read_text(encoding="utf-8")
+
+
+def test_home_hero_carries_the_localized_h1_and_both_cta_destinations(out):
+    import html
+
+    for lang, home in (("en", out / "index.html"), ("fr", out / "fr" / "index.html")):
+        text = home.read_text(encoding="utf-8")
+        tag = html.escape(site_build.LANGS[lang]["hero_tag"])
+        assert f'<h1 class="hero-title">{tag}</h1>' in text, home
+        assert f'href="{url(lang, "tutos")}"' in text, home
+        assert f'href="{url(lang, "parcours-model-7b")}"' in text, home
 
 
 def test_paths_stay_out_of_search_index(out):
