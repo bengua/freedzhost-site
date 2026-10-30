@@ -1,6 +1,7 @@
 """Build the site for real and check what a visitor would hit."""
 
 import re
+from pathlib import Path
 
 import pytest
 
@@ -291,6 +292,70 @@ def test_every_hero_mascot_entry_has_a_source_webp(out):
         assert names == [name for name, _ in site_build.LANGS[lang]["hero_team"]], home
     # The two localized lists name the same personas, so the build has no orphan.
     assert [n for n, _ in site_build.LANGS["en"]["hero_team"]] == [n for n, _ in site_build.LANGS["fr"]["hero_team"]]
+
+
+STATIC = Path(__file__).resolve().parent.parent / "static"
+
+
+def test_hero_mascot_layout_reserves_its_band_and_keeps_the_grid():
+    # The hero's layout must stay what it is: the desktop .hero-stage is the
+    # two-column grid the key art composes against, mobile collapses to one
+    # column, and on mobile the in-flow hero reserves a real bottom band with
+    # padding (no viewport or fixed heights) so the still mascot and its tag
+    # sit below every copy/CTA without covering them.
+    css = (STATIC / "style.css").read_text(encoding="utf-8")
+
+    def media_blocks(css_text, query):
+        """Return the bodies of every `@media <query> { ... }` block."""
+        bodies = []
+        for m in re.finditer(re.escape("@media " + query) + r"\s*\{", css_text):
+            depth, start = 0, m.end() - 1
+            for i in range(start, len(css_text)):
+                if css_text[i] == "{":
+                    depth += 1
+                elif css_text[i] == "}":
+                    depth -= 1
+                    if depth == 0:
+                        bodies.append(css_text[start + 1 : i])
+                        break
+        assert bodies, "style.css must keep an @media " + query + " block"
+        return bodies
+
+    def rules_in(block):
+        """Map selector -> declarations for the rules of one CSS block."""
+        by_sel = {}
+        for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", block):
+            sel = re.sub(r"/\*.*?\*/", "", m.group(1), flags=re.DOTALL)
+            sel = re.sub(r"\s+", " ", sel).strip().lower()
+            decls = re.sub(r"\s+", " ", m.group(2).strip()).lower()
+            by_sel.setdefault(sel, []).append(decls)
+        return by_sel
+
+    mobile = {}
+    for body in media_blocks(css, "(max-width: 760px)"):
+        for sel, decls in rules_in(body).items():
+            mobile.setdefault(sel, []).extend(decls)
+
+    # The mobile one-column hero-stage rule, restored.
+    hero_stage_decls = " ".join(mobile.get(".hero-stage", []))
+    assert "grid-template-columns: 1fr;" in hero_stage_decls, (
+        "the mobile hero-stage must collapse to one column"
+    )
+
+    # The mobile reservation is real padding on the hero, not a fake height:
+    # no viewport-unit height may stand in for the band.
+    hero_decls = " ".join(mobile.get(".hero", []))
+    assert "padding-bottom: 200px;" in hero_decls, (
+        "the mobile hero must reserve the mascot band with padding-bottom"
+    )
+
+    # Desktop keeps the two-column hero-stage grid, restored.
+    desktop = re.search(r"^\.hero-stage \{[^}]*\}", css, re.MULTILINE)
+    assert desktop, "style.css must keep the desktop .hero-stage rule"
+    desktop_decls = re.sub(r"\s+", " ", desktop.group(0))
+    assert "display: grid;" in desktop_decls and "grid-template-columns:" in desktop_decls, (
+        "the desktop hero-stage must stay a grid"
+    )
 
 
 def test_paths_stay_out_of_search_index(out):
