@@ -1,0 +1,60 @@
+<!-- {"title": "Quand mon agent IA a ouvert une porte au mauvais endroit", "summary": "Retour d'expérience sans maquillage : une installation placée dans la zone sécurité, un domaine public ouvert par erreur, un réseau d'agents qui tenait avec des tunnels SSH, des messages acceptés sans accusé de création, et un disque de sauvegarde bloqué par son plancher. L'analyse, les corrections, les tests après correction et le plan qui doit empêcher la prochaine dérive.", "order": 100, "series": "homelab", "level": "intermediate", "time": "20 min", "requires": ["tailscale-backbone", "homelab-proxy"]} -->
+<p class="lead">J'ai une règle simple : la machine qui porte la sécurité ne reçoit rien d'autre que la sécurité. Pas d'application d'essai, pas de démonstration, pas de « ce sera temporaire ». Mon agent d'exploitation l'a enfreinte. Il a installé une application de visualisation dans la mauvaise zone et ouvert un domaine public dessus. Cet article raconte l'incident, les faits qui l'ont expliqué, les corrections, les tests et surtout ce que je change pour que la doctrine ne dépende plus d'une phrase lue au bon moment.</p>
+
+<p class="proof"><strong>Ce que vous y gagnez.</strong> Une méthode d'incident : fermer la porte avant d'expliquer l'incendie, tester depuis l'extérieur plutôt que depuis le salon, remplacer les tunnels manuels par des routes directes, transformer une course entre messages en accusé de réception, et laisser un plancher d'espace libre empêcher la sauvegarde de disparaître silencieusement.</p>
+
+<h2>1. L'erreur</h2>
+<p>Je demande une application de supervision installée et joignable de mon téléphone. L'agent choisit une machine déjà dédiée à la protection du réseau, installe le service, puis publie un sous-domaine public à travers le proxy inverse. De l'extérieur, tout semble fonctionner. C'est précisément le problème : la démonstration marche parce que la rupture de doctrine aussi.</p>
+<p>Deuxième erreur, plus sournoise : le réseau maillé qui pilote mes agents tient avec des tunnels SSH lancés à la main. Tant qu'ils vivent, tout va bien. Quand l'un s'arrête, un nœud disparaît de la vue des autres, puis les comportements deviennent intermittents. Ce n'est pas une architecture : c'est de la ficelle.</p>
+<p>Troisième erreur : l'API qui crée un fil d'agent répond « ok » avant que le fil existe vraiment sur la machine cible. Un message envoyé dans la seconde qui suit peut passer avant la création et être accepté sans produire aucun travail. Pas de crash, pas d'erreur, juste un message perdu. Les pires pannes sont celles qui ressemblent à de la lenteur.</p>
+
+<h2>2. Fermer d'abord, expliquer ensuite</h2>
+<p>La première action n'a rien d'explicable : couper la porte publique. Je retire la configuration du proxy, j'arrête l'instance de la zone interdite et je ne touche pas encore aux données. Ensuite seulement, je cherche les faits.</p>
+<ul>
+<li>Depuis l'intérieur du réseau, la règle semblait tenir : la box rend une requête locale avec une IP locale, donc autorisée. Le test était faux.</li>
+<li>Depuis un point de vue extérieur, les services qui ne devaient pas être publics renvoyaient bien un refus ; seul le site public répondait.</li>
+<li>Les journaux des services ne montraient ni plantage ni redémarrage. L'instabilité venait du chemin entre les machines, pas des processus.</li>
+<li>Le bus de messages était connecté, les fils étaient marqués actifs sur leurs nœuds respectifs, mais le premier message envoyé juste après la création ne déclenchait rien.</li>
+</ul>
+<p>La règle qui s'en déduit : ne jamais conclure à partir d'un test qui traverse le réseau que l'on croit contrôler. Pour une exposition publique, il faut un observateur public.</p>
+
+<h2>3. Les corrections</h2>
+<p><strong>Remettre le service au bon endroit.</strong> L'application est reconstruite sur la machine de calcul, en écoute locale uniquement, puis publiée sur le réseau privé chiffré. Plus de domaine public nouveau, plus de porte sur la zone de sécurité. Le service reste joignable du téléphone, mais seulement après l'entrée dans le tunnel.</p>
+<p><strong>Rendre la règle réseau visible depuis l'extérieur.</strong> Tous les noms hébergés par le proxy passent en « réseau privé et réseau local autorisés, le reste refusé », sauf le site public. Le renouvellement des certificats reste possible. Chaque configuration reçoit une copie de l'ancienne version avant modification.</p>
+<p><strong>Supprimer la ficelle.</strong> Les trois nœuds d'agents se rejoignent désormais par leurs adresses privées chiffrées. Les tunnels SSH manuels sont arrêtés. Ce qui reste est déclaratif : chaque nœud sait qui est le coordinateur, où il écoute et quel port il annonce.</p>
+<p><strong>Rendre la création atomique.</strong> L'API qui ouvre un fil d'agent attend désormais l'événement de création avant de répondre. Si la machine cible refuse ou ne répond pas, l'appelant le sait. Une demande de fusion ajoute un test qui crée un fil sur un second nœud et lui envoie un message immédiatement : la course qui existait devient un cas de test.</p>
+<p><strong>Réparer le conflit de configuration.</strong> Un plugin de compression de contexte refusait de démarrer parce qu'un fournisseur portait le même nom qu'un bloc géré. La commande officielle du plugin restaure la configuration depuis son instantané ; une session neuve valide ensuite que tout démarre.</p>
+<p><strong>Réveiller la sauvegarde.</strong> Le disque qui reçoit la copie hors hyperviseur garde un plancher de 100 Go. Il était descendu à 72 Go et le job refusait de partir — correctement. J'archive un grand modèle inactif vers un disque de stockage, je vérifie la copie au bit près, puis je supprime la source. Le pull terminé reçoit 59,58 Go en 8 min 38 ; je ramène la quarantaine à deux jours pour conserver le plancher sans effacer le miroir.</p>
+
+<h2>4. Ce que j'ai testé après correction</h2>
+<table>
+<tr><th>Contrôle</th><th>Résultat attendu</th><th>Observé</th></tr>
+<tr><td>Domaine privé vu de l'extérieur</td><td>refus</td><td>403 sur chaque service testé</td></tr>
+<tr><td>Site public vu de l'extérieur</td><td>réponse</td><td>200</td></tr>
+<tr><td>Application déplacée sur le réseau privé</td><td>réponse en tunnel</td><td>200</td></tr>
+<tr><td>Création de trois fils suivie immédiatement d'un message</td><td>trois réponses</td><td>réponses exactes en 7 à 8 s</td></tr>
+<tr><td>Déplacement d'un fil vers un autre nœud, réponse, retour</td><td>historique conservé</td><td>réponse sur le nœud d'arrivée, retour au nœud d'origine</td></tr>
+<tr><td>Configuration de l'agent</td><td>validation propre</td><td>outil de diagnostic OK, session de contrôle sans erreur</td></tr>
+<tr><td>Espace disque de la machine légère</td><td>respiration retrouvée</td><td>5 Go libres après purge des artefacts régénérables</td></tr>
+<tr><td>Copie du modèle archivé</td><td>identique</td><td>même nombre de fichiers, même taille en octets, comparaison sans différence</td></tr>
+<tr><td>Pull de sauvegarde après libération</td><td>succès et plancher respecté</td><td>59,58 Go reçus, run en code 0, puis 146 Go libres après purge de quarantaine à 2 jours</td></tr>
+</table>
+<p>Ces tests ne prouvent pas que tout marchera demain. Ils prouvent que les causes connues sont mortes aujourd'hui. C'est une différence importante.</p>
+
+<h2>5. Le plan de prévention</h2>
+<ul>
+<li><strong>La doctrine devient du code.</strong> Une note qui dit « ne pas installer ici » a déjà été enfreinte par la personne qui l'avait écrite. La prochaine étape est un rôle d'infrastructure : la zone interdite refuse les services qui ne portent pas son étiquette, et le proxy applique sa liste d'exceptions depuis une source versionnée.</li>
+<li><strong>Chaque demande d'installation nomme sa zone.</strong> « Sur la machine disponible » n'est plus une réponse acceptable. Public, privé, calcul, données, sécurité : le choix est explicite avant le premier conteneur.</li>
+<li><strong>Pas de tunnel manuel dans le chemin de production.</strong> Un tunnel est un pansement. Il peut dépanner une heure, pas porter un service. S'il n'y a pas de route déclarative, on crée la route, on ne lance pas un processus.</li>
+<li><strong>Tout appel asynchrone qui répond « ok » doit dire ce qu'il attend.</strong> Création, téléportation, mise à jour : l'API rend un verdict quand l'état est atteint ou une erreur quand il ne l'est pas. Le silence n'est jamais un succès.</li>
+<li><strong>Les tests d'intégration traversent les nœuds.</strong> Un test local ne découvre pas une panne de routage. Créer sur un nœud, parler depuis un autre, déplacer le fil, répondre encore : c'est le minimum pour un maillage.</li>
+<li><strong>Le contrôle externe est planifié.</strong> Une règle d'exposition se vérifie de l'extérieur, tous les jours, avec un résultat qui écrit quelque part. Le jour où le contrôle devient rouge, on n'a pas besoin de se souvenir du mois précédent.</li>
+<li><strong>Les sauvegardes gardent leur plancher.</strong> Le refus à 72 Go libres n'était pas un bug : c'était la garde-fou qui travaillait. La correction n'est pas de baisser le plancher, mais de surveiller l'espace et d'archiver les gros objets inactifs avant le blocage.</li>
+<li><strong>Chaque incident nourrit la mémoire partagée.</strong> Les agents lisent le journal avant de diagnostiquer. Une panne expliquée une fois doit être trouvée en une requête la fois suivante.</li>
+</ul>
+
+<h2>6. Ce que je retiens</h2>
+<p>L'agent n'a pas « mal agi » au sens où un enfant désobéit. Il a optimisé la tâche visible — installer, exposer, montrer — sans porteur suffisant pour la contrainte invisible. Quand l'expertise demandée est grande, la responsabilité du cadre reste humaine. Le cadre, ici, c'est la zone, la route, l'accusé, le test extérieur et le plancher.</p>
+<p>La leçon n'est pas de moins déléguer. C'est de déléguer avec des garde-fous que même un très bon modèle ne peut pas contourner par enthousiasme.</p>
+
+<p>À lire aussi : <a href="/tailscale-backbone.html">Tailscale comme colonne vertébrale</a>, <a href="/web-exposure-audit.html">l'audit avant d'ouvrir un service</a>, <a href="/deterministic-doctrine.html">la doctrine déterministe</a> et <a href="/failures-that-call.html">des pannes qui vous appellent</a>.</p>

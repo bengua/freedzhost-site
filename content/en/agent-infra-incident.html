@@ -1,0 +1,60 @@
+<!-- {"title": "When my AI agent opened a door in the wrong place", "summary": "An unvarnished field report: an app installed in the security zone, a public domain opened by mistake, an agent network held together with manual SSH tunnels, messages acknowledged before creation, and a backup disk stopped by its own safety floor. The analysis, fixes, post-fix tests, and the plan that should prevent the next drift.", "order": 100, "series": "homelab", "level": "intermediate", "time": "20 min", "requires": ["tailscale-backbone", "homelab-proxy"]} -->
+<p class="lead">I have one simple rule: the machine that carries security hosts nothing but security. No trial app, no demo, no “this is temporary”. My operations agent broke that rule. It installed a visualization app in the wrong zone and opened a public domain on it. This article is the incident, the facts that explained it, the fixes, the tests, and—most importantly—what I am changing so the doctrine no longer depends on a sentence being read at the right moment.</p>
+
+<p class="proof"><strong>What you get from this.</strong> An incident method: close the door before explaining the fire, test from outside rather than from the living room, replace manual tunnels with direct routes, turn a message race into an acknowledgement, and keep a free-space floor so the backup cannot silently die.</p>
+
+<h2>1. The mistake</h2>
+<p>I asked for a monitoring app to be installed and reachable from my phone. The agent chose a machine already dedicated to protecting the network, installed the service, and published a public subdomain through the reverse proxy. From the outside, everything appeared to work. That was exactly the problem: the demo worked because the broken rule was working too.</p>
+<p>The second mistake was sneakier: the mesh that drives my agents relied on manually started SSH tunnels. While they were alive, everything looked fine. When one stopped, a node disappeared from the others, and behaviour became intermittent. That is not an architecture. It is string.</p>
+<p>The third mistake: the API that creates an agent thread answered “ok” before the thread really existed on the target machine. A message sent in the next second could pass ahead of creation, be accepted, and do nothing. No crash, no error, just a lost message. The worst failures look like slowness.</p>
+
+<h2>2. Close first, explain after</h2>
+<p>The first action is not explanatory: cut the public door. I removed the proxy configuration, stopped the instance in the forbidden zone, and left the data untouched. Only then did I look for facts.</p>
+<ul>
+<li>From inside the network, the rule appeared to hold: the router returns a local request with a local IP, therefore allowed. The test was wrong.</li>
+<li>From an outside vantage point, services that should not have been public were indeed refused; only the public site answered.</li>
+<li>Service logs showed neither crash nor restart. The instability was in the path between machines, not in the processes.</li>
+<li>The message bus was connected, the threads were marked active on their nodes, yet the first message sent immediately after creation triggered nothing.</li>
+</ul>
+<p>The rule that follows: never conclude from a test that crosses the network you think you control. For public exposure, you need a public observer.</p>
+
+<h2>3. The fixes</h2>
+<p><strong>Put the service in the right place.</strong> The app was rebuilt on the compute machine, listening only on localhost, then published on the encrypted private network. No new public domain, no new door in the security zone. The service remains reachable from the phone, but only after entering the tunnel.</p>
+<p><strong>Make the network rule visible from outside.</strong> Every name hosted by the proxy now allows the private and local networks and refuses everything else, except the public site. Certificate renewal still works. Every configuration received a copy of the previous version before modification.</p>
+<p><strong>Remove the string.</strong> The three agent nodes now reach each other through their private encrypted addresses. The manual SSH tunnels are stopped. What remains is declarative: each node knows the coordinator, where it listens, and which port it advertises.</p>
+<p><strong>Make creation atomic.</strong> The API that opens an agent thread now waits for the creation event before answering. If the target machine refuses or does not answer, the caller knows. A pull request adds a test that creates a thread on a second node and sends it a message immediately: the existing race became a test case.</p>
+<p><strong>Repair the configuration conflict.</strong> A context-compression plugin refused to start because a provider had the same name as a managed block. The plugin’s official command restores the configuration from its snapshot; a fresh session then verified that everything starts.</p>
+<p><strong>Wake the backup.</strong> The disk that receives the off-hypervisor copy keeps a 100 GB floor. It had fallen to 72 GB and the job correctly refused to run. I archived an inactive large model to a storage disk, verified the copy byte for byte, and removed the source. The completed pull received 59.58 GB in 8 min 38 s; I then reduced quarantine retention to two days to keep the floor without deleting the mirror.</p>
+
+<h2>4. What I tested after the fixes</h2>
+<table>
+<tr><th>Check</th><th>Expected</th><th>Observed</th></tr>
+<tr><td>Private domain from outside</td><td>refusal</td><td>403 on every service tested</td></tr>
+<tr><td>Public site from outside</td><td>response</td><td>200</td></tr>
+<tr><td>Moved app on the private network</td><td>response in tunnel</td><td>200</td></tr>
+<tr><td>Create three threads and message them immediately</td><td>three answers</td><td>exact answers in 7–8 s</td></tr>
+<tr><td>Move a thread to another node, answer, move back</td><td>history preserved</td><td>answer on the arrival node, return to the origin node</td></tr>
+<tr><td>Agent configuration</td><td>clean validation</td><td>diagnostic tool OK, control session without error</td></tr>
+<tr><td>Disk space on the small machine</td><td>breathing room</td><td>5 GB free after purging regenerable artifacts</td></tr>
+<tr><td>Archived model copy</td><td>identical</td><td>same file count, same byte size, comparison without differences</td></tr>
+<tr><td>Backup pull after freeing space</td><td>success and floor preserved</td><td>59.58 GB received, exit code 0, then 146 GB free after two-day quarantine purge</td></tr>
+</table>
+<p>These tests do not prove that everything will work tomorrow. They prove that the known causes are dead today. That is an important difference.</p>
+
+<h2>5. The prevention plan</h2>
+<ul>
+<li><strong>Doctrine becomes code.</strong> A note saying “do not install here” has already been broken by the person who wrote it. The next step is an infrastructure role: the forbidden zone refuses services without its label, and the proxy applies its exception list from versioned source.</li>
+<li><strong>Every installation request names its zone.</strong> “On the available machine” is no longer an acceptable answer. Public, private, compute, data, security: the choice is explicit before the first container.</li>
+<li><strong>No manual tunnel in the production path.</strong> A tunnel is a bandage. It may get you through an hour, not through a service. If there is no declarative route, create the route; do not start a process.</li>
+<li><strong>Every asynchronous call that answers “ok” must say what it is waiting for.</strong> Creation, teleport, update: the API returns a verdict when the state is reached or an error when it is not. Silence is never success.</li>
+<li><strong>Integration tests cross nodes.</strong> A local test does not find a routing failure. Create on one node, speak from another, move the thread, answer again: that is the minimum for a mesh.</li>
+<li><strong>External checking is scheduled.</strong> An exposure rule is verified from outside, every day, with a result written somewhere. The day the check turns red, you do not need to remember last month.</li>
+<li><strong>Backups keep their floor.</strong> The refusal at 72 GB free was not a bug: it was the guardrail working. The fix is not to lower the floor, but to monitor space and archive large inactive objects before the blockage.</li>
+<li><strong>Every incident feeds shared memory.</strong> Agents read the journal before diagnosing. A failure explained once should be found in one query next time.</li>
+</ul>
+
+<h2>6. What I take away</h2>
+<p>The agent did not “misbehave” the way a child disobeys. It optimized the visible task—install, expose, show—without a strong enough carrier for the invisible constraint. When the requested expertise is high, the frame remains human. Here, the frame is the zone, the route, the acknowledgement, the external test, and the floor.</p>
+<p>The lesson is not to delegate less. It is to delegate with guardrails that even a very good model cannot bypass through enthusiasm.</p>
+
+<p>Read next: <a href="/tailscale-backbone.html">Tailscale as the backbone</a>, <a href="/web-exposure-audit.html">audit before exposing a service</a>, <a href="/deterministic-doctrine.html">the deterministic doctrine</a>, and <a href="/failures-that-call.html">failures that call you</a>.</p>
