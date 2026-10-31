@@ -43,7 +43,7 @@ def test_every_page_declares_its_language(out):
 def test_every_local_link_resolves(out):
     for page in pages(out):
         for ref in re.findall(r'(?:href|src|poster)="(/[^"]*)"', page.read_text(encoding="utf-8")):
-            ref = ref.split("#")[0]
+            ref = ref.split("#")[0].split("?")[0]
             target = out / ref.lstrip("/")
             if ref.endswith("/"):
                 target = target / "index.html"

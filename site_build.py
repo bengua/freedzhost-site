@@ -737,7 +737,7 @@ def hero(lang):
             f'stroke-linecap="round" stroke-linejoin="round"/></svg></a>'
             f'</section>\n'
             f'<div id="hero-end"></div>\n'
-            f'<script defer src="/hero.js"></script>\n')
+            f'<script defer src="/hero.js?v=20261031-2"></script>\n')
 
 
 def layout(lang, slug, title, body, description, side="", jsonld=None):
@@ -775,7 +775,7 @@ def layout(lang, slug, title, body, description, side="", jsonld=None):
 <link rel="apple-touch-icon" href="/media/inari-icon-180.png">
 <link rel="preload" href="/fonts/fraunces-600.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/inter-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/style.css?v=20261031-2">
 {ld}<script defer src="https://analytics.freedzhost.cloud/script.js" data-website-id="23badf50-b8d2-4487-b2ae-f67ab9fd172d"></script>
 </head>
 <body{body_class}>
