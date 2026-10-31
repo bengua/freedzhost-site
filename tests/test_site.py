@@ -169,20 +169,13 @@ def test_drawer_has_the_new_navigation_tree(out):
         assert "coups-de-coeur.html" in text, home
 
 
-def test_drawer_stays_hidden_until_opened_on_desktop(out):
+def test_drawer_is_a_visible_floating_bar_on_desktop(out):
     style = (out / "style.css").read_text(encoding="utf-8")
-    for hook in (
-        "@media (min-width: 1024px)",
-        ".drawer:target { transform: none; }",
-    ):
-        assert hook in style
-    desktop = style.split("@media (min-width: 1024px)")[1]
-    drawer = desktop[desktop.index(".drawer"):]
-    assert ".drawer .close { display: none; }" not in drawer  # the overlay keeps its explicit close link on desktop
-    assert "nav a.menu-btn { display: none" not in drawer  # the menu button stays on desktop
-    top = style.split(".top-link { display: none; }")[1].split("/* ---- Typography")[0]
-    assert ".brand { display: none" not in top  # the brand stays visible on desktop
-    assert ".top > .brand { display: none" not in style  # the bar carries the brand again
+    desktop = style[style.index("/* ---- The side drawer"):style.index("/* Pager")]
+    assert ".drawer { transform: none; width: 240px; }" in desktop
+    assert "body { padding-left: calc(240px + 16px); }" in desktop
+    assert ".drawer .close, header.top nav a.menu-btn { display: none; }" in desktop
+    assert ".top > .brand { display: none" not in style
 
 
 def test_top_link_stays_compact_on_mobile_and_restores_on_desktop(out):
@@ -323,76 +316,17 @@ def test_every_hero_mascot_entry_has_a_source_webp(out):
 STATIC = Path(__file__).resolve().parent.parent / "static"
 
 
-def test_hero_mascot_layout_reserves_its_band_and_keeps_the_grid():
-    # The hero's layout must stay what it is: the desktop .hero-stage is the
-    # two-column grid the key art composes against, mobile collapses to one
-    # column, and on mobile the in-flow hero reserves a real bottom band with
-    # padding (no viewport or fixed heights) so the still mascot and its tag
-    # sit below every copy/CTA without covering them.
+def test_hero_mascot_stays_in_the_document_flow(out):
     css = (STATIC / "style.css").read_text(encoding="utf-8")
-
-    def media_blocks(css_text, query):
-        """Return the bodies of every `@media <query> { ... }` block."""
-        bodies = []
-        for m in re.finditer(re.escape("@media " + query) + r"\s*\{", css_text):
-            depth, start = 0, m.end() - 1
-            for i in range(start, len(css_text)):
-                if css_text[i] == "{":
-                    depth += 1
-                elif css_text[i] == "}":
-                    depth -= 1
-                    if depth == 0:
-                        bodies.append(css_text[start + 1 : i])
-                        break
-        assert bodies, "style.css must keep an @media " + query + " block"
-        return bodies
-
-    def rules_in(block):
-        """Map selector -> declarations for the rules of one CSS block."""
-        by_sel = {}
-        for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", block):
-            sel = re.sub(r"/\*.*?\*/", "", m.group(1), flags=re.DOTALL)
-            sel = re.sub(r"\s+", " ", sel).strip().lower()
-            decls = re.sub(r"\s+", " ", m.group(2).strip()).lower()
-            by_sel.setdefault(sel, []).append(decls)
-        return by_sel
-
-    mobile = {}
-    for body in media_blocks(css, "(max-width: 760px)"):
-        for sel, decls in rules_in(body).items():
-            mobile.setdefault(sel, []).extend(decls)
-
-    # The mobile one-column hero-stage rule, restored.
-    hero_stage_decls = " ".join(mobile.get(".hero-stage", []))
-    assert "grid-template-columns: 1fr;" in hero_stage_decls, (
-        "the mobile hero-stage must collapse to one column"
-    )
-
-    # The mobile reservation is real padding on the hero, not a fake height:
-    # no viewport-unit height may stand in for the band. The home hero is the
-    # first section of main, so the padding must live on the exact
-    # higher-specificity selector `body.home main > section.hero` — the bare
-    # `.hero` rule would lose to the later `body.home main > section` padding.
-    hero_decls = " ".join(mobile.get("body.home main > section.hero", []))
-    assert "padding-bottom: 200px;" in hero_decls, (
-        "the mobile home hero must reserve the mascot band with padding-bottom"
-    )
-
-    # The still mascot is a 512x512 image: height auto keeps its square aspect
-    # at every responsive width, so the width rules above never squish it.
-    base_mascot = re.search(r"^\.hero-mascot \{[^}]*\}", css, re.MULTILINE)
-    assert base_mascot, "style.css must keep the base .hero-mascot rule"
-    assert "height: auto;" in re.sub(r"\s+", " ", base_mascot.group(0)).lower(), (
-        "the base hero-mascot rule must keep the image square with height auto"
-    )
-
-    # Desktop keeps the two-column hero-stage grid, restored.
-    desktop = re.search(r"^\.hero-stage \{[^}]*\}", css, re.MULTILINE)
-    assert desktop, "style.css must keep the desktop .hero-stage rule"
-    desktop_decls = re.sub(r"\s+", " ", desktop.group(0))
-    assert "display: grid;" in desktop_decls and "grid-template-columns:" in desktop_decls, (
-        "the desktop hero-stage must stay a grid"
-    )
+    mascot = re.search(r"^\.hero-mascot \{[^}]*\}", css, re.MULTILINE)
+    assert mascot and "position: static;" in mascot.group(0)
+    assert "height: auto;" in mascot.group(0)
+    assert ".hero-companion" in css
+    assert "padding-bottom: 200px" not in css
+    for home in (out / "index.html", out / "fr" / "index.html"):
+        text = home.read_text(encoding="utf-8")
+        assert '<div class="hero-companion">' in text
+        assert 'class="hero-parade-tag hero-anchor-tag on"' in text
 
 
 def test_paths_stay_out_of_search_index(out):

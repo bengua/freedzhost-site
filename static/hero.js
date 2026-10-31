@@ -7,19 +7,6 @@
   var hero = document.querySelector(".hero");
   if (!hero) return;
 
-  // The mascot still and its name tag are the final state, so they are set
-  // BEFORE the reduced-motion return: the page is complete without motion.
-  // ONE teammate per page load, picked at random (the title-screen rotation).
-  var mascot = hero.querySelector(".hero-mascot");
-  var tag = hero.querySelector(".hero-anchor-tag");
-  var teamEl = hero.querySelector(".hero-team");
-  var team = teamEl ? JSON.parse(teamEl.textContent) : [];
-  if (mascot && team.length) {
-    var pick = team[(Math.random() * team.length) | 0];
-    mascot.src = "/media/personas/" + pick[0] + ".webp";
-    if (tag) { tag.textContent = pick[1]; tag.classList.add("on"); }
-  }
-
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
   var canvas = hero.querySelector(".hero-embers");
