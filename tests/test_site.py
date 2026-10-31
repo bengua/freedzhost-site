@@ -1,7 +1,6 @@
 """Build the site for real and check what a visitor would hit."""
 
 import re
-from pathlib import Path
 
 import pytest
 
@@ -43,7 +42,7 @@ def test_every_page_declares_its_language(out):
 def test_every_local_link_resolves(out):
     for page in pages(out):
         for ref in re.findall(r'(?:href|src|poster)="(/[^"]*)"', page.read_text(encoding="utf-8")):
-            ref = ref.split("#")[0].split("?")[0]
+            ref = ref.split("#")[0]
             target = out / ref.lstrip("/")
             if ref.endswith("/"):
                 target = target / "index.html"
@@ -169,13 +168,20 @@ def test_drawer_has_the_new_navigation_tree(out):
         assert "coups-de-coeur.html" in text, home
 
 
-def test_drawer_is_a_visible_floating_bar_on_desktop(out):
+def test_drawer_stays_hidden_until_opened_on_desktop(out):
     style = (out / "style.css").read_text(encoding="utf-8")
-    desktop = style[style.index("/* ---- The side drawer"):style.index("/* Pager")]
-    assert ".drawer { transform: none; width: 240px; }" in desktop
-    assert "body { padding-left: calc(240px + 16px); }" in desktop
-    assert ".drawer .close, header.top nav a.menu-btn { display: none; }" in desktop
-    assert ".top > .brand { display: none" not in style
+    for hook in (
+        "@media (min-width: 1024px)",
+        ".drawer:target { transform: none; }",
+    ):
+        assert hook in style
+    desktop = style.split("@media (min-width: 1024px)")[1]
+    drawer = desktop[desktop.index(".drawer"):]
+    assert ".drawer .close { display: none; }" not in drawer  # the overlay keeps its explicit close link on desktop
+    assert "nav a.menu-btn { display: none" not in drawer  # the menu button stays on desktop
+    top = style.split(".top-link { display: none; }")[1].split("/* ---- Typography")[0]
+    assert ".brand { display: none" not in top  # the brand stays visible on desktop
+    assert ".top > .brand { display: none" not in style  # the bar carries the brand again
 
 
 def test_top_link_stays_compact_on_mobile_and_restores_on_desktop(out):
@@ -256,77 +262,6 @@ def test_home_hero_carries_the_localized_h1_and_both_cta_destinations(out):
         assert f'<h1 class="hero-title">{tag}</h1>' in text, home
         assert f'href="{url(lang, "tutos")}"' in text, home
         assert f'href="{url(lang, "parcours-model-7b")}"' in text, home
-
-
-def test_hero_ships_the_default_mascot_image(out):
-    # The mascot is a still image now: the default src is in the DOM (so the
-    # hero is complete without script) and the built WebP it points to ships.
-    default_src = re.search(r'<img class="hero-mascot" src="([^"]+)"', (out / "index.html").read_text(encoding="utf-8"))
-    assert default_src, "the home hero must carry the mascot img"
-    assert (out / default_src.group(1).lstrip("/")).is_file(), default_src.group(1)
-
-
-def test_every_hero_mascot_still_keeps_its_webp_alpha(out):
-    # The hero mascots are stills with transparent backgrounds; an opaque
-    # regression (e.g. a re-export without the VP8X alpha flag) would leave a
-    # dark rectangle behind every mascot, so every localized hero_team still
-    # must ship with the VP8X alpha bit set.
-    import struct
-
-    def vp8x_alpha(webp: Path) -> bool:
-        assert webp.is_file(), webp
-        data = webp.read_bytes()
-        assert data[:4] == b"RIFF" and data[8:12] == b"WEBP", webp
-        offset = 12
-        while offset + 8 <= len(data):
-            chunk = data[offset : offset + 4]
-            size = struct.unpack("<I", data[offset + 4 : offset + 8])[0]
-            if chunk == b"VP8X":
-                return bool(data[offset + 12] & 0x10)
-            offset += 8 + size + (size % 2)
-        return False
-
-    for lang, home in (("en", out / "index.html"), ("fr", out / "fr" / "index.html")):
-        for name, _ in site_build.LANGS[lang]["hero_team"]:
-            still = out / "media" / "personas" / f"{name}.webp"
-            assert vp8x_alpha(still), still
-
-
-def test_every_hero_mascot_entry_has_a_source_webp(out):
-    # Only frame-zero-clean personas may anchor the hero, and each localized
-    # entry must resolve to a WebP that is actually shipped in the build. The
-    # entry's name (not the path) is what the DOM carries; the still is derived
-    # from it, so we check both the shipped file and the localized entry itself.
-    for lang, home in (("en", out / "index.html"), ("fr", out / "fr" / "index.html")):
-        text = home.read_text(encoding="utf-8")
-        for name, label in site_build.LANGS[lang]["hero_team"]:
-            still = f"/media/personas/{name}.webp"
-            assert (out / still.lstrip("/")).is_file(), (name, still)
-        # The localized entries themselves are the source: names must be unique
-        # and each localized hero_team must render into the hero-team block.
-        rendered = re.search(r'<script type="application/json" class="hero-team">(.*?)</script>', text, re.DOTALL)
-        assert rendered, home
-        import json as _json
-        names = [entry[0] for entry in _json.loads(rendered.group(1))]
-        assert names == [name for name, _ in site_build.LANGS[lang]["hero_team"]], home
-    # The two localized lists name the same personas, so the build has no orphan.
-    assert [n for n, _ in site_build.LANGS["en"]["hero_team"]] == [n for n, _ in site_build.LANGS["fr"]["hero_team"]]
-
-
-STATIC = Path(__file__).resolve().parent.parent / "static"
-
-
-def test_hero_mascot_stays_in_the_document_flow(out):
-    css = (STATIC / "style.css").read_text(encoding="utf-8")
-    mascot = re.search(r"^\.hero-mascot \{[^}]*\}", css, re.MULTILINE)
-    assert mascot and "position: static;" in mascot.group(0)
-    assert "height: auto;" in mascot.group(0)
-    assert ".hero-companion" in css
-    assert "padding-bottom: 200px" not in css
-    for home in (out / "index.html", out / "fr" / "index.html"):
-        text = home.read_text(encoding="utf-8")
-        assert '<div class="hero-companion">' in text
-        assert 'class="hero-parade-tag hero-anchor-tag on"' in text
 
 
 def test_paths_stay_out_of_search_index(out):

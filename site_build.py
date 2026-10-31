@@ -48,8 +48,8 @@ LANGS = {
            "hero_kicker": "Tutorials · Homelab · Local AI",
            "hero_tag": "Your own swarm of AI agents, at home.",
            "hero_team": [["inari", "Inari, your guide"],
-                         ["cloudflare", "the network edge"],
-                         ["grok", "the cyberpunk"]],
+                         ["groq", "local lightning"],
+                         ["cloudflare", "the network edge"]],
            "hero_down": "Skip to the content",
            "hero_cta": "Explore the tutorials",
            "hero_cta_paths": "Start a learning path",
@@ -92,8 +92,8 @@ LANGS = {
            "hero_kicker": "Tutos · Homelab · IA locale",
            "hero_tag": "Votre essaim d'agents IA, à la maison.",
            "hero_team": [["inari", "Inari, ton guide"],
-                         ["cloudflare", "le bord du réseau"],
-                         ["grok", "le cyberpunk"]],
+                         ["groq", "l'éclair local"],
+                         ["cloudflare", "le bord du réseau"]],
            "hero_down": "Aller au contenu",
            "hero_cta": "Découvrir les tutos",
            "hero_cta_paths": "Commencer un parcours",
@@ -716,6 +716,7 @@ def hero(lang):
     return (f'<section class="hero">'
             f'<img class="hero-art" src="/media/hero-bg.webp" alt="" width="1600" height="914" '
             f'fetchpriority="high" decoding="async">'
+            f'<video class="hero-mascot" muted playsinline preload="auto" aria-hidden="true"></video>'
             f'<canvas class="hero-embers" aria-hidden="true"></canvas>'
             f'<div class="hero-stage"><div class="hero-copy">'
             f'<p class="hero-kicker">{html.escape(t["hero_kicker"])}</p>'
@@ -725,11 +726,8 @@ def hero(lang):
             f'<a class="cta" href="{url(lang, "tutos")}">{html.escape(t["hero_cta"])}</a> '
             f'<a class="cta cta-alt" href="{url(lang, "parcours-model-7b")}">{html.escape(t["hero_cta_paths"])}</a>'
             f'</p>'
-            f'</div><div class="hero-companion">'
-            f'<img class="hero-mascot" src="/media/personas/inari.webp" alt="" width="512" height="512" '
-            f'loading="eager" fetchpriority="high" decoding="async" aria-hidden="true">'
-            f'<span class="hero-parade-tag hero-anchor-tag on" aria-hidden="true">'
-            f'{html.escape(t["hero_team"][0][1])}</span></div></div>'
+            f'</div></div>'
+            f'<span class="hero-parade-tag hero-anchor-tag" aria-hidden="true"></span>'
             f'<script type="application/json" class="hero-team">{json.dumps(t["hero_team"])}</script>'
             f'<a class="hero-down" href="#hero-end" aria-label="{html.escape(t["hero_down"])}">'
             f'<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">'
@@ -737,7 +735,7 @@ def hero(lang):
             f'stroke-linecap="round" stroke-linejoin="round"/></svg></a>'
             f'</section>\n'
             f'<div id="hero-end"></div>\n'
-            f'<script defer src="/hero.js?v=20261031-2"></script>\n')
+            f'<script defer src="/hero.js"></script>\n')
 
 
 def layout(lang, slug, title, body, description, side="", jsonld=None):
@@ -775,7 +773,7 @@ def layout(lang, slug, title, body, description, side="", jsonld=None):
 <link rel="apple-touch-icon" href="/media/inari-icon-180.png">
 <link rel="preload" href="/fonts/fraunces-600.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/inter-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/style.css?v=20261031-2">
+<link rel="stylesheet" href="/style.css">
 {ld}<script defer src="https://analytics.freedzhost.cloud/script.js" data-website-id="23badf50-b8d2-4487-b2ae-f67ab9fd172d"></script>
 </head>
 <body{body_class}>

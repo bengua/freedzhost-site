@@ -246,10 +246,10 @@ th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: le
 .drawer .bottom a { display: block; padding: 5px 8px; border-radius: var(--r-card); color: var(--text-2); text-decoration: none; line-height: 1.35; }
 .drawer .bottom a:hover { color: var(--text); background: var(--bg); }
 @media (min-width: 1024px) {
-  /* The floating navigation stays visible and the content reserves its column. */
-  .drawer { transform: none; width: 240px; }
-  .drawer .close, header.top nav a.menu-btn { display: none; }
-  body { padding-left: calc(240px + 16px); }
+  /* The top nav owns the quick links; the drawer stays an on-demand overlay
+     (opened by #menu), so the reading column keeps the full width on desktop. */
+  .drawer { transform: translateX(-100%); }
+  .drawer:target { transform: none; }
 }
 
 /* Pager between the articles of a series */
@@ -457,10 +457,6 @@ body.home .top { position: sticky; z-index: 34; padding-inline: max(16px, calc((
     to { opacity: 1; transform: none; filter: none; } }
   @keyframes hero-fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   @keyframes hero-bob { 50% { transform: translateY(6px); } }
-  /* The mascot is a still image now: a transform-only breath keeps it alive
-     without any layout shift, and it never leaves its reserved corner. */
-  @keyframes hero-mascot-breathe { 50% { transform: scale(1.04) translateY(-2%); } }
-  .hero-mascot { transform-origin: 50% 100%; animation: hero-mascot-breathe 3.6s var(--breath) infinite; }
   .hero.is-live .hero-kicker { opacity: 0; animation: hero-fade .6s var(--ease) 80ms forwards; }
   .hero.is-live .hero-title .hl { opacity: 0; animation: hero-letter .55s var(--ease) both; animation-delay: var(--d); }
   .hero.is-live .hero-intro { opacity: 0; animation: hero-fade .8s var(--ease) .95s forwards; }
@@ -490,19 +486,20 @@ body.home .top { position: sticky; z-index: 34; padding-inline: max(16px, calc((
   .den::before, .den::after { will-change: transform; }
 }
 
-/* Inari stays in the grid, with her name below: no absolute positioning or script can hide her. */
-.hero-companion { position: relative; z-index: 3; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; min-width: 0; }
-.hero-anchor-tag { max-width: 20ch; margin-top: -18px; padding: 6px 12px; border-left: 2px solid var(--accent);
+/* The teammate anchoring the hero: one per load, its name tag beside it (hero.js). */
+.hero-anchor-tag { position: absolute; z-index: 4; right: 5%; bottom: 8%;
+  max-width: 20ch; padding: 6px 12px; border-left: 2px solid var(--accent);
   font-family: var(--font-display); font-style: italic; font-size: var(--s16); color: var(--text-1);
-  background: rgba(18, 16, 14, .6); pointer-events: none; }
-.hero-mascot { display: block; position: static; width: min(32vw, 320px); height: auto;
-  pointer-events: none; background: none; border-radius: 0; margin: 0;
-  filter: drop-shadow(0 22px 34px rgba(0, 0, 0, .5)); }
+  background: rgba(18, 16, 14, .6); opacity: 0; transform: translateY(8px);
+  transition: opacity var(--t-page) var(--ease) .25s, transform var(--t-page) var(--ease) .25s; pointer-events: none; }
+.hero-anchor-tag.on { opacity: 1; transform: none; }
+.hero-mascot { position: absolute; z-index: 3; right: 4%; bottom: 0; width: min(42vh, 360px);
+  pointer-events: none; filter: drop-shadow(0 22px 34px rgba(0, 0, 0, .5)); }
+/* The global video rule (black backdrop) must not paint behind the transparent mascot webm. */
+.hero-mascot { background: none; border-radius: 0; margin: 0; }
 @media (max-width: 760px) {
-  .hero-companion { flex-direction: row; justify-content: flex-end; gap: 12px; margin-top: 16px; }
-  .hero-mascot { width: 140px; }
-  .hero-anchor-tag { margin-top: 0; font-size: var(--s14); }
+  .hero-mascot { width: min(30vh, 220px); right: 2%; bottom: -6px; opacity: .92; }
+  .hero-anchor-tag { top: auto; bottom: 6%; right: 4%; font-size: var(--s14); }
 }
 
 /* ---- Home sections: briefing, paths, latest tutorial, letter ---- */
