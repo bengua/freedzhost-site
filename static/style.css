@@ -492,7 +492,7 @@ body.home .top { position: sticky; z-index: 34; padding-inline: max(16px, calc((
 
 /* The teammate anchoring the hero: one still per load, its name tag beside it (hero.js).
    Both sit in the band's lower-right corner, clear of the title, intro and CTAs. */
-.hero-anchor-tag { position: absolute; z-index: 4; left: 16px; right: auto;
+.hero-anchor-tag { position: absolute; z-index: 4; left: auto; right: 32px;
   bottom: 38px;
   max-width: 20ch; padding: 6px 12px; border-left: 2px solid var(--accent);
   font-family: var(--font-display); font-style: italic; font-size: var(--s16); color: var(--text-1);
