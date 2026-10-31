@@ -13,3 +13,4 @@ docs/UNIVERS.md # transversal design constitution written in French, same catego
 docs/INARI.md # the Inari character charter, a French design document in the same category as docs/UNIVERS.md
 docs/REFS.md # design direction references, a French design document like docs/UNIVERS.md
 content/campus.json # bilingual campus data (French strings alongside English)
+tools/english-check # the language checker documents the French words, names and prose patterns it must detect
