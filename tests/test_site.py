@@ -369,10 +369,21 @@ def test_hero_mascot_layout_reserves_its_band_and_keeps_the_grid():
     )
 
     # The mobile reservation is real padding on the hero, not a fake height:
-    # no viewport-unit height may stand in for the band.
-    hero_decls = " ".join(mobile.get(".hero", []))
+    # no viewport-unit height may stand in for the band. The home hero is the
+    # first section of main, so the padding must live on the exact
+    # higher-specificity selector `body.home main > section.hero` — the bare
+    # `.hero` rule would lose to the later `body.home main > section` padding.
+    hero_decls = " ".join(mobile.get("body.home main > section.hero", []))
     assert "padding-bottom: 200px;" in hero_decls, (
-        "the mobile hero must reserve the mascot band with padding-bottom"
+        "the mobile home hero must reserve the mascot band with padding-bottom"
+    )
+
+    # The still mascot is a 512x512 image: height auto keeps its square aspect
+    # at every responsive width, so the width rules above never squish it.
+    base_mascot = re.search(r"^\.hero-mascot \{[^}]*\}", css, re.MULTILINE)
+    assert base_mascot, "style.css must keep the base .hero-mascot rule"
+    assert "height: auto;" in re.sub(r"\s+", " ", base_mascot.group(0)).lower(), (
+        "the base hero-mascot rule must keep the image square with height auto"
     )
 
     # Desktop keeps the two-column hero-stage grid, restored.
