@@ -1,0 +1,214 @@
+#!/usr/bin/env python3
+"""english-check — everything versioned is in English; this counts what is not.
+
+The fleet's rule is English in code, comments, docs, names and printed
+messages. Two campaigns (19/09 and 30/09/2026) were reported done and the
+French was still there on 03/10: the first checked a NAMED list of ten
+documents, so everything else escaped, and nothing stopped the next commit
+from adding more. This checker reads every tracked file instead, and
+`verify.sh` calls it with the count the repository may not exceed: the number
+only goes down, and zero is the goal.
+
+Three kinds of finding:
+  prose  a line that reads as French (French-only function words, accents)
+  name   an identifier built from a French word: modele_servi, fh-tuer, debitPlancher
+  path   a file or directory named in French
+and a fourth, counted apart because it came later (03/10/2026):
+  word   ONE French word used as code: a flag (--silencieux), a quoted key
+         ("probabilite"), a constant (ROUGE), a function (lire()). The three
+         kinds above only saw compound names, so a whole layer of French
+         interfaces (CLI flags, JSON keys, verdict tokens) went uncounted.
+
+What is legitimately French is listed in `.english-exceptions` at the
+repository root, one glob per line, and every line must give its reason after
+` # `: a product's `fr` locale, a fixture of what a French-speaking user
+types, a dated journal kept as written. A line without a reason is refused.
+
+    english-check [--max N] [--max-words W] [--list] [DIR]
+
+Exit 0 when the prose, name and path findings are exactly N (default 0), and,
+when --max-words is given, the word findings exactly W: above, French came in;
+below, the allowance must come down with it. Without --max-words the words are
+counted and printed but do not decide: a repository adopts that ratchet when it
+is ready. 1 otherwise, 2 on a bad exceptions file. Stdlib only.
+"""
+import fnmatch
+import os
+import re
+import subprocess
+import sys
+
+# French function words that are not English words. "a", "on", "la", "du",
+# "me" and the like are English too and would flag English prose.
+FR_WORDS = set("""
+le les des une est pour dans avec pas qui aux sont que mais cette ces leur leurs aussi deux fait quand
+sans nous vous ils elle elles ne été être avoir tout tous toute toutes rien plus très
+donc car parce comme alors puis ensuite déjà encore jamais toujours chaque même lui notre votre
+ici voici voilà selon depuis pendant entre vers chez sous sur au du ou où
+""".split())
+# Words of French vocabulary seen in this fleet's names, none of them English.
+FR_NAMES = set("""
+carte cartes conteneur conteneurs bascule basculer tuer hote hôte etat état etats recreer
+verifie verification sonde sondes banc bancs chaine chaîne jeu rendu ouverture vanne depot dépôt depots
+livrable livrables mesure mesures motif outil outils memoire mémoire chercher poste postes garde plancher
+debit débit noeud nœud jumeaux nomme fenetres fenêtres editeur éditeur causer charger chauffer banque
+collecte locataires apercu aperçu taches tâches veille reprise coffre releve relevé tourniquet redacteur
+orchestrateur pilote pilotage parc modele modèle modeles modèles reglage reglages réglages commande
+commandes fichier fichiers dossier dossiers lire ecrire écrire attendre demarrer démarrer arreter arrêter
+lister trouver suivre sortie entree entrée erreur erreurs tache tâche resultat résultat resultats preuve
+preuves essai essais demande reponse réponse cible courant nettoyer nettoyage sauvegarde sauvegardes
+restaurer jeton jetons juge indice indices envoyer recevoir afficher affichage ecran écran clavier souris
+fenetre fenêtre bouton boutons tuile tuiles carnet bilan cout coût couts creer créer supprimer ajouter
+retirer lancer lanceur relancer surveiller surveillance alerte alertes rapport attendu manifeste
+servi seuil cle clé copie fou fous phrases termes passe genere generes généré cumule instantane
+""".split()) - {"source", "mode", "phase", "journal", "vue", "liste", "note", "cible"}
+# Single words that are French and never English, seen as flags, JSON keys,
+# constants and functions in this fleet (03/10/2026). Kept apart from FR_NAMES:
+# alone, a word needs to be unambiguous ("plans", "local", "note" are English).
+FR_SINGLE = FR_NAMES | set("""
+rouge vert manquant manquants declaree declare taille probabilite probabilites categorie resultats
+textes silencieux dossier limite appliquer resoudre bloques retenus actuelle actuel disponible inconnu
+nom noms entetes autres socles historique sous seul operateur plafond enquete extraits valeur valeurs
+survivants tentees moteur moteurs brouillon langue reprendre realisateur liberer vide oui aucun nouveau
+ancien gauche droite debut suivant precedent tranche trancher requetes differees occupes employe part
+mesurer jetons noeuds sauvegarder ecrite saute sautes
+""".split())
+WORD_CODE = re.compile(r"--([a-z][a-z0-9]*)\b|[\"']([A-Za-zéèêàâùç][a-zéèêàâùç]+)[\"']|\b([A-Z][A-Z]{3,})\b"
+                       r"|\bdef ([a-z]+)\(|^\s*([a-z]+)\(\)\s*\{")
+# Elisions are French only with their apostrophe: l'état, qu'il, n'est. A bare
+# `l`, `d` or `s` is a shell variable or a format string far more often.
+ELISION = re.compile(r"\b(?:l|d|n|j|c|s|qu|jusqu)['’][a-zéèêàâùç]", re.I)
+# A line recording a rename quotes the old name on purpose: that is history.
+RENAME = re.compile(r"→|->|\brenamed\b|\bbecame\b|\bformerly\b|\bwas called\b", re.I)
+CODE_SPAN = re.compile(r"`[^`]*`")
+ACCENT = re.compile(r"[éèêëàâùûüçôîïœ]", re.I)
+WORD = re.compile(r"[a-zéèêëàâùûüçôîïœ]+", re.I)
+IDENT = re.compile(r"[A-Za-z][A-Za-z0-9]*(?:[_-][A-Za-z0-9]+)+|[a-z]+[A-Z][A-Za-z0-9]+")
+EN_WORDS = set("the and is are with for this that not of to it be by from as an or if then when which".split())
+SKIP = re.compile(r"(^|/)(LICENSE[^/]*|COPYING|THIRD_PARTY_NOTICES[^/]*)$|\.(lock|svg|png|jpe?g|gif|webp|ico|ttf|otf|woff2?"
+                  r"|apk|jar|zip|gz|zst|pdf|mp3|wav|ogg|mp4|gguf|bin)$|(^|/)(pnpm-lock\.yaml|package-lock\.json|Cargo\.lock)$")
+
+
+def parts(name):
+    """Words of an identifier: modele_servi -> modele, servi; debitPlancher -> debit, plancher."""
+    out = []
+    for chunk in re.split(r"[_\-./\s]+", name):
+        out += [p.lower() for p in re.findall(r"[A-Z]?[a-zéèêëàâùûüçôîïœ]+|[A-Z]+(?![a-z])", chunk)]
+    return out
+
+
+def french_prose(line):
+    words = [w.lower() for w in WORD.findall(line)]
+    fr = sum(w in FR_WORDS for w in words) + len(ELISION.findall(line))
+    en = sum(w in EN_WORDS for w in words)
+    accented = any(ACCENT.search(w) for w in words)
+    return (fr >= 3 and fr > en) or (accented and fr >= 1 and fr >= en)
+
+
+def french_names(line):
+    if RENAME.search(line):
+        return []
+    return sorted({m for m in IDENT.findall(line) if any(p in FR_NAMES for p in parts(m))})
+
+
+def french_words(line):
+    """Single French words used as code on this line (see FR_SINGLE)."""
+    if RENAME.search(line):
+        return []
+    found = set()
+    for m in WORD_CODE.finditer(line):
+        w = next(g for g in m.groups() if g)
+        if w.lower() in FR_SINGLE or (ACCENT.search(w) and len(w) > 3):
+            found.add(w)
+    return sorted(found)
+
+
+def load_exceptions(root):
+    path = os.path.join(root, ".english-exceptions")
+    if not os.path.exists(path):
+        return []
+    globs = []
+    for n, raw in enumerate(open(path, encoding="utf-8"), 1):
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        glob, sep, reason = line.partition(" # ")
+        if not sep or not reason.strip():
+            print(f"english-check: .english-exceptions:{n}: no reason given for '{line}'", file=sys.stderr)
+            sys.exit(2)
+        globs.append(glob.strip())
+    return globs
+
+
+def excluded(path, globs):
+    return any(fnmatch.fnmatch(path, g) or fnmatch.fnmatch(path, g.rstrip("/") + "/*") for g in globs)
+
+
+def scan(root):
+    files = subprocess.run(["git", "-C", root, "ls-files", "-z"], capture_output=True, text=True, check=True).stdout
+    globs = load_exceptions(root)
+    findings = []
+    for f in filter(None, files.split("\0")):
+        if SKIP.search(f) or excluded(f, globs) or f == ".english-exceptions":
+            continue
+        for p in sorted({p for p in parts(f) if p in FR_NAMES}):
+            findings.append(("path", f, 0, p))
+        try:
+            text = open(os.path.join(root, f), encoding="utf-8").read()
+        except (UnicodeDecodeError, IsADirectoryError, FileNotFoundError):
+            continue
+        markdown = f.endswith(".md")
+        changelog = os.path.basename(f).upper().startswith("CHANGELOG")
+        for n, line in enumerate(text.splitlines(), 1):
+            # In Markdown a `code span` quotes a string or a command; it is not prose.
+            prose = CODE_SPAN.sub(" ", line) if markdown else line
+            if french_prose(prose):
+                findings.append(("prose", f, n, line.strip()[:160]))
+            # A changelog is dated history: the old names it records stay as they were.
+            for name in ([] if changelog else french_names(line)):
+                findings.append(("name", f, n, name))
+            if not markdown and not changelog and not french_prose(prose):
+                for word in french_words(line):
+                    findings.append(("word", f, n, word))
+    return findings
+
+
+def main(argv):
+    limit, words_limit, show, root = 0, None, False, "."
+    args = list(argv)
+    while args:
+        a = args.pop(0)
+        if a == "--max":
+            limit = int(args.pop(0))
+        elif a == "--max-words":
+            words_limit = int(args.pop(0))
+        elif a == "--list":
+            show = True
+        elif a in ("-h", "--help"):
+            print(__doc__)
+            return 0
+        else:
+            root = a
+    findings = scan(root)
+    if show:
+        for kind, f, n, what in findings:
+            print(f"{kind:5} {f}:{n}: {what}")
+    count = {k: sum(1 for x in findings if x[0] == k) for k in ("prose", "name", "path", "word")}
+    total = count["prose"] + count["name"] + count["path"]
+    verdict = "OK " if total == limit else "KO "
+    print(f"{verdict} english-check: {total} finding(s) (prose {count['prose']}, names {count['name']}, "
+          f"paths {count['path']}), allowed {limit}")
+    if total > limit:
+        print("     run `english-check --list` to see them; translate, or list a legitimate French file in "
+              ".english-exceptions with its reason", file=sys.stderr)
+    elif total < limit:
+        print(f"     lower the allowance in verify.sh to {total} in this same change: the count only goes down,"
+              " and a margin left open is a margin the next French line takes", file=sys.stderr)
+    words_ok = words_limit is None or count["word"] == words_limit
+    print(f"{'OK ' if words_ok else 'KO '} english-check: {count['word']} French word(s) used as code, "
+          + ("not ratcheted yet (--max-words)" if words_limit is None else f"allowed {words_limit}"))
+    return 0 if total == limit and words_ok else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
