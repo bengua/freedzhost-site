@@ -273,6 +273,32 @@ def test_hero_ships_the_default_mascot_image(out):
     assert (out / default_src.group(1).lstrip("/")).is_file(), default_src.group(1)
 
 
+def test_every_hero_mascot_still_keeps_its_webp_alpha(out):
+    # The hero mascots are stills with transparent backgrounds; an opaque
+    # regression (e.g. a re-export without the VP8X alpha flag) would leave a
+    # dark rectangle behind every mascot, so every localized hero_team still
+    # must ship with the VP8X alpha bit set.
+    import struct
+
+    def vp8x_alpha(webp: Path) -> bool:
+        assert webp.is_file(), webp
+        data = webp.read_bytes()
+        assert data[:4] == b"RIFF" and data[8:12] == b"WEBP", webp
+        offset = 12
+        while offset + 8 <= len(data):
+            chunk = data[offset : offset + 4]
+            size = struct.unpack("<I", data[offset + 4 : offset + 8])[0]
+            if chunk == b"VP8X":
+                return bool(data[offset + 12] & 0x10)
+            offset += 8 + size + (size % 2)
+        return False
+
+    for lang, home in (("en", out / "index.html"), ("fr", out / "fr" / "index.html")):
+        for name, _ in site_build.LANGS[lang]["hero_team"]:
+            still = out / "media" / "personas" / f"{name}.webp"
+            assert vp8x_alpha(still), still
+
+
 def test_every_hero_mascot_entry_has_a_source_webp(out):
     # Only frame-zero-clean personas may anchor the hero, and each localized
     # entry must resolve to a WebP that is actually shipped in the build. The
