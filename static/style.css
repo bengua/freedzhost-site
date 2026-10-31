@@ -500,14 +500,16 @@ body.home .top { position: sticky; z-index: 34; padding-inline: max(16px, calc((
   transition: opacity var(--t-page) var(--ease) .25s, transform var(--t-page) var(--ease) .25s; pointer-events: none; }
 .hero-anchor-tag.on { opacity: 1; transform: none; }
 .hero-mascot { position: absolute; z-index: 3; right: 16px;
-  bottom: 24px; width: min(40vh, 340px);
+  bottom: 24px; width: min(40vh, 340px); height: auto;
   pointer-events: none; filter: drop-shadow(0 22px 34px rgba(0, 0, 0, .5)); }
 /* The mascot is a still now: no video backdrop to clear. */
 .hero-mascot { background: none; border-radius: 0; margin: 0; }
 @media (max-width: 760px) {
   /* The compact in-flow hero reserves its mascot band with real padding:
-     no fixed height, no viewport units, so the copy above always stays clear. */
-  .hero { padding-bottom: 200px; }
+     no fixed height, no viewport units, so the copy above always stays clear.
+     The home hero is `main > section.hero`: a specificity above
+     `body.home main > section` so its bottom padding actually applies. */
+  body.home main > section.hero { padding-bottom: 200px; }
   .hero-mascot { width: 140px; right: 16px; bottom: 24px; }
   .hero-anchor-tag { left: 16px; right: auto; bottom: 38px; font-size: var(--s14); }
 }
